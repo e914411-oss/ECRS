@@ -1098,7 +1098,7 @@
                 <div class="check-row3">
                     <div class="btn-group">
                         <button type="button" class="btn btn-form" onclick="window.history.go(-1);">取消</button>
-                        <input type="submit" class="btn btn-form" name="save" id="save" value="儲存" onclick="return CheckData();" class="btn btn-primary">
+                        <input type="submit" class="btn btn-form" name="save" id="save" value="儲存" class="btn btn-primary">
                         <button type="button" class="btn btn-form" onclick="window.history.go(-1);">預覽表單</button>
                     </div>
                 </div>
@@ -1309,6 +1309,11 @@
                 }
             });
 
+            $("#save").on("click", function (e) {
+                e.preventDefault();
+                CheckData();
+            });
+
             // 暫時先讓設定視窗內的取消按鈕關閉遮罩
             $("#ctl00_ContentPlaceHolder1_btnResetDynamic1, #ctl00_ContentPlaceHolder1_btnResetDynamic2").on("click", function (e) {
                 e.preventDefault();
@@ -1375,6 +1380,43 @@
             return year + "-" + pad2(month) + "-" + pad2(day);
         }
 
+
+
+        function getFormAddInputValues() {
+            var formName = $.trim($("#FormName").val());
+            var projectDeadline = $.trim($("#ProjectDeadline").val());
+            var inspectionItems = $(".check-row input[type='checkbox']:checked").map(function () {
+                return $(this).attr("id");
+            }).get().join(",");
+
+            return {
+                formName: formName,
+                projectDeadline: projectDeadline,
+                inspectionItems: inspectionItems
+            };
+        }
+
+        function CheckData() {
+            var formData = getFormAddInputValues();
+
+            $.ajax({
+                url: "@Url.Content("~/FormManage/FormAdd")",
+                type: "GET",
+                data: {
+                    FormName: formData.formName,
+                    ProjectDeadline: formData.projectDeadline,
+                    InspectionItems: formData.inspectionItems
+                },
+                success: function () {
+                    alert("儲存成功");
+                },
+                error: function (xhr, status, error) {
+                    alert(xhr.responseText + "\n" + status + "\n" + error);
+                }
+            });
+
+            return false;
+        }
         // 點擊小日曆按鈕，打開對應的 type=date
         $(document).on("click", ".date-calendar-btn", function () {
             var pickerSelector = $(this).data("picker");
