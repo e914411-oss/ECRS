@@ -4,18 +4,16 @@
 *.user
 *.userosscache
 *.sln.docstates
-*.csprj
 *.csproj.user
 *.bak
+
+# Local tools / publish profile
 .config/dotnet-tools.json
 Properties/PublishProfiles/FolderProfile.pubxml
 
 # Build output
 bin/
 obj/
-.vs/
-*.user
-*.suo
 packages/
 TestResults/
 *.log
