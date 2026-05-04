@@ -1,0 +1,33 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.csprj
+*.csproj.user
+*.bak
+.config/dotnet-tools.json
+Properties/PublishProfiles/FolderProfile.pubxml
+
+# Build output
+bin/
+obj/
+.vs/
+*.user
+*.suo
+packages/
+TestResults/
+*.log
+
+# VS cache / db / index
+*.db
+*.db-shm
+*.db-wal
+*.vsidx
+
+# Optional
+Debug/
+Release/
+x64/
+x86/

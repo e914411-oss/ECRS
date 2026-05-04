@@ -1,0 +1,986 @@
+@model IEnumerable<ECRS_WEB.Models.ECRS.專案名稱代碼表>
+
+@{
+    ViewData["Title"] = "表單管理-表單編輯作業";
+    var Departments = ViewBag.Departments ?? new List<ECRS_WEB.Models.PMDS.系統_部門表>();
+}
+
+
+
+@section Styles {
+    <style>
+        th {
+            text-wrap: nowrap;
+        }
+
+        .main-title {
+            font-size: 1.35rem;
+            font-weight: 600;
+            position: relative;
+            padding-left: 12px;
+        }
+
+            .main-title::before {
+                content: "";
+                position: absolute;
+                left: 0;
+                top: 3px;
+                width: 4px;
+                height: 20px;
+                background: #198754;
+                border-radius: 2px;
+            }
+
+        .secend-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            position: relative;
+            padding-left: 10px;
+        }
+
+            .secend-title::before {
+                content: "";
+                position: absolute;
+                left: 0;
+                top: 3px;
+                width: 3px;
+                height: 16px;
+                background: #198754;
+                border-radius: 2px;
+            }
+
+        .form-editer-page {
+            padding-bottom: 24px;
+        }
+
+        .form-editer-card {
+            border: 2px solid #7ecb8a;
+            border-radius: 8px;
+            background: #f7fbf7;
+            padding: 28px 18px 24px 18px;
+            box-shadow: 0 0 0 4px rgba(126, 203, 138, .15);
+            position: relative;
+        }
+
+        .form-editer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 28px;
+        }
+
+        .form-editer-col {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .query-row {
+            display: grid;
+            grid-template-columns: 150px minmax(220px, 1fr);
+            align-items: center;
+            gap: 10px;
+        }
+
+            .query-row.query-row-status {
+                align-items: end;
+            }
+
+        .query-label {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+            white-space: nowrap;
+            text-align: right;
+            justify-self: end;
+        }
+
+        .query-inline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .query-inline > .form-control,
+            .query-inline > .form-select {
+                flex: 1 1 auto;
+            }
+
+        .sub-search-section {
+            grid-column: 1 / -1;
+            margin-top: 6px;
+        }
+
+        .date-range-row {
+            display: grid;
+            grid-template-columns: 180px minmax(220px, 1fr) 180px minmax(220px, 1fr);
+            align-items: center;
+            gap: 12px 16px;
+            padding-bottom: 15px;
+        }
+
+
+        .date-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+            .date-input-wrap .roc-date-text {
+                padding-right: 46px;
+            }
+
+            .date-input-wrap .date-picker-hidden {
+                position: absolute;
+                right: 0;
+                top: 0;
+                width: 42px;
+                height: 100%;
+                opacity: 0;
+                z-index: 2;
+                cursor: pointer;
+            }
+
+            .date-input-wrap .date-calendar-btn {
+                position: absolute;
+                right: 1px;
+                top: 1px;
+                width: 40px;
+                height: calc(100% - 2px);
+                border: 0;
+                border-left: 1px solid #ced4da;
+                background: #fff;
+                color: #333;
+                z-index: 1;
+                cursor: pointer;
+                border-radius: 0 0.375rem 0.375rem 0;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+                .date-input-wrap .date-calendar-btn:hover {
+                    background: #f2f2f2;
+                }
+
+        .pmds-radio-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+            .pmds-radio-group .radio-inline-item {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                margin: 0;
+                white-space: nowrap;
+                font-weight: normal;
+            }
+
+                .pmds-radio-group .radio-inline-item input[type="radio"] {
+                    margin: 0;
+                }
+
+        .sub-search-block {
+            grid-column: 1 / -1;
+            position: relative;
+            margin-top: 0;
+            padding-top: 0;
+            padding-bottom: 46px;
+        }
+
+        .sub-search-card {
+            border: 1px solid #7ecb8a;
+            border-radius: 6px;
+            background: #f7fbf7;
+            padding: 16px 20px 22px 20px;
+            box-shadow: inset 0 0 0 1px rgba(126, 203, 138, .12);
+        }
+
+        .sub-search-inner {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px 36px;
+            align-items: start;
+            min-height: 160px;
+        }
+
+        .sub-search-col {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .sub-search-row {
+            display: grid;
+            grid-template-columns: 220px minmax(220px, 1fr);
+            align-items: center;
+            gap: 10px;
+        }
+
+            .sub-search-row .query-label {
+                text-align: left;
+                justify-self: start;
+            }
+
+        .sub-search-toggle-wrap {
+            position: static;
+            margin-top: 12px;
+            margin-bottom: 10px;
+        }
+
+        .sub-search-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 122px;
+            padding: 8px 14px;
+            background: #f7fbf7;
+            border: 1px solid #7ecb8a;
+            border-radius: 4px;
+            color: #5d6660;
+            font-size: 14px;
+            line-height: 1.2;
+            box-shadow: none;
+        }
+
+            .sub-search-toggle:hover,
+            .sub-search-toggle:focus {
+                color: #333;
+                background: #f7fbf7;
+                border-color: #66b96e;
+            }
+
+            .sub-search-toggle .when-expanded {
+                display: inline;
+            }
+
+            .sub-search-toggle .when-collapsed {
+                display: none;
+            }
+
+            .sub-search-toggle.collapsed .when-expanded {
+                display: none;
+            }
+
+            .sub-search-toggle.collapsed .when-collapsed {
+                display: inline;
+            }
+
+            .sub-search-toggle .arrow-icon {
+                display: inline-block;
+                font-size: 12px;
+                color: #777;
+                transition: transform .2s ease;
+            }
+
+                .sub-search-toggle .arrow-icon::before {
+                    content: "▲";
+                }
+
+            .sub-search-toggle.collapsed .arrow-icon::before {
+                content: "▼";
+            }
+
+        .query-action-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            margin: 30px 0 40px;
+        }
+
+        .table-title-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn-add-form {
+            min-width: 160px;
+            border: 2px solid #7ecb8a; /* 四周線條 */
+            /* border-radius: 4px; /* 圓角，可留可拿掉 */
+            background-color: #fff; /* 背景白色 */
+            */
+        }
+
+            .btn-add-form:hover {
+                border-color: #333;
+                background-color: #f5f5f5;
+                color: #000;
+            }
+
+        .btn-move-datatable {
+            min-width: 18px;
+            border: 2px solid #7ecb8a; /* 四周線條 */
+            border-radius: 4px; /* 圓角，可留可拿掉 */
+            background-color: #fff; /* 背景白色 */
+        }
+
+            .btn-move-datatable:hover {
+                border-color: #333;
+                background-color: #f5f5f5;
+                color: #000;
+            }
+
+        .action-cell {
+            min-width: 190px;
+            white-space: nowrap;
+        }
+
+            .action-cell .btn {
+                white-space: nowrap;
+            }
+
+        .query-summary {
+            color: #1f9d46;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .form-list-card {
+            /* border: 1px solid #b9dfc1;
+            border-radius: 10px;
+            padding: 16px; */
+            border: 2px solid #b9dfc1;
+            border-radius: 10px;
+            overflow: auto;
+            background: #fff;
+        }
+
+        .form-list-wrap {
+            /* overflow-x: auto; */
+            padding: 6px 10px 0 10px;
+        }
+
+        table.dataTable.form-list-table {
+            /* background: #f1f3f5; */
+            width: 100% !important;
+            border-collapse: collapse !important;
+            margin: 0 !important;
+        }
+
+        table.dataTable.form-list-table thead th {
+            background: #cddccf;
+            color: #222;
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            padding: 14px 10px;
+            border-bottom: 1px solid #b7c9b8 !important;
+            white-space: nowrap;
+        }
+
+        table.dataTable.form-list-table tbody td {
+            font-size: 16px;
+            color: #222;
+            text-align: center;
+            vertical-align: middle;
+            padding: 14px 12px;
+            border-bottom: 1px solid #d8d8d8 !important;
+            background: #fff;
+        }
+
+        table.dataTable.form-list-table tbody tr:last-child td {
+            border-bottom: none !important;
+        }
+
+        .td-project-item,
+        .td-project-name {
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        .td-edit-date {
+            line-height: 1.5;
+            white-space: nowrap;
+        }
+
+        .status-text {
+            color: #2d7a2d;
+            font-weight: 500;
+        }
+
+        .action-stack {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+            .action-stack .btn {
+                min-width: 68px;
+                border-radius: 4px;
+            }
+
+        .btn-outline-ecrs {
+            color: #66b96e;
+            border: 1px solid #7fc987;
+            background: #fff;
+        }
+
+            .btn-outline-ecrs:hover {
+                color: #fff;
+                background: #66b96e;
+                border-color: #66b96e;
+            }
+
+        table.dataTable thead > tr > th.sorting,
+        table.dataTable thead > tr > th.sorting_asc,
+        table.dataTable thead > tr > th.sorting_desc,
+        table.dataTable thead > tr > th.sorting_asc_disabled,
+        table.dataTable thead > tr > th.sorting_desc_disabled {
+            padding-right: 10px !important;
+            background-image: none !important;
+        }
+
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate,
+        .dataTables_wrapper .dataTables_length {
+            display: block !important;
+        }
+
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter {
+            margin-bottom: 10px;
+        }
+
+            .dataTables_wrapper .dataTables_length label,
+            .dataTables_wrapper .dataTables_filter label {
+                margin-bottom: 0;
+                font-weight: 400;
+            }
+
+            .dataTables_wrapper .dataTables_length select,
+            .dataTables_wrapper .dataTables_filter input {
+                height: 38px;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                background: #fff;
+                box-shadow: none;
+            }
+
+            .dataTables_wrapper .dataTables_length select {
+                min-width: 80px;
+                padding: 6px 30px 6px 10px;
+                margin: 0 6px;
+            }
+
+            .dataTables_wrapper .dataTables_filter input {
+                min-width: 180px;
+                margin-left: 8px;
+                padding: 6px 10px;
+            }
+
+        .dataTables_wrapper .dataTables_info {
+            padding-top: 10px;
+        }
+
+        .dataTables_wrapper .dataTables_paginate {
+            padding-top: 10px;
+        }
+
+            .dataTables_wrapper .dataTables_paginate .paginate_button {
+                min-width: 42px;
+                padding: 8px 12px !important;
+                margin-left: 0 !important;
+                border: 1px solid #dee2e6 !important;
+                background: #fff !important;
+                color: #0d6efd !important;
+                box-shadow: none !important;
+            }
+
+                .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+                    background: #e9f3ff !important;
+                    color: #0a58ca !important;
+                }
+
+                .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+                .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+                    background: #0d6efd !important;
+                    color: #fff !important;
+                    border-color: #0d6efd !important;
+                }
+
+                .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+                .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+                    color: #6c757d !important;
+                    background: #fff !important;
+                    border-color: #dee2e6 !important;
+                    opacity: 1;
+                }
+
+        .grid-footer-wrap {
+            margin-top: -2px;
+            padding: 12px 14px;
+            border: 2px solid #b9dfc1;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            background: #f7f7f7;
+        }
+
+        @@media (max-width: 992px) {
+            .form-editer-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .date-range-row {
+                grid-template-columns: 150px minmax(220px, 1fr);
+            }
+
+            .sub-search-inner {
+                grid-template-columns: 1fr;
+                min-height: auto;
+            }
+
+            .grid-footer-wrap .row {
+                row-gap: 12px;
+            }
+
+            .dataTables_wrapper .dataTables_info,
+            .dataTables_wrapper .dataTables_paginate {
+                text-align: center;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .query-row,
+            .sub-search-row,
+            .date-range-row {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+
+            .query-label {
+                white-space: normal;
+            }
+
+            .sub-search-block {
+                padding-bottom: 46px;
+            }
+
+            .sub-search-toggle-wrap {
+                left: 0;
+                bottom: 0;
+            }
+
+            .form-editer-card {
+                padding-bottom: 20px;
+            }
+
+            table.dataTable.form-list-table thead th,
+            table.dataTable.form-list-table tbody td {
+                font-size: 14px;
+                padding: 10px 8px;
+            }
+        }
+
+        .dataTables_paginate .pagination {
+            width: 100%;
+            justify-content: space-between;
+        }
+    </style>
+}
+
+<div class="content form-editer-page" style="min-height: 561px;">
+    <h1 class="main-title">
+        <span id="ctl00_ContentPlaceHolder1_UC_NodeName_lblNodeName">@ViewData["Title"]</span>
+    </h1>
+
+    <div class="form-editer-card">
+        <div class="form-editer-grid">
+            <div class="form-editer-col">
+                <div class="query-row">
+                    <label class="query-label" for="CreateDepartment">建立單位：</label>
+                    <div class="query-inline">
+                        <select id="CreateDepartment" name="CreateUnitMain" class="form-select">
+                            <option value="" selected>全區</option>
+                            @{
+                                if (Departments != null)
+                                {
+                                    foreach (var item in Departments)
+                                    {
+                                        if (item.部門編號 != "0")
+                                        {
+                                            <option value="@item.部門編號">@item.名稱</option>
+                                        }
+
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                @* <div class="query-row">
+                    <label class="query-label" for="ProjectName">專案名稱：</label>
+                    <input id="ProjectName" name="ProjectName" type="text" class="form-control" />
+                </div> *@
+            </div>
+
+            <div class="form-editer-col">
+                <div class="query-row">
+                    <label class="query-label" for="ProjectName">專案名稱：</label>
+                    <input id="ProjectName" name="ProjectName" type="text" class="form-control" />
+                </div>
+            </div>
+
+            <div class="sub-search-section">
+                <div class="collapse show" id="sub_search">
+                    <div class="card card-body mt-2">
+                        @* <div class="query-row query-row-status"> *@
+                        <div class="date-range-row query-row-status">
+                            <label class="query-label">狀態：</label>
+                            <div class="pmds-radio-group">
+                                <label class="radio-inline-item" for="StatusAll">
+                                    <input type="radio" name="FormStatus" id="StatusAll" value="" />
+                                    <span>全部</span>
+                                </label>
+
+                                <label class="radio-inline-item" for="StatusEnable">
+                                    <input type="radio" name="FormStatus" id="StatusEnable" value="Y" checked />
+                                    <span>啟用</span>
+                                </label>
+
+                                <label class="radio-inline-item" for="StatusDisable">
+                                    <input type="radio" name="FormStatus" id="StatusDisable" value="N" />
+                                    <span>停用</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="date-range-row">
+                            <label class="query-label" for="ProjectDeadlineStart">專案截止日期(起)：</label>
+                            <div class="date-input-wrap">
+                                <input id="ProjectDeadlineStart"
+                                       type="text"
+                                       class="form-control roc-date-text"
+                                       placeholder="例：115/04/01"
+                                       autocomplete="off" />
+
+                                <input id="ProjectDeadlineStartAd"
+                                       name="ProjectDeadlineStart"
+                                       type="date"
+                                       class="date-picker-hidden"
+                                       data-target="#ProjectDeadlineStart" />
+
+                                <button type="button"
+                                        class="date-calendar-btn"
+                                        data-picker="#ProjectDeadlineStartAd"
+                                        aria-label="選擇專案截止日期起">
+                                    <i class="bi bi-calendar3"></i>
+                                </button>
+                            </div>
+
+                            <label class="query-label" for="ProjectDeadlineEnd">專案截止日期(迄)：</label>
+                            <div class="date-input-wrap">
+                                <input id="ProjectDeadlineEnd"
+                                       type="text"
+                                       class="form-control roc-date-text"
+                                       placeholder="例：115/04/29"
+                                       autocomplete="off" />
+
+                                <input id="ProjectDeadlineEndAd"
+                                       name="ProjectDeadlineEnd"
+                                       type="date"
+                                       class="date-picker-hidden"
+                                       data-target="#ProjectDeadlineEnd" />
+
+                                <button type="button"
+                                        class="date-calendar-btn"
+                                        data-picker="#ProjectDeadlineEndAd"
+                                        aria-label="選擇專案截止日期迄">
+                                    <i class="bi bi-calendar3"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sub-search-toggle-wrap">
+                    <button class="sub-search-toggle"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#sub_search"
+                            aria-expanded="true"
+                            aria-controls="sub_search">
+                        <span class="when-collapsed">展開全部</span>
+                        <span class="when-expanded">收合內容</span>
+                        <span class="arrow-icon"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="query-action-area">
+        <button type="button" id="QueryButton" class="btn btn-success px-4" onclick="querydata()">搜尋</button>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="main-title">查詢清單</div>
+        <div>
+            <a asp-controller="FormManage"
+               asp-action="FormAdd"
+               class="btn btn-success px-4">
+                新增表單
+            </a>
+        </div>
+    </div>
+
+    <div class="form-list-card">
+        <div class="form-list-wrap">
+            <table id="dataTable" class="table table-bordered table-striped tb-multi table-hover form-list-table w-100">
+                <thead>
+                    <tr>
+                        <th>項次</th>
+                        <th>專案名稱</th>
+                        <th>稽查項目</th>
+                        <th>修改日期</th>
+                        <th>異動人員</th>
+                        <th>狀態</th>
+                        <th>動作</th>
+                    </tr>
+                </thead>
+                <tbody id="resultDiv">
+                    @await Html.PartialAsync("_FormEditerPartial", Model)
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="loadingBlock"
+         class="d-none position-fixed top-0 start-0 w-100 vh-100 d-flex justify-content-center align-items-center"
+         style="background: rgba(255,255,255,0.7); z-index: 1050;">
+
+        <div class="text-center">
+            <div class="spinner-border text-primary"></div>
+            <div class="mt-3">
+                <i class="bi bi-hourglass-split me-2"></i>
+                查詢中，請稍候...
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+
+        function querydata() {
+            var _CreateDepartment = $("#CreateDepartment").val();
+            var _ProjectName = $("#ProjectName").val();
+            var _FormStatus = $("input[name='FormStatus']:checked").val();
+            var _ProjectDeadlineStart = $("#ProjectDeadlineStart").val();
+            var _ProjectDeadlineEnd = $("#ProjectDeadlineEnd").val();
+
+            // var _ProjectDeadlineStart = rocDateToAdDate(startRoc);
+            // var _ProjectDeadlineEnd = rocDateToAdDate(endRoc);
+            
+            if (_ProjectDeadlineStart === null) {
+                alert("專案截止日期(起)格式錯誤，請輸入民國年格式，例如：115/04/01");
+                $("#ProjectDeadlineStart").focus();
+                return;
+            }
+            if (_ProjectDeadlineEnd === null) {
+                alert("專案截止日期(迄)格式錯誤，請輸入民國年格式，例如：115/04/29");
+                $("#ProjectDeadlineEnd").focus();
+                return;
+            }
+
+            var QueryCondiction = {
+                CreateDepartment: _CreateDepartment,
+                ProjectName: _ProjectName,
+                FormStatus: _FormStatus,
+                ProjectDeadlineStart: _ProjectDeadlineStart,
+                ProjectDeadlineEnd: _ProjectDeadlineEnd
+            };
+
+             // 顯示 loading
+            document.getElementById("loadingBlock").classList.remove("d-none");
+
+            $.ajax({
+                url: '/FormManage/FormEditer',
+                type: 'GET',
+                cache: false,
+                data: QueryCondiction,
+                success: function (result) {
+                    // 隱藏 loading
+                    document.getElementById("loadingBlock").classList.add("d-none");
+                    //stopLoading();
+                    // alert("後端傳回的長度是：" + result.length);
+                    // alert("後端傳回的內容是：" + result);
+
+                        if(result != '') {
+                            var totalPages = $("#totalPages").val();
+                            var currentPage = $("#currentPage").val();
+
+                            if ($.fn.DataTable.isDataTable('#dataTable')) {
+                                $('#dataTable').DataTable().destroy();
+                            }
+
+                            $("#resultDiv").html(result);
+
+                            $('#dataTable').DataTable({
+                                pageLength: 10,
+                                dom: '<"d-flex justify-content-between"l f>rt<"d-flex justify-content-between align-items-center"i p>',
+                                language: {
+                                    lengthMenu: "顯示 _MENU_ 筆資料",
+                                    zeroRecords: "查無結果",
+                                    emptyTable: "查無結果",
+                                    info: "顯示第 _START_ 到 _END_ 筆，共 _TOTAL_ 筆",
+                                    infoEmpty: "沒有資料",
+                                    infoFiltered: "(從 _MAX_ 筆資料中篩選)",
+                                    search: "搜尋:",
+                                    paginate: {
+                                        first: "首頁",
+                                        last: "末頁",
+                                        next: "下一頁",
+                                        previous: "上一頁"
+                                    }
+                                },
+                                initComplete: function () {
+                                    $('.dataTables_paginate ul.pagination')
+                                        .addClass('w-100 d-flex justify-content-between');
+                                }
+                            });
+                        }
+
+                        //window.location.href = '/Inspection/Fquery?' + $.param(supplier1);
+
+                        // 如果使用 bootstrap-select
+                        //areaSelect.selectpicker('refresh');
+                },
+                error: function (xhr, status, error) {
+                    console.error("Fquery ajax error:", status, error, xhr.responseText);
+                    // alert("錯誤：" + error);
+                    // alert(xhr.responseText);
+                    alert("查詢失敗，請查看 API / WEB log。");
+                },
+                complete: function () {
+                    $("#loadingBlock").addClass("d-none");
+                }
+            });
+        }
+
+
+        function pad2(n) {
+            return n.toString().padStart(2, "0");
+        }
+
+        // 西元日期轉民國日期：2026-04-01 => 115/04/01
+        function adDateToRocDate(adDate) {
+            if (!adDate) return "";
+
+            var parts = adDate.replaceAll("/", "-").split("-");
+            if (parts.length !== 3) return "";
+
+            var year = parseInt(parts[0], 10);
+            var month = parseInt(parts[1], 10);
+            var day = parseInt(parts[2], 10);
+
+            if (isNaN(year) || isNaN(month) || isNaN(day)) return "";
+
+            return (year - 1911) + "/" + pad2(month) + "/" + pad2(day);
+        }
+
+        // 民國日期轉西元日期：115/04/01 => 2026-04-01
+        function rocDateToAdDate(rocDate) {
+            if (!rocDate) return "";
+
+            var value = rocDate.trim().replaceAll("-", "/");
+            var parts = value.split("/");
+
+            if (parts.length !== 3) {
+                return null;
+            }
+
+            var year = parseInt(parts[0], 10);
+            var month = parseInt(parts[1], 10);
+            var day = parseInt(parts[2], 10);
+
+            if (isNaN(year) || isNaN(month) || isNaN(day)) {
+                return null;
+            }
+
+            // 民國年轉西元年
+            if (year < 1911) {
+                year = year + 1911;
+            }
+
+            var checkDate = new Date(year, month - 1, day);
+
+            if (
+                checkDate.getFullYear() !== year ||
+                checkDate.getMonth() !== month - 1 ||
+                checkDate.getDate() !== day
+            ) {
+                return null;
+            }
+
+            return year + "-" + pad2(month) + "-" + pad2(day);
+        }
+
+        // 點擊小日曆按鈕，打開對應的 type=date
+        $(document).on("click", ".date-calendar-btn", function () {
+            var pickerSelector = $(this).data("picker");
+            var picker = document.querySelector(pickerSelector);
+
+            if (!picker) return;
+
+            if (picker.showPicker) {
+                picker.showPicker();
+            } else {
+                picker.click();
+            }
+        });
+
+        // 選完西元日期後，自動轉成民國年顯示到 textbox
+        $(document).on("change", ".date-picker-hidden", function () {
+            var adDate = $(this).val();
+            var targetSelector = $(this).data("target");
+
+            $(targetSelector).val(adDateToRocDate(adDate));
+        });
+
+        // 使用者手動輸入民國日期後，自動同步到隱藏的西元日期欄位
+        $(document).on("blur", ".roc-date-text", function () {
+            var textBoxId = "#" + $(this).attr("id");
+            var rocDate = $(this).val();
+
+            if (!rocDate) {
+                if (textBoxId === "#ProjectDeadlineStart") {
+                    $("#ProjectDeadlineStartAd").val("");
+                }
+
+                if (textBoxId === "#ProjectDeadlineEnd") {
+                    $("#ProjectDeadlineEndAd").val("");
+                }
+
+                return;
+            }
+
+            var adDate = rocDateToAdDate(rocDate);
+
+            if (adDate === null) {
+                alert("日期格式錯誤，請輸入民國年格式，例如：115/04/01");
+                $(this).focus();
+                return;
+            }
+
+            $(this).val(adDateToRocDate(adDate));
+
+            if (textBoxId === "#ProjectDeadlineStart") {
+                $("#ProjectDeadlineStartAd").val(adDate);
+            }
+
+            if (textBoxId === "#ProjectDeadlineEnd") {
+                $("#ProjectDeadlineEndAd").val(adDate);
+            }
+        });
+
+    </script>
+}

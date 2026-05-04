@@ -1,0 +1,949 @@
+@model ECRS_WEB.DTOs.InspectionDTO.PReview.CheckRecMDViewModel
+
+@{
+    ViewData["Title"] = "待審核案件-審核作業";
+}
+
+<style>
+#modal {
+    position: fixed;          /* 固定在畫面 */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+
+    display: none;            /* 使用 flex 置中 */
+    justify-content: center;  /* 水平置中 */
+    align-items: center;      /* 垂直置中 */
+
+    background-color: rgba(0, 0, 0, 0.3); /* 半透明背景(可選) */
+}
+
+    #modalRec {
+        position: fixed; /* 固定在畫面 */
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        display: none; /* 使用 flex 置中 */
+        justify-content: center; /* 水平置中 */
+        align-items: center; /* 垂直置中 */
+
+        background-color: rgba(0, 0, 0, 0.3); /* 半透明背景(可選) */
+    }
+
+.modal-content1 {
+        position: relative; /* 關鍵 */
+
+        width: 400px;
+        height: 400px;
+        background: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column; /* 直向排列 */
+    }
+
+    /* 標題列 */
+    .modal-header {
+        display: flex;
+        position: relative;
+        width: 100%; /* 填滿 */
+        background: #f0f0f0;
+        padding: 12px 0;
+        text-align: center; /* 文字置中 */
+        font-weight: bold;
+        border-bottom: 1px solid #ddd;
+    }
+
+    /* 標題文字 */
+    .modal-title {
+        width: 100%; /* 填滿 */
+        text-align: left; /* 文字置中 */
+        font-size: 16px;
+    }
+
+    /* 內容區 */
+    .modal-contentb {
+        width: 100%; /* 填滿 */
+        height: 100%;
+        flex: 1; /* ⭐ 自動撐滿剩餘空間 */
+
+        padding: 10px;
+    }
+    .modal-content {
+        width: 100%; /* 填滿 */
+        height: 100%;
+        padding: 10px;
+        border: 1px solid #ccc; /* 灰色邊框 */
+    }
+
+    /* 右上角按鈕 */
+    .close-btn {
+        position: absolute; /* 關鍵 */
+        top: 5px;
+        right: 5px;
+        background: transparent;
+        color: black;
+        border: none;
+        cursor: pointer;
+        width: 55px;
+        height: 25px;
+    }
+
+        .close-btn:hover {
+            color: red;
+        }
+
+    /* Footer */
+    .modal-footerx {
+        flex-direction: column;
+        justify-content: flex-end; /* 右對齊 */
+        align-items: flex-end;
+        gap: 20px; /* 按鈕間距 */
+        border-top: 1px solid #ddd;
+    }
+
+    /* 按鈕樣式 */
+    .close-btnC {
+        background: #ccc;
+        border: none;
+        cursor: pointer;
+    }
+
+    .close-btnS {
+
+        background: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+
+        .close-btnS:hover {
+            background: #0056b3;
+        }
+
+
+    th {
+        text-wrap: nowrap;
+    }
+
+    .main-title {
+        position: relative;
+        display: block;
+        margin: 0 0 24px 0;
+        padding-left: 16px;
+        font-size: 24px;
+        font-weight: 700;
+        line-height: 1.5;
+        color: #222;
+    }
+
+        .main-title::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 5px;
+            height: 23px;
+            background: #349f41;
+            border-radius: 5px;
+            transform: translateY(-50%);
+        }
+
+    .secend-title {
+        position: relative;
+        display: block;
+        margin: 0 0 24px 0;
+        padding-left: 16px;
+        font-size: 18px;
+        font-weight: 640;
+        line-height: 1.5;
+        color: #222;
+    }
+
+        .secend-title::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 5px;
+            height: 23px;
+            background: #349f41;
+            border-radius: 5px;
+            transform: translateY(-50%);
+        }
+
+    .form-editer-page {
+        padding-bottom: 24px;
+    }
+
+    .form-editer-card {
+        border: 2px solid #7ecb8a;
+        border-radius: 8px;
+        background: #f7fbf7;
+        padding: 28px 18px 36px 18px;
+        box-shadow: 0 0 0 4px rgba(126, 203, 138, .15);
+        position: relative;
+    }
+
+    .form-editer-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px 28px;
+    }
+
+    .form-editer-col {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .query-row {
+        display: grid;
+        grid-template-columns: 150px minmax(220px, 1fr);
+        align-items: center;
+        gap: 10px;
+    }
+
+        .query-row.query-row-status {
+            align-items: center;
+        }
+
+    .query-label {
+        margin: 0;
+        font-size: 16px;
+        color: #333;
+        white-space: nowrap;
+    }
+
+    .query-inline {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .query-inline > .form-control,
+        .query-inline > .form-select {
+            flex: 1 1 auto;
+        }
+
+    .date-input-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+        .date-input-wrap .form-control {
+            padding-right: 42px;
+        }
+
+        .date-input-wrap .date-icon {
+            position: absolute;
+            right: 12px;
+            color: #4caf50;
+            pointer-events: none;
+            font-size: 16px;
+        }
+
+    .pmds-radio-group {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+        .pmds-radio-group .radio-inline-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin: 0;
+            white-space: nowrap;
+            font-weight: normal;
+        }
+
+            .pmds-radio-group .radio-inline-item input[type="radio"] {
+                margin: 0;
+            }
+
+    .collapse-anchor-wrap {
+        position: absolute;
+        left: -10px;
+        bottom: -14px;
+    }
+
+    .collapse-toggle-fake {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: #fff;
+        border: 1px solid #d9d9d9;
+        border-radius: 4px;
+        color: #666;
+        text-decoration: none;
+        font-size: 14px;
+        box-shadow: 0 1px 2px rgba(0,0,0,.08);
+    }
+
+        .collapse-toggle-fake:hover {
+            color: #333;
+            text-decoration: none;
+        }
+
+    .query-action-area {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 14px;
+        margin: 30px 0 40px;
+    }
+
+    .table-title-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .btn-add-form {
+        min-width: 160px;
+    }
+
+    /* ===== 查詢筆數 ===== */
+    .query-summary {
+        color: #1f9d46;
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+
+    /* ===== DataTable 外框 ===== */
+    .form-list-card {
+        border: 2px solid #b9dfc1;
+        border-radius: 10px;
+        /*overflow: hidden;*/
+        overflow: auto;
+        background: #fff;
+    }
+
+    .form-list-wrap {
+        padding: 6px 10px 0 10px;
+    }
+
+    table.dataTable.form-list-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin: 0 !important;
+    }
+
+        table.dataTable.form-list-table thead th {
+            background: #cddccf;
+            color: #222;
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            padding: 14px 10px;
+            border-bottom: 1px solid #b7c9b8 !important;
+            white-space: nowrap;
+        }
+
+        table.dataTable.form-list-table tbody td {
+            font-size: 16px;
+            color: #222;
+            text-align: center;
+            vertical-align: middle;
+            padding: 14px 12px;
+            border-bottom: 1px solid #d8d8d8 !important;
+            background: #fff;
+        }
+
+        table.dataTable.form-list-table tbody tr:last-child td {
+            border-bottom: none !important;
+        }
+
+    .td-project-item,
+    .td-project-name {
+        text-align: left;
+        line-height: 1.6;
+    }
+
+    .td-edit-date {
+        line-height: 1.5;
+        white-space: nowrap;
+    }
+
+    .status-text {
+        color: #2d7a2d;
+        font-weight: 500;
+    }
+
+    .action-stack {
+        display: inline-flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+        .action-stack .btn {
+            min-width: 68px;
+            border-radius: 4px;
+        }
+
+    .btn-outline-ecrs {
+        color: #66b96e;
+        border: 1px solid #7fc987;
+        background: #fff;
+    }
+
+        .btn-outline-ecrs:hover {
+            color: #fff;
+            background: #66b96e;
+            border-color: #66b96e;
+        }
+
+    /* 關掉 DataTables 預設小箭頭佔位 */
+    table.dataTable thead > tr > th.sorting,
+    table.dataTable thead > tr > th.sorting_asc,
+    table.dataTable thead > tr > th.sorting_desc,
+    table.dataTable thead > tr > th.sorting_asc_disabled,
+    table.dataTable thead > tr > th.sorting_desc_disabled {
+        padding-right: 10px !important;
+        background-image: none !important;
+    }
+
+    /* ===== 隱藏 DataTables 預設區塊 ===== */
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate,
+    .dataTables_wrapper .dataTables_length {
+        display: none !important;
+    }
+
+    /* ===== 自訂分頁列 ===== */
+    .dt-footer-bar {
+        border: 2px solid #b9dfc1;
+        border-top: none;
+        border-radius: 0 0 10px 10px;
+        background: #f7f7f7;
+        padding: 18px 22px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .dt-footer-left,
+    .dt-footer-right {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .dt-footer-center {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        color: #222;
+        font-size: 16px;
+    }
+
+    .dt-page-btn {
+        border: none;
+        background: transparent;
+        color: #4aa658;
+        font-size: 24px;
+        line-height: 1;
+        padding: 0 6px;
+    }
+
+        .dt-page-btn:disabled {
+            opacity: .35;
+            cursor: not-allowed;
+        }
+
+    .dt-page-box,
+    .dt-length-box {
+        min-width: 58px;
+        height: 34px;
+        border: 1px solid #d7d7d7;
+        border-radius: 4px;
+        background: #fff;
+        text-align: center;
+        padding: 4px 28px 4px 8px;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
+
+    .dt-select-wrap {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+    }
+
+        .dt-select-wrap::after {
+            content: "";
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-30%);
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 6px solid #58a45d;
+            pointer-events: none;
+        }
+
+    .dt-divider {
+        color: #666;
+    }
+
+    @@media (max-width: 992px) {
+        .form-editer-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .dt-footer-bar {
+            justify-content: center;
+        }
+
+        .dt-footer-left,
+        .dt-footer-center,
+        .dt-footer-right {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .query-row {
+            grid-template-columns: 1fr;
+            gap: 6px;
+        }
+
+        .query-label {
+            white-space: normal;
+        }
+
+        .collapse-anchor-wrap {
+            position: static;
+            margin-top: 16px;
+        }
+
+        .form-editer-card {
+            padding-bottom: 20px;
+        }
+
+        table.dataTable.form-list-table thead th,
+        table.dataTable.form-list-table tbody td {
+            font-size: 14px;
+            padding: 10px 8px;
+        }
+    }
+
+</style>
+
+<h1 class="main-title">
+    <span id="ctl00_ContentPlaceHolder1_UC_NodeName_lblNodeName">@ViewData["Title"]</span>
+</h1>
+<div class="content" id="ctl00_ContentPlaceHolder1_Panel1">
+    <button class="btn btn-danger px-4" onclick="openModal('@Model.Mast.稽查單號')">退回案件</button>
+    <button class="btn btn-success px-4" onclick="closeModal(); alert('此項稽查表單拋轉至PMDS後，該表單將不可再次進行修改');">核准案件</button>
+
+    <h6 class="mt-3 row"><span>稽查單內容 </span></h6>
+    <div class="visible-xs mb5"></div>
+    <div class="form-editer-card" id="tab-1">
+
+        <div class="mb-0 row">
+            <label class="col-sm-2 col-form-label text-end">表單編號：</label>
+            <div class="col-sm-4">
+                <span class="form-control-plaintext">
+                    @Model.Mast.稽查單號
+                </span>
+            </div>
+            <label class="col-sm-2 col-form-label text-end">稽查日期：</label>
+            <div class="col-sm-4 ">
+                <span class="form-control-plaintext">
+                    @Html.DisplayFor(modelItem => Model.Mast.稽查日期)
+                </span>
+            </div>
+        </div>
+
+        <div class="mb-0 row">
+            <label class="col-sm-2 mb-2 col-form-label text-end">稽查員：</label>
+            <div class="col-sm-4 mb-2">
+                <span class="form-control-plaintext">
+                    @Model.Mast.稽查人員
+                </span>
+            </div>
+            <label class="col-sm-2 mb-2 col-form-label text-end">機構代碼：</label>
+            <div class="col-sm-4 mb-2">
+                <span class="form-control-plaintext">
+                    @(string.IsNullOrEmpty(Model.Mast.機構代碼) ? "\u00A0" : Model.Mast.機構代碼)
+                </span>
+            </div>
+        </div>
+
+        <div class="mb-0 row">
+            <label class="col-sm-2 col-form-label text-end">業者名稱：</label>
+            <div class="col-sm-4 ">
+                <span class="form-control-plaintext">
+                    @Model.Mast.業者名稱
+                </span>
+            </div>
+            <label class="col-sm-2 mb-2 col-form-label text-end">業者電子信箱：</label>
+            <div class="col-sm-4 mb-2">
+                <span class="form-control-plaintext">
+                    @(string.IsNullOrEmpty(Model.Mast.業者電子信箱) ? "\u00A0" : Model.Mast.業者電子信箱)
+                </span>
+            </div>
+        </div>
+
+        <div class="mb-0 row">
+            <label class="col-sm-2 mb-2 col-form-label text-end">負責人：</label>
+            <div class="col-sm-4 mb-2">
+                <span class="form-control-plaintext">
+                    @(string.IsNullOrEmpty(Model.Mast.負責人) ? "\u00A0" : Model.Mast.負責人)
+                </span>
+            </div>
+            <label class="col-sm-2 mb-2 col-form-label text-end">業者電話：</label>
+            <div class="col-sm-4 mb-2">
+                <span class="form-control-plaintext">
+                    @(string.IsNullOrEmpty(Model.Mast.業者電話) ? "\u00A0" : Model.Mast.業者電話)
+                </span>
+            </div>
+        </div>
+
+        <div class="mb-0 row">
+            <label class="col-sm-2 mb-2 col-form-label text-end">業者地址：</label>
+            <div class="col-sm-3 mb-2">
+                <select asp-for="Mast.業者地址_縣市主鍵" class="form-control" disabled style="display:none">
+                    <option value="">全部</option>
+                    <option value="01">台北市</option>
+                    <option value="07">高雄市</option>
+                    <option value="45">花蓮縣</option>
+                </select>
+
+                <input id="citySelF" type="hidden" asp-for="Mast.業者地址_縣市主鍵" />
+                <input id="noteID" type="hidden"  />
+
+                <select id="areaSelectF" asp-for="Mast.業者地址_鄉鎮區主鍵" class="form-control bg-transparent border-0 text-end" disabled>
+                    <option value="">全部</option>
+                </select>
+
+                <input id="areaSelF" type="hidden" asp-for="Mast.業者地址_鄉鎮區主鍵" />
+            </div>
+            <div class="col-sm-7 mb-2">
+                <div class="form-group">
+                    <span class="form-control-plaintext text-start">
+                        @(string.IsNullOrEmpty(Model.Mast.業者地址) ? "\u00A0" : Model.Mast.業者地址)
+                    </span>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+    <br />
+    <h4 class="secend-title"><span>稽查紀錄 </span></h4>
+    <div class="visible-xs mb5"></div>
+    <!-- END pull-right -->
+    <div class="form-list-card">
+
+        <div class="form-list-wrap">
+            <table id="checkRecTable" class="table table-bordered table-striped tb-multi">
+                <thead>
+                    <tr>
+                        <th>操作</th>
+                        <th>稽查表單</th>
+                        <th>稽查人員</th>
+                        <th>稽查日期</th>
+                        <th>稽查結果</th>
+                        <th>限改日期</th>
+                        <th>執行狀態</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int ii = 1;
+                    }
+                    @if (Model == null || Model.CheckRecs.Count == 0)
+                    {
+ 
+                    }
+                    else
+                    {
+                        @foreach (var item in Model.CheckRecs)
+                        {
+                            <tr>
+                                <td>
+                                    <a href="javascript:void(0);" onclick=" openModalPerform('@item.稽查單號'); return false;" class="btn btn-icon view" title="檢視"><i class="bi bi-eye"></i></a>
+
+                                </td>
+                                <td class="lt">@item.稽查表單 稽查專案紀錄表</td>
+                                <td class="lt">@item.稽查人員</td>
+                                <td class="lt">@Html.DisplayFor(modelItem => item.稽查日期)</td>
+                                <td>@item.稽查結果</td>
+                                <td class="lt"></td>
+                                <td class="lt">@item.執行狀態</td>
+
+                            </tr>
+                            ii++;
+                        }
+                    }
+
+                </tbody>
+            </table>
+        </div>
+        <!-- table-responsive -->
+
+
+    </div>
+
+    <div id="modal" style="display:none" >
+        <div class="modal-content1">
+
+            <!-- 標題列 -->
+            <div class="modal-header">
+                <span class="modal-title">　退回案件-簽核意見</span>
+            </div>
+            <div class="modal-contentb">
+                <div class="modal-content">
+                
+                    <textarea rows="10" id="note" style="width: 100%;" placeholder="請輸入內容..."></textarea>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="close-btnS" onclick="closeNoteModal();">
+                    <i class="bi bi-check-lg me-1"></i> 確定
+                </button>
+                <button class="close-btnC" onclick="closeModal()">
+                    <i class="bi bi-x-lg me-1"></i> 取消
+                </button>
+            </div>
+            <button class="close-btn" onclick="closeModal()">✕</button>
+        </div>
+
+    </div>
+
+    <div id="modalRec" style="display:none">
+        <div class="modal-content1">
+
+            <!-- 標題列 -->
+            <div class="modal-header">
+                <div class="modal-contentH">
+                <span class="modal-title" style="margin-left: 12px;">
+                    114年度食品業稽查專案紀錄表-稽查內容
+                </span>
+                </div>
+            </div>
+            <div class="modal-contentb">
+                <div class="modal-content">
+                    辣椒粉有蘇丹紅-裁罰
+                </div>
+            </div>
+            <button class="close-btn" onclick="closeModalRec()">✕</button>
+        </div>
+
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        function openModal(noteID) {
+            document.getElementById("modal").style.display = "flex";
+            var response = " 不夠詳細. ";
+            document.getElementById("noteID").val = noteID;
+            //alert(document.getElementById("noteID").val);
+
+            //$("#modal div.modal-content").html(response);
+            //document.querySelector("#modal .modal-content").innerHTML = response;
+
+            //var myModal = new bootstrap.Modal(document.getElementById('modal'));
+            //myModal.show();
+        }
+
+        function closeModal() {
+            document.getElementById("modal").style.display = "none";
+        }
+
+        function closeModalRec() {
+            document.getElementById("modalRec").style.display = "none";
+        }
+
+
+        function closeNoteModal() {
+            const textn = document.getElementById("note").value; //意見
+            var noteId = document.getElementById("noteID").val;
+            var eventI = {
+                eventId: noteId
+            };
+            //alert(textn);
+            //alert(noteId);
+            $.ajax({
+                url: '/Inspection/ReviewUpdate',
+                type: 'POST',
+                cache: false,
+                data: {
+                    eventId: noteId,
+                    note: textn
+                },
+                success: function (result) {
+                    alert('案件退回');
+                    window.location.href = '/Inspection/ReviewPerform?' + $.param(eventI);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    //alert(jqXHR.responseText);
+                    //alert(jqXHR.status);
+                    //alert(textStatus);
+                    //alert(errorThrown);
+                    alert("退回失敗");
+                }
+
+            });
+
+            document.getElementById("modal").style.display = "none";
+        }
+
+        function openModalPerform(noteId) {
+            //alert(noteId);
+            //document.getElementById("noteID").val = noteId;
+            //alert(document.getElementById("noteID").val);
+            document.getElementById("modalRec").style.display = "flex";
+            document.querySelector("#modalRec .modal-contentH").innerHTML =
+            '<span class="modal-title" style="margin-left: 12px;">食品業稽查專案-稽查內容</span>';
+             var response = " 無 ";
+            //$("#modalRec div.modal-content").html(note);
+            document.querySelector("#modalRec .modal-content").innerHTML = response;
+        }
+
+        $(document).ready(function () {
+
+            var cityIdF = $("#citySelF").val();
+            var areaIdF = $("#areaSelF").val();
+
+            $.ajax({
+                url: '/Inspection/GetCityAreaByCity',
+                type: 'GET',
+                data: { cityId: cityIdF },
+                success: function (data) {
+
+                    var areaSelect = $("#areaSelectF");
+                    areaSelect.empty();
+
+                    //areaSelect.append('<option value="">全部</option>');
+
+                    $.each(data, function (i, item) {
+                        if (areaIdF == item.鄉鎮區代碼) {
+                            areaSelect.append(
+                                '<option value="' + item.鄉鎮區代碼 + '">' + item.機構縣市鄉鎮市區 + '</option>'
+                            );
+                        }
+                    });
+
+                }
+            });
+
+
+            $('#checkRecTable').DataTable({
+                pageLength: 10,
+                dom: '<"d-flex justify-content-between"l f>rt<"d-flex justify-content-between align-items-center"i p>',
+                language: {
+                    lengthMenu: "顯示 _MENU_ 筆資料",
+                    zeroRecords: "沒有符合的資料",
+                    info: "顯示第 _START_ 到 _END_ 筆，共 _TOTAL_ 筆",
+                    infoEmpty: "沒有資料",
+                    infoFiltered: "(從 _MAX_ 筆資料中篩選)",
+                    search: "搜尋:",
+                    paginate: {
+                        first: "首頁",
+                        last: "末頁",
+                        next: "下一頁",
+                        previous: "上一頁"
+                    }
+                }
+            });
+
+
+            document.getElementById("btn_FExcel").addEventListener("click", function () {
+
+                var Company = $("#txtCompany_Name").val();
+                //alert(Company);
+                var supplier1 = {
+                    Id: null,
+                    業者編號: null,
+                    業者名稱: Company,
+                    食品登錄字號: null,
+                    統一編號: null,
+                    電話號碼: null,
+                    業者地址: null,
+                    案件建立日期: null,
+                };
+
+                window.location.href = '/Inspection/ExportExcelF?' + $.param(supplier1);
+
+            });
+
+            $("#citySelect").change(function () {
+                var cityId = $(this).val();
+
+                $.ajax({
+                    url: '/Inspection/GetCityAreaByCity',
+                    type: 'GET',
+                    data: { cityId: cityId },
+                    success: function (data) {
+
+                        var areaSelect = $("#areaSelect");
+                        areaSelect.empty();
+
+                        areaSelect.append('<option value="">全部</option>');
+
+                        $.each(data, function (i, item) {
+                            areaSelect.append(
+                                '<option value="' + item.鄉鎮區代碼 + '">' + item.機構縣市鄉鎮市區 + '</option>'
+                            );
+                        });
+
+                        // 如果使用 bootstrap-select
+                        //areaSelect.selectpicker('refresh');
+                    }
+                });
+
+            });
+
+            $("#mainSelect").change(function () {
+
+                var kindId = $(this).val();
+
+                $.ajax({
+                    url: '/Inspection/GetSubByKind',
+                    type: 'GET',
+                    data: { kindId: kindId },
+                    success: function (data) {
+
+                        var areaSelect = $("#subSelect");
+                        areaSelect.empty();
+
+                        areaSelect.append('<option value="">全部</option>');
+
+                        $.each(data, function (i, item) {
+                            areaSelect.append(
+                                '<option value="' + item.主鍵 + '">' + item.業別次分類名稱 + '</option>'
+                            );
+                        });
+
+                        // 如果使用 bootstrap-select
+                        //areaSelect.selectpicker('refresh');
+                    }
+                });
+
+            });
+
+        });
+    </script>
+}
+
+

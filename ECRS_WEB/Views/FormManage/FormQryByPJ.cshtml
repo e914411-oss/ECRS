@@ -1,0 +1,255 @@
+@{
+    ViewData["Title"] = "表單管理-專案查詢";
+}
+
+@section Styles {
+    <style>
+        .main-title {
+            position: relative;
+            display: block;
+            margin: 0 0 24px 0;
+            padding-left: 16px;
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.5;
+            color: #222;
+        }
+
+            .main-title::before {
+                content: "";
+                position: absolute;
+                top: 50%;
+                left: 0;
+                width: 5px;
+                height: 23px;
+                background: #349f41;
+                border-radius: 5px;
+                transform: translateY(-50%);
+            }
+
+        .formqry-card {
+            background: #fff;
+            border: 1px solid #dfe7df;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,.04);
+        }
+
+        .query-grid {
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            gap: 12px 16px;
+            align-items: center;
+        }
+
+            .query-grid .full-row {
+                grid-column: 1 / -1;
+            }
+
+        .query-label {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+            white-space: nowrap;
+        }
+
+        .query-radio-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .query-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .dual-list-section {
+            margin-top: 28px;
+        }
+
+        .dual-list-header,
+        .dual-list-body {
+            display: grid;
+            grid-template-columns: minmax(280px, 1fr) 90px minmax(280px, 1fr);
+            gap: 20px;
+            align-items: start;
+        }
+
+        .dual-list-header {
+            margin-bottom: 10px;
+        }
+
+        .dual-list-title {
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            color: #222;
+        }
+
+        .dual-list-box {
+            min-height: 400px;
+        }
+
+            .dual-list-box select {
+                width: 100%;
+                min-height: 400px;
+            }
+
+        .dual-list-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            min-height: 400px;
+        }
+
+        .btn-transfer {
+            min-width: 72px;
+        }
+
+        .bottom-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 28px;
+        }
+
+        @@media (max-width: 992px) {
+            .dual-list-header,
+            .dual-list-body {
+                grid-template-columns: 1fr;
+            }
+
+            .dual-list-actions {
+                min-height: auto;
+                flex-direction: row;
+                justify-content: center;
+                padding: 10px 0;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .query-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .query-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+}
+
+<h1 class="main-title">@ViewData["Title"]</h1>
+
+<div id="ctl00_ContentPlaceHolder1_Panel1" class="formqry-card">
+    <input type="hidden" name="ctl00$ContentPlaceHolder1$GroupId" id="ctl00_ContentPlaceHolder1_GroupId" value="4" />
+
+    <div class="query-grid">
+        <label for="FormName" class="query-radio-label">
+            <input id="radioCustom" type="radio" name="groupType" checked />
+            <span>自訂表單名稱：</span>
+        </label>
+        <input id="FormName" type="text" placeholder="請輸自訂表單名稱..." class="form-control" />
+
+        <label for="PJName" class="query-radio-label">
+            <input id="radioProject" type="radio" name="groupType" />
+            <span>專案名稱：</span>
+        </label>
+        <input id="ProjectName" type="text" class="form-control" placeholder="請輸入專案名稱..." />
+
+        <label for="Select1" class="query-label">建立單位：</label>
+        <div>
+            <select id="Select1" class="form-select" style="max-width: 220px;">
+                <option>全部</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="query-actions">
+        <button type="button" class="btn btn-success px-4">搜尋</button>
+        <input id="btnClear" type="button" class="btn btn-success px-4" onclick="qry_clear()" value="清除" />
+    </div>
+
+    <div class="dual-list-section">
+        <div class="dual-list-header">
+            <div class="dual-list-title">搜尋結果</div>
+            <div></div>
+            <div class="dual-list-title">已選擇專案</div>
+        </div>
+
+        <div class="dual-list-body">
+            <div class="dual-list-box">
+                <select size="4"
+                        name="ctl00$ContentPlaceHolder1$LBSelect"
+                        multiple="multiple"
+                        id="ctl00_ContentPlaceHolder1_LBSelect"
+                        class="form-control">
+                    <option value="S221178181">鄭慧君</option>
+                </select>
+            </div>
+
+            <div class="dual-list-actions">
+                <input type="submit"
+                       name="ctl00$ContentPlaceHolder1$right"
+                       value="-&gt;"
+                       id="ctl00_ContentPlaceHolder1_right"
+                       class="btn btn-outline-primary btn-transfer" />
+
+                <input type="submit"
+                       name="ctl00$ContentPlaceHolder1$left"
+                       value="&lt;-"
+                       onclick="return chkMail();"
+                       id="ctl00_ContentPlaceHolder1_left"
+                       class="btn btn-outline-primary btn-transfer" />
+            </div>
+
+            <div class="dual-list-box">
+                <select size="4"
+                        name="ctl00$ContentPlaceHolder1$LBUnselect"
+                        multiple="multiple"
+                        id="ctl00_ContentPlaceHolder1_LBUnselect"
+                        class="form-control">
+                    <option value="V221289119">包裝飲料產品之咖啡因標示稽查（FDA）</option>
+                    <option value="X220084101">超商，速食樂（FDA）</option>
+                    <option value="T222133276">真空包裝即食飲品販售溫度稽查1（FDA）</option>
+                    <option value="T222211257">網路食品（FDA）</option>
+                    <option value="T223161916">市售禽肉來源及標示與其衛生安全（FDA）</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-actions">
+        <button type="button"
+                id="btnLoadForm"
+                class="btn btn-success"
+                data-url="@Url.Action("FormAdd", "FormManage")"
+                onclick="loadForm()">
+            儲存
+        </button>
+
+        <button type="button" class="btn btn-secondary" onclick="window.history.go(-1);">取消</button>
+    </div>
+
+    <div id="formAddHost"></div>
+</div>
+
+
+
+@section Scripts{
+    <script>
+        function qry_clear() {
+          $('#FormName').val('');
+          $('#ProjectName').val('');
+          $('#Select1').prop('selectedIndex', 0);
+        }
+    </script>
+}

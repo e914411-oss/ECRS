@@ -1,0 +1,522 @@
+@using ECRS_WEB.DTOs.InspectionDTO.PReview
+@model List<CheckRecM>
+@{
+    ViewData["Title"] = "待審核案件";
+}
+
+@section Styles {
+    <style>
+        th {
+            text-wrap: nowrap;
+        }
+
+        .main-title {
+            position: relative;
+            display: block;
+            margin: 0 0 24px 0;
+            padding-left: 16px;
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.5;
+            color: #222;
+        }
+
+            .main-title::before {
+                content: "";
+                position: absolute;
+                top: 50%;
+                left: 0;
+                width: 5px;
+                height: 23px;
+                background: #349f41;
+                border-radius: 5px;
+                transform: translateY(-50%);
+            }
+
+        .secend-title {
+            position: relative;
+            display: block;
+            margin: 0 0 24px 0;
+            padding-left: 16px;
+            font-size: 18px;
+            font-weight: 640;
+            line-height: 1.5;
+            color: #222;
+        }
+
+            .secend-title::before {
+                content: "";
+                position: absolute;
+                top: 50%;
+                left: 0;
+                width: 5px;
+                height: 23px;
+                background: #349f41;
+                border-radius: 5px;
+                transform: translateY(-50%);
+            }
+
+        .form-editer-page {
+            padding-bottom: 24px;
+        }
+
+        .form-editer-card {
+            border: 2px solid #7ecb8a;
+            border-radius: 8px;
+            background: #f7fbf7;
+            padding: 28px 18px 36px 18px;
+            box-shadow: 0 0 0 4px rgba(126, 203, 138, .15);
+            position: relative;
+        }
+
+        .form-editer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 28px;
+        }
+
+        .form-editer-col {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .query-row {
+            display: grid;
+            grid-template-columns: 150px minmax(220px, 1fr);
+            align-items: center;
+            gap: 10px;
+        }
+
+            .query-row.query-row-status {
+                align-items: center;
+            }
+
+        .query-label {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+            white-space: nowrap;
+        }
+
+        .query-inline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .query-inline > .form-control,
+            .query-inline > .form-select {
+                flex: 1 1 auto;
+            }
+
+        .date-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+            .date-input-wrap .form-control {
+                padding-right: 42px;
+            }
+
+            .date-input-wrap .date-icon {
+                position: absolute;
+                right: 12px;
+                color: #4caf50;
+                pointer-events: none;
+                font-size: 16px;
+            }
+
+        .pmds-radio-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+            .pmds-radio-group .radio-inline-item {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                margin: 0;
+                white-space: nowrap;
+                font-weight: normal;
+            }
+
+                .pmds-radio-group .radio-inline-item input[type="radio"] {
+                    margin: 0;
+                }
+
+        .collapse-anchor-wrap {
+            position: absolute;
+            left: -10px;
+            bottom: -14px;
+        }
+
+        .collapse-toggle-fake {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #fff;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            box-shadow: 0 1px 2px rgba(0,0,0,.08);
+        }
+
+            .collapse-toggle-fake:hover {
+                color: #333;
+                text-decoration: none;
+            }
+
+        .query-action-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            margin: 30px 0 40px;
+        }
+
+        .table-title-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn-add-form {
+            min-width: 160px;
+        }
+
+        /* ===== 查詢筆數 ===== */
+        .query-summary {
+            color: #1f9d46;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        /* ===== DataTable 外框 ===== */
+        .form-list-card {
+            border: 2px solid #b9dfc1;
+            border-radius: 10px;
+            /*overflow: hidden;*/
+            overflow: auto;
+            background: #fff;
+        }
+
+        .form-list-wrap {
+            padding: 6px 10px 0 10px;
+        }
+
+        table.dataTable.form-list-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            margin: 0 !important;
+        }
+
+            table.dataTable.form-list-table thead th {
+                background: #cddccf;
+                color: #222;
+                font-size: 18px;
+                font-weight: 700;
+                text-align: center;
+                padding: 14px 10px;
+                border-bottom: 1px solid #b7c9b8 !important;
+                white-space: nowrap;
+            }
+
+            table.dataTable.form-list-table tbody td {
+                font-size: 16px;
+                color: #222;
+                text-align: center;
+                vertical-align: middle;
+                padding: 14px 12px;
+                border-bottom: 1px solid #d8d8d8 !important;
+                background: #fff;
+            }
+
+            table.dataTable.form-list-table tbody tr:last-child td {
+                border-bottom: none !important;
+            }
+
+        .td-project-item,
+        .td-project-name {
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        .td-edit-date {
+            line-height: 1.5;
+            white-space: nowrap;
+        }
+
+        .status-text {
+            color: #2d7a2d;
+            font-weight: 500;
+        }
+
+        .action-stack {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+            .action-stack .btn {
+                min-width: 68px;
+                border-radius: 4px;
+            }
+
+        .btn-outline-ecrs {
+            color: #66b96e;
+            border: 1px solid #7fc987;
+            background: #fff;
+        }
+
+            .btn-outline-ecrs:hover {
+                color: #fff;
+                background: #66b96e;
+                border-color: #66b96e;
+            }
+
+        /* 關掉 DataTables 預設小箭頭佔位 */
+        table.dataTable thead > tr > th.sorting,
+        table.dataTable thead > tr > th.sorting_asc,
+        table.dataTable thead > tr > th.sorting_desc,
+        table.dataTable thead > tr > th.sorting_asc_disabled,
+        table.dataTable thead > tr > th.sorting_desc_disabled {
+            padding-right: 10px !important;
+            background-image: none !important;
+        }
+
+        /* ===== 隱藏 DataTables 預設區塊 ===== */
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate,
+        .dataTables_wrapper .dataTables_length {
+            display: none !important;
+        }
+
+        /* ===== 自訂分頁列 ===== */
+        .dt-footer-bar {
+            border: 2px solid #b9dfc1;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            background: #f7f7f7;
+            padding: 18px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .dt-footer-left,
+        .dt-footer-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .dt-footer-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            color: #222;
+            font-size: 16px;
+        }
+
+        .dt-page-btn {
+            border: none;
+            background: transparent;
+            color: #4aa658;
+            font-size: 24px;
+            line-height: 1;
+            padding: 0 6px;
+        }
+
+            .dt-page-btn:disabled {
+                opacity: .35;
+                cursor: not-allowed;
+            }
+
+        .dt-page-box,
+        .dt-length-box {
+            min-width: 58px;
+            height: 34px;
+            border: 1px solid #d7d7d7;
+            border-radius: 4px;
+            background: #fff;
+            text-align: center;
+            padding: 4px 28px 4px 8px;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+        .dt-select-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
+            .dt-select-wrap::after {
+                content: "";
+                position: absolute;
+                right: 10px;
+                top: 50%;
+                transform: translateY(-30%);
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 6px solid #58a45d;
+                pointer-events: none;
+            }
+
+        .dt-divider {
+            color: #666;
+        }
+
+        @@media (max-width: 992px) {
+            .form-editer-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dt-footer-bar {
+                justify-content: center;
+            }
+
+            .dt-footer-left,
+            .dt-footer-center,
+            .dt-footer-right {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .query-row {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+
+            .query-label {
+                white-space: normal;
+            }
+
+            .collapse-anchor-wrap {
+                position: static;
+                margin-top: 16px;
+            }
+
+            .form-editer-card {
+                padding-bottom: 20px;
+            }
+
+            table.dataTable.form-list-table thead th,
+            table.dataTable.form-list-table tbody td {
+                font-size: 14px;
+                padding: 10px 8px;
+            }
+        }
+    </style>
+}
+
+<h1 class="main-title">
+    <span id="ctl00_ContentPlaceHolder1_UC_NodeName_lblNodeName">@ViewData["Title"]</span>
+</h1>
+
+<div class="content" style="min-height: 561px;">
+
+
+    <!--查詢結果-->
+    <div class="form-list-card">
+        <div class="form-list-wrap" id="ctl00_ContentPlaceHolder1_Panel_MarketCheck">
+
+                <table id="checkRecTable" class="table table-bordered table-striped tb-multi">
+                    <thead>
+                        <tr>
+                            <th scope="col">項目</th>
+                            <th scope="col">稽查單號</th>
+                            <th scope="col">
+                                稽查表單
+                            </th>
+                            <th scope="col">業者名稱</th>
+                            <th scope="col">稽查結果</th>
+                            <th scope="col">稽查人員</th>
+                            <th scope="col">稽查日期</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            int ii = 1;
+                        }
+                        @if (Model == null || Model.Count == 0)
+                        {
+
+                        }
+                        else
+                        {
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            @ii
+                                        </td>
+                                        <td style="white-space:nowrap;">
+                                        <a class="nav-link text-black ajax-link" asp-controller="Inspection" asp-action="ReviewPerform" asp-route-eventId="@item.稽查單號">@item.稽查單號</a>
+                                        </td>
+                                        <td>
+                                        稽查專案紀錄表
+                                        </td>
+                                        <td>@item.業者名稱</td>
+                                        <td>如稽查紀錄明細</td>
+
+                                        <td style="white-space:nowrap;">@item.稽查人員</td>
+                                        <td>@Html.DisplayFor(modelItem => item.稽查日期)</td>
+
+
+                                    </tr>
+                                    ii++;
+                                }
+                        }
+                    </tbody>
+                </table>
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+
+        $(document).ready(function () {
+
+                $('#checkRecTable').DataTable({
+                    pageLength: 10,
+                        dom: '<"d-flex justify-content-between"l f>rt<"d-flex justify-content-between align-items-center"i p>',
+                    language: {
+                        lengthMenu: "顯示 _MENU_ 筆資料",
+                        zeroRecords: "沒有符合的資料",
+                        info: "顯示第 _START_ 到 _END_ 筆，共 _TOTAL_ 筆",
+                        infoEmpty: "沒有資料",
+                        infoFiltered: "(從 _MAX_ 筆資料中篩選)",
+                        search: "搜尋:",
+                        paginate: {
+                            first: "首頁",
+                            last: "末頁",
+                            next: "下一頁",
+                            previous: "上一頁"
+                        }
+                    }
+                });
+
+            });
+    </script>
+}

@@ -1,0 +1,539 @@
+@{
+    ViewData["Title"] = "稽查管理-稽查作業";
+}
+
+@section Styles {
+    <style>
+        th {
+            text-wrap: nowrap;
+        }
+
+        .main-title {
+            position: relative;
+            display: block;
+            margin: 0 0 24px 0;
+            padding-left: 16px;
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.5;
+            color: #222;
+        }
+
+            .main-title::before {
+                content: "";
+                position: absolute;
+                top: 50%;
+                left: 0;
+                width: 5px;
+                height: 23px;
+                background: #349f41;
+                border-radius: 5px;
+                transform: translateY(-50%);
+            }
+
+        .secend-title {
+            position: relative;
+            display: block;
+            margin: 0 0 24px 0;
+            padding-left: 16px;
+            font-size: 18px;
+            font-weight: 640;
+            line-height: 1.5;
+            color: #222;
+        }
+
+            .secend-title::before {
+                content: "";
+                position: absolute;
+                top: 50%;
+                left: 0;
+                width: 5px;
+                height: 23px;
+                background: #349f41;
+                border-radius: 5px;
+                transform: translateY(-50%);
+            }
+
+        .form-editer-page {
+            padding-bottom: 24px;
+        }
+
+        .form-editer-card {
+            border: 2px solid #7ecb8a;
+            border-radius: 8px;
+            background: #f7fbf7;
+            padding: 28px 18px 36px 18px;
+            box-shadow: 0 0 0 4px rgba(126, 203, 138, .15);
+            position: relative;
+        }
+
+        .form-editer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 28px;
+        }
+
+        .form-editer-col {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .query-row {
+            display: grid;
+            grid-template-columns: 150px minmax(220px, 1fr);
+            align-items: center;
+            gap: 10px;
+        }
+
+            .query-row.query-row-status {
+                align-items: center;
+            }
+
+        .query-label {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+            white-space: nowrap;
+        }
+
+        .query-inline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .query-inline > .form-control,
+            .query-inline > .form-select {
+                flex: 1 1 auto;
+            }
+
+        .date-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+            .date-input-wrap .form-control {
+                padding-right: 42px;
+            }
+
+            .date-input-wrap .date-icon {
+                position: absolute;
+                right: 12px;
+                color: #4caf50;
+                pointer-events: none;
+                font-size: 16px;
+            }
+
+        .pmds-radio-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+            .pmds-radio-group .radio-inline-item {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                margin: 0;
+                white-space: nowrap;
+                font-weight: normal;
+            }
+
+                .pmds-radio-group .radio-inline-item input[type="radio"] {
+                    margin: 0;
+                }
+
+        .collapse-anchor-wrap {
+            position: absolute;
+            left: -10px;
+            bottom: -14px;
+        }
+
+        .collapse-toggle-fake {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #fff;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            box-shadow: 0 1px 2px rgba(0,0,0,.08);
+        }
+
+            .collapse-toggle-fake:hover {
+                color: #333;
+                text-decoration: none;
+            }
+
+        .query-action-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            margin: 30px 0 40px;
+        }
+
+        .table-title-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn-add-form {
+            min-width: 160px;
+        }
+
+        /* ===== 查詢筆數 ===== */
+        .query-summary {
+            color: #1f9d46;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        /* ===== DataTable 外框 ===== */
+        .form-list-card {
+            border: 2px solid #b9dfc1;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .form-list-wrap {
+            padding: 6px 10px 0 10px;
+        }
+
+        table.dataTable.form-list-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            margin: 0 !important;
+        }
+
+            table.dataTable.form-list-table thead th {
+                background: #cddccf;
+                color: #222;
+                font-size: 18px;
+                font-weight: 700;
+                text-align: center;
+                padding: 14px 10px;
+                border-bottom: 1px solid #b7c9b8 !important;
+                white-space: nowrap;
+            }
+
+            table.dataTable.form-list-table tbody td {
+                font-size: 16px;
+                color: #222;
+                text-align: center;
+                vertical-align: middle;
+                padding: 14px 12px;
+                border-bottom: 1px solid #d8d8d8 !important;
+                background: #fff;
+            }
+
+            table.dataTable.form-list-table tbody tr:last-child td {
+                border-bottom: none !important;
+            }
+
+        .td-project-item,
+        .td-project-name {
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        .td-edit-date {
+            line-height: 1.5;
+            white-space: nowrap;
+        }
+
+        .status-text {
+            color: #2d7a2d;
+            font-weight: 500;
+        }
+
+        .action-stack {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+            .action-stack .btn {
+                min-width: 68px;
+                border-radius: 4px;
+            }
+
+        .btn-outline-ecrs {
+            color: #66b96e;
+            border: 1px solid #7fc987;
+            background: #fff;
+        }
+
+            .btn-outline-ecrs:hover {
+                color: #fff;
+                background: #66b96e;
+                border-color: #66b96e;
+            }
+
+        /* 關掉 DataTables 預設小箭頭佔位 */
+        table.dataTable thead > tr > th.sorting,
+        table.dataTable thead > tr > th.sorting_asc,
+        table.dataTable thead > tr > th.sorting_desc,
+        table.dataTable thead > tr > th.sorting_asc_disabled,
+        table.dataTable thead > tr > th.sorting_desc_disabled {
+            padding-right: 10px !important;
+            background-image: none !important;
+        }
+
+        /* ===== 隱藏 DataTables 預設區塊 ===== */
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate,
+        .dataTables_wrapper .dataTables_length {
+            display: none !important;
+        }
+
+        /* ===== 自訂分頁列 ===== */
+        .dt-footer-bar {
+            border: 2px solid #b9dfc1;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            background: #f7f7f7;
+            padding: 18px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .dt-footer-left,
+        .dt-footer-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .dt-footer-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            color: #222;
+            font-size: 16px;
+        }
+
+        .dt-page-btn {
+            border: none;
+            background: transparent;
+            color: #4aa658;
+            font-size: 24px;
+            line-height: 1;
+            padding: 0 6px;
+        }
+
+            .dt-page-btn:disabled {
+                opacity: .35;
+                cursor: not-allowed;
+            }
+
+        .dt-page-box,
+        .dt-length-box {
+            min-width: 58px;
+            height: 34px;
+            border: 1px solid #d7d7d7;
+            border-radius: 4px;
+            background: #fff;
+            text-align: center;
+            padding: 4px 28px 4px 8px;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+        .dt-select-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
+            .dt-select-wrap::after {
+                content: "";
+                position: absolute;
+                right: 10px;
+                top: 50%;
+                transform: translateY(-30%);
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 6px solid #58a45d;
+                pointer-events: none;
+            }
+
+        .dt-divider {
+            color: #666;
+        }
+
+        @@media (max-width: 992px) {
+            .form-editer-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dt-footer-bar {
+                justify-content: center;
+            }
+
+            .dt-footer-left,
+            .dt-footer-center,
+            .dt-footer-right {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .query-row {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+
+            .query-label {
+                white-space: normal;
+            }
+
+            .collapse-anchor-wrap {
+                position: static;
+                margin-top: 16px;
+            }
+
+            .form-editer-card {
+                padding-bottom: 20px;
+            }
+
+            table.dataTable.form-list-table thead th,
+            table.dataTable.form-list-table tbody td {
+                font-size: 14px;
+                padding: 10px 8px;
+            }
+
+            .query-form-btn {
+                min-width: 120px;
+                white-space: nowrap;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+    </style>
+}
+
+<h1 class="main-title">
+    <span id="ctl00_ContentPlaceHolder1_UC_NodeName_lblNodeName">@ViewData["Title"]</span>
+</h1>
+
+<!-- 新增表單區塊 -->
+<div class="cardx mt-3x" id="formSelectPanel">
+
+    <!-- Header -->
+    <div class="card-headerx text-whitex" style="color:white; background:#00BB00;">
+        <span style="margin-left:12px;">新增表單</span>
+    </div>
+
+    <div class="card-bodyx">
+
+        <!-- 查詢列 -->
+        <div class="d-flex mb-3 align-items-center">
+            <input type="text"
+                   id="txtFormSearch"
+                   class="form-control me-2"
+                   placeholder="請輸入表單名稱">
+
+            <a class="btn btn-success flex-shrink-0 query-form-btn"
+               style="min-width:100px"
+               asp-controller="Inspection"
+               asp-action="InspectionQry">
+                <span>查詢表單</span>
+            </a>
+        </div>
+
+
+        <!-- 表單清單 -->
+        <div class="border rounded p-3"
+             style="background:#d9e3e6">
+
+            <!-- 已勾選 -->
+            <div class="form-check mb-2">
+                <input class="form-check-input"
+                       type="checkbox"
+                       checked
+                       id="form1">
+                <label class="form-check-label">
+                    114年度肉類加工食品食品安全監測計畫表
+                </label>
+            </div>
+
+            <div class="form-check mb-3">
+                <input class="form-check-input"
+                       type="checkbox"
+                       checked
+                       id="form2">
+                <label class="form-check-label">
+                    餐飲業食品良好衛生規範準則 稽查紀錄表
+                </label>
+            </div>
+
+
+            <!-- 未勾選 -->
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="form3">
+                <label class="form-check-label">
+                    GHP稽查紀錄表
+                </label>
+            </div>
+
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="form4">
+                <label class="form-check-label">
+                    HACCP稽查紀錄表
+                </label>
+            </div>
+
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="form5">
+                <label class="form-check-label">
+                    抽驗紀錄表
+                </label>
+            </div>
+
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="form6">
+                <label class="form-check-label">
+                    健康食品製造良好作業規範稽查表
+                </label>
+            </div>
+
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="form7">
+                <label class="form-check-label">
+                    其他
+                </label>
+            </div>
+
+        </div>
+
+        <!-- 功能列 - 確定 -->
+        <div class="rounded p-1 d-flex mt-3 align-items-center justify-content-center w-100">
+
+            <a class="btn btn-success flex-shrink-0 query-form-btn"
+               style="min-width:100px"
+               asp-controller="Inspection"
+               asp-action="InspectionForms">
+                確定
+            </a>
+        </div>
+    </div>
+</div>

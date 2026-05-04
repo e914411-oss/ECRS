@@ -1,0 +1,1429 @@
+@{
+    ViewData["Title"] = "新增/編輯表單";
+    string? formName = ViewData["FormName"] as string;
+    string strFormName = string.IsNullOrEmpty(formName) ? string.Empty : formName;
+
+    @Html.AntiForgeryToken()
+    ;
+}
+@section Styles {
+    <style>
+        .form-editer-page {
+            padding-bottom: 24px;
+        }
+
+        .form-editer-card {
+            border: 2px solid #7ecb8a;
+            border-radius: 8px;
+            background: #f7fbf7;
+            padding: 28px 18px 24px 18px;
+            box-shadow: 0 0 0 4px rgba(126, 203, 138, .15);
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        .form-editer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 28px;
+        }
+
+        .form-editer-col {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .form-editer-col2 {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            grid-column: 1 / -1;
+        }
+
+        .query-row {
+            display: grid;
+            /* grid-template-columns: 120px minmax(256px, 1fr); */
+            grid-template-columns: auto 1fr;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .query-row.query-row-status {
+                align-items: flex-start;
+            }
+
+        .query-label {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+            white-space: nowrap;
+            justify-self: flex-start;
+        }
+
+        .query-inline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .query-inline > .form-control,
+            .query-inline > .form-select {
+                flex: 1 1 auto;
+            }
+
+        .date-range-row {
+            display: grid;
+            grid-template-columns: 180px minmax(220px, 1fr) 180px minmax(220px, 1fr);
+            align-items: center;
+            gap: 12px 16px;
+        }
+
+        .date-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+            .date-input-wrap .form-control {
+                padding-right: 42px;
+            }
+
+            .date-input-wrap .date-icon {
+                position: absolute;
+                right: 12px;
+                color: #4caf50;
+                pointer-events: none;
+                font-size: 16px;
+            }
+
+        .radio-inline-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin: 0;
+            white-space: normal;
+            font-weight: normal;
+        }
+
+        .check-row {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(256px, 1fr));
+            gap: 12px 16px;
+        }
+
+        .check-row2 {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 4px 8px;
+            flex-wrap: nowrap;
+            width: 100%;
+        }
+
+            .check-row2 > label {
+                margin-bottom: 0;
+                white-space: nowrap;
+            }
+
+            .check-row2 > .radio-inline-item {
+                flex: 0 0 auto;
+            }
+
+            .check-row2 > #btnSetItem {
+                flex: 0 0 auto;
+                white-space: nowrap;
+            }
+
+        .self-set-row,
+        .status-row {
+            min-height: 28px;
+        }
+
+
+        .check-row3 {
+            width: 100%;
+            display: grid;
+            grid-template-columns: auto auto auto;
+            align-items: center;
+            gap: 4px 8px;
+            justify-content: center;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .pmds-radio-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin: 0;
+            white-space: nowrap;
+            font-weight: normal;
+        }
+
+            .pmds-radio-group .radio-inline-item input[type="radio"] {
+                margin: 0;
+            }
+
+        .sub-search-block {
+            grid-column: 1 / -1;
+            position: relative;
+            margin-top: 0;
+            padding-top: 0;
+            padding-bottom: 46px;
+        }
+
+        .sub-search-card {
+            border: 1px solid #7ecb8a;
+            border-radius: 6px;
+            background: #f7fbf7;
+            padding: 16px 20px 22px 20px;
+            box-shadow: inset 0 0 0 1px rgba(126, 203, 138, .12);
+        }
+
+        .sub-search-inner {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px 36px;
+            align-items: start;
+            min-height: 160px;
+        }
+
+        .sub-search-col {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .sub-search-row {
+            display: grid;
+            grid-template-columns: 220px minmax(220px, 1fr);
+            align-items: center;
+            gap: 10px;
+        }
+
+            .sub-search-row .query-label {
+                text-align: left;
+                justify-self: start;
+            }
+
+        .sub-search-toggle-wrap {
+            position: static;
+            margin-top: 12px;
+            margin-bottom: 10px;
+        }
+
+        .sub-search-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 122px;
+            padding: 8px 14px;
+            background: #f7fbf7;
+            border: 1px solid #7ecb8a;
+            border-radius: 4px;
+            color: #5d6660;
+            font-size: 14px;
+            line-height: 1.2;
+            box-shadow: none;
+        }
+
+            .sub-search-toggle:hover,
+            .sub-search-toggle:focus {
+                color: #333;
+                background: #f7fbf7;
+                border-color: #66b96e;
+            }
+
+            .sub-search-toggle .when-expanded {
+                display: inline;
+            }
+
+            .sub-search-toggle .when-collapsed {
+                display: none;
+            }
+
+            .sub-search-toggle.collapsed .when-expanded {
+                display: none;
+            }
+
+            .sub-search-toggle.collapsed .when-collapsed {
+                display: inline;
+            }
+
+            .sub-search-toggle .arrow-icon {
+                display: inline-block;
+                font-size: 12px;
+                color: #777;
+                transition: transform .2s ease;
+            }
+
+                .sub-search-toggle .arrow-icon::before {
+                    content: "▲";
+                }
+
+            .sub-search-toggle.collapsed .arrow-icon::before {
+                content: "▼";
+            }
+
+        .query-action-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            margin: 30px 0 40px;
+        }
+
+        .table-title-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn-form {
+            /* min-width: 160px; */
+            margin: 0;
+            font-size: 12pt;
+            border: 2px solid #7ecb8a; /* 四周線條 */
+            /* border-radius: 4px; /* 圓角，可留可拿掉 */
+            background-color: #fff; /* 背景白色 */
+            */
+        }
+
+        btn-form:hover {
+            margin: 0;
+            padding: 0;
+            font-size: 12pt;
+            border: 2px solid #7ecb8a; /* 四周線條 */
+        }
+
+        .btn-add-form {
+            min-width:30px;
+            margin: 0;
+            padding: 0;
+            font-size: 9pt;
+            border: 2px solid #7ecb8a; /* 四周線條 */
+            /* border-radius: 4px; /* 圓角，可留可拿掉 */
+            background-color: #fff; /* 背景白色 */
+            */
+        }
+
+            .btn-add-form:hover {
+                border-color: #333;
+                background-color: #f5f5f5;
+                color: #000;
+            }
+
+        .query-summary {
+            color: #1f9d46;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .form-list-card {
+            border: 1px solid #b9dfc1;
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .form-list-wrap {
+            overflow-x: auto;
+        }
+
+        table.dataTable.form-list-table thead th {
+            background: #f1f3f5;
+        }
+
+        table.dataTable.form-list-table thead th {
+            background: #cddccf;
+            color: #222;
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            padding: 14px 10px;
+            border-bottom: 1px solid #b7c9b8 !important;
+            white-space: nowrap;
+        }
+
+        table.dataTable.form-list-table tbody td {
+            font-size: 16px;
+            color: #222;
+            text-align: center;
+            vertical-align: middle;
+            padding: 14px 12px;
+            border-bottom: 1px solid #d8d8d8 !important;
+            background: #fff;
+        }
+
+        table.dataTable.form-list-table tbody tr:last-child td {
+            border-bottom: none !important;
+        }
+
+        .td-project-item,
+        .td-project-name {
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        .td-edit-date {
+            line-height: 1.5;
+            white-space: nowrap;
+        }
+
+        .status-text {
+            color: #2d7a2d;
+            font-weight: 500;
+        }
+
+        .action-stack {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+            .action-stack .btn {
+                min-width: 68px;
+                border-radius: 4px;
+            }
+
+        .btn-outline-ecrs {
+            color: #66b96e;
+            border: 1px solid #7fc987;
+            background: #fff;
+        }
+
+            .btn-outline-ecrs:hover {
+                color: #fff;
+                background: #66b96e;
+                border-color: #66b96e;
+            }
+
+        table.dataTable thead > tr > th.sorting,
+        table.dataTable thead > tr > th.sorting_asc,
+        table.dataTable thead > tr > th.sorting_desc,
+        table.dataTable thead > tr > th.sorting_asc_disabled,
+        table.dataTable thead > tr > th.sorting_desc_disabled {
+            padding-right: 10px !important;
+            background-image: none !important;
+        }
+
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate,
+        .dataTables_wrapper .dataTables_length {
+            display: block !important;
+        }
+
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter {
+            margin-bottom: 10px;
+        }
+
+            .dataTables_wrapper .dataTables_length label,
+            .dataTables_wrapper .dataTables_filter label {
+                margin-bottom: 0;
+                font-weight: 400;
+            }
+
+            .dataTables_wrapper .dataTables_length select,
+            .dataTables_wrapper .dataTables_filter input {
+                height: 38px;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                background: #fff;
+                box-shadow: none;
+            }
+
+            .dataTables_wrapper .dataTables_length select {
+                min-width: 80px;
+                padding: 6px 30px 6px 10px;
+                margin: 0 6px;
+            }
+
+            .dataTables_wrapper .dataTables_filter input {
+                min-width: 180px;
+                margin-left: 8px;
+                padding: 6px 10px;
+            }
+
+        .dataTables_wrapper .dataTables_info {
+            padding-top: 10px;
+        }
+
+        .dataTables_wrapper .dataTables_paginate {
+            padding-top: 10px;
+        }
+
+            .dataTables_wrapper .dataTables_paginate .paginate_button {
+                min-width: 42px;
+                padding: 8px 12px !important;
+                margin-left: 0 !important;
+                border: 1px solid #dee2e6 !important;
+                background: #fff !important;
+                color: #0d6efd !important;
+                box-shadow: none !important;
+            }
+
+                .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+                    background: #e9f3ff !important;
+                    color: #0a58ca !important;
+                }
+
+                .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+                .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+                    background: #0d6efd !important;
+                    color: #fff !important;
+                    border-color: #0d6efd !important;
+                }
+
+                .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+                .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+                    color: #6c757d !important;
+                    background: #fff !important;
+                    border-color: #dee2e6 !important;
+                    opacity: 1;
+                }
+
+        .grid-footer-wrap {
+            margin-top: -2px;
+            padding: 12px 14px;
+            border: 2px solid #b9dfc1;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            background: #f7f7f7;
+        }
+
+        @@media (max-width: 992px) {
+            .form-editer-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .date-range-row {
+                grid-template-columns: 150px minmax(220px, 1fr);
+            }
+
+            .sub-search-inner {
+                grid-template-columns: 1fr;
+                min-height: auto;
+            }
+
+            .grid-footer-wrap .row {
+                row-gap: 12px;
+            }
+
+            .dataTables_wrapper .dataTables_info,
+            .dataTables_wrapper .dataTables_paginate {
+                text-align: center;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .query-row,
+            .sub-search-row,
+            .date-range-row {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+
+            .query-label {
+                white-space: normal;
+            }
+
+            .sub-search-block {
+                padding-bottom: 46px;
+            }
+
+            .sub-search-toggle-wrap {
+                left: 0;
+                bottom: 0;
+            }
+
+            table.dataTable.form-list-table thead th,
+            table.dataTable.form-list-table tbody td {
+                font-size: 14px;
+                padding: 10px 8px;
+            }
+        }
+
+        .dataTables_paginate .pagination {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .pmds-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.45);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pmds-note-modal {
+            width: min(980px, 92vw);
+            height: min(620px, 82vh);
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.25);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #ddd;
+        }
+
+        .pmds-note-header {
+            padding: 14px 18px;
+            background: #eaf6ea;
+            border-bottom: 1px solid #cfe6cf;
+        }
+
+        .pmds-note-title {
+            color: #1a8f2b;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .pmds-note-body {
+            padding: 18px;
+            flex: 1;
+        }
+
+        .pmds-note-textarea {
+            width: 100%;
+            height: 100%;
+            resize: none;
+            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 12px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .pmds-note-footer {
+            padding: 14px 18px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid #eee;
+            background: #fff;
+        }
+
+        /* SetItemOverlay：編輯浮動欄位專用視窗 */
+        .pmds-setitem-modal {
+            width: min(960px, 94vw);
+            max-height: 88vh;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.25);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #ddd;
+        }
+
+        .pmds-setitem-header {
+            padding: 14px 18px;
+            background: #eaf6ea;
+            border-bottom: 1px solid #cfe6cf;
+        }
+
+        .pmds-setitem-title {
+            color: #1a8f2b;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .pmds-setitem-body {
+            padding: 18px;
+            overflow-y: auto;
+        }
+
+        .pmds-setitem-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 26px 52px 24px 52px;
+            background: #fff;
+        }
+
+        .setitem-row {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 12px;
+        }
+
+        .setitem-row-top {
+            display: grid;
+            grid-template-columns: auto 100px auto minmax(320px, 1fr);
+            align-items: center;
+            column-gap: 8px;
+        }
+
+        .setitem-label {
+            margin: 0;
+            font-size: 16px;
+            color: #222;
+            white-space: nowrap;
+            font-weight: normal;
+        }
+
+        .setitem-required {
+            color: red;
+            padding-right: 3px;
+        }
+
+        .setitem-sort-input {
+            width: 100px;
+        }
+
+        .setitem-title-input {
+            width: 100%;
+            max-width: 560px;
+        }
+
+        .setitem-desc-row {
+            display: grid;
+            grid-template-columns: auto minmax(320px, 1fr);
+            align-items: flex-start;
+            column-gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .setitem-desc-textarea {
+            width: 100%;
+            max-width: 700px;
+            min-height: 86px;
+            resize: vertical;
+            padding-left: -2px;
+        }
+
+        .setitem-radio-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 48px;
+            align-items: center;
+            max-width: 700px;
+            margin-bottom: 14px;
+        }
+
+        .setitem-radio-block {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .setitem-radio-options {
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+            .setitem-radio-options .radio-inline {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                white-space: nowrap;
+            }
+
+        .setitem-button-row {
+            display: flex;
+            justify-content: flex-start;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .setitem-add-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 12px;
+        }
+
+        @@media (max-width: 768px) {
+            .pmds-setitem-card {
+                padding: 18px;
+            }
+
+            .setitem-row-top,
+            .setitem-desc-row,
+            .setitem-radio-row {
+                grid-template-columns: 1fr;
+                row-gap: 8px;
+            }
+
+            .setitem-radio-row {
+                max-width: none;
+            }
+
+            .setitem-radio-block {
+                justify-content: flex-start;
+            }
+        }
+
+        .date-range-row {
+            display: grid;
+            grid-template-columns: 180px minmax(220px, 1fr) 180px minmax(220px, 1fr);
+            align-items: center;
+            gap: 12px 16px;
+            padding-bottom: 15px;
+        }
+
+
+        .date-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+            .date-input-wrap .roc-date-text {
+                padding-right: 46px;
+            }
+
+            .date-input-wrap .date-picker-hidden {
+                position: absolute;
+                right: 0;
+                top: 0;
+                width: 42px;
+                height: 100%;
+                opacity: 0;
+                z-index: 2;
+                cursor: pointer;
+            }
+
+            .date-input-wrap .date-calendar-btn {
+                position: absolute;
+                right: 1px;
+                top: 1px;
+                width: 40px;
+                height: calc(100% - 2px);
+                border: 0;
+                border-left: 1px solid #ced4da;
+                background: #fff;
+                color: #333;
+                z-index: 1;
+                cursor: pointer;
+                border-radius: 0 0.375rem 0.375rem 0;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+                .date-input-wrap .date-calendar-btn:hover {
+                    background: #f2f2f2;
+                }
+
+        .single-date-row {
+            display: grid;
+            grid-template-columns: auto 220px;
+            align-items: center;
+            column-gap: 8px;
+            justify-content: start;
+        }
+
+            .single-date-row .date-input-wrap {
+                width: 220px;
+            }
+
+        .date-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+            .date-input-wrap .roc-date-text {
+                width: 100%;
+                padding-right: 46px;
+            }
+
+            .date-input-wrap .date-picker-hidden {
+                position: absolute;
+                right: 0;
+                top: 0;
+                width: 42px;
+                height: 100%;
+                opacity: 0;
+                z-index: 3;
+                cursor: pointer;
+            }
+
+            .date-input-wrap .date-calendar-btn {
+                position: absolute;
+                right: 1px;
+                top: 1px;
+                width: 40px;
+                height: calc(100% - 2px);
+                border: 0;
+                border-left: 1px solid #ced4da;
+                background: #fff;
+                color: #333;
+                z-index: 2;
+                cursor: pointer;
+                border-radius: 0 0.375rem 0.375rem 0;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+    </style>
+}
+
+<div class="content form-editer-page" style="min-height: 561px;">
+    <h1 class="main-title">
+        <span id="title">@ViewData["Title"]</span>
+    </h1>
+
+    <div class="form-editer-card">
+        <div class="form-editer-grid">
+            <div class="form-editer-col">
+                <div class="query-row">
+                    <label class="query-label"><span style="color: Red">＊</span>表單名稱：</label>
+                    <input name="FormName" id="FormName" class="form-control" type="text" value=@strFormName>
+                </div>
+            </div>
+            <div class="form-editer-col">
+                <div class="single-date-row">
+                    <label class="query-label"><span id="span_Testing_Weight" style="color: Red;"></span>專案截止日期：</label>
+                    <div class="date-input-wrap">
+                        <input name="ProjectDeadline" id="ProjectDeadline"
+                               type="text"
+                               class="form-control roc-date-text"
+                               placeholder="例：115/04/01"
+                               autocomplete="off">
+                        <input id="ProjectDeadlineAd"
+                               name="ProjectDeadlineAd"
+                               type="date"
+                               class="date-picker-hidden"
+                               data-target="#ProjectDeadline" />
+                        <button type="button"
+                                class="date-calendar-btn"
+                                data-picker="#ProjectDeadlineAd"
+                                aria-label="選擇專案截止日期起">
+                            <i class="bi bi-calendar3"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-5 mb-1">
+        <h6 class="main-title">
+            <span style="color: Red">＊</span>稽查項目：
+        </h6>
+    </div>
+
+    <div class="form-editer-card mb-3">
+        <div class="form-editer-grid">
+            <div class="form-editer-col">
+                <div class="check-row">
+                    <label class="radio-inline-item pe-3">
+                        <input id="ghp" type="checkbox" value="Y">
+                        <span>GHP</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                    <label class="radio-inline-item pe-3">
+                        <input id="industryFoodRecord" type="checkbox" value="Y">
+                        <span>食品業者登錄</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                    <label class="radio-inline-item pe-3">
+                        <input id="responsibility" type="checkbox" value="Y">
+                        <span>產品責任險</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                </div>
+                <div class="check-row">
+                    <label class="radio-inline-item pe-3">
+                        <input id="HACCP" type="checkbox" value="Y">
+                        <span>HACCP</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                    <label class="radio-inline-item pe-3">
+                        <input id="sourceSafe" type="checkbox" value="Y">
+                        <span>保存來源文件</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                    <label class="radio-inline-item pe-3">
+                        <input id="traceBack" type="checkbox" value="Y">
+                        <span>追溯追蹤</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                </div>
+                <div class="check-row">
+                    <label class="radio-inline-item pe-3">
+                        <input id="qualityControl" type="checkbox" value="Y">
+                        <span>一級品管</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                    <label class="radio-inline-item pe-3">
+                        <input id="expiredFood" type="checkbox" value="Y">
+                        <span>逾期食品</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                    <label class="radio-inline-item pe-3">
+                        <input id="healthManagers" type="checkbox" value="Y">
+                        <span>衛生管理人員</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                </div>
+                <div class="check-row">
+                    <label class="radio-inline-item pe-3">
+                        <input id="licenceCheck" type="checkbox" value="Y">
+                        <span>專門職業或技術證照人員查核</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                    @* <label class="radio-inline-item pe-3">
+                        <input id="contracts" type="checkbox" value="Y">
+                        <span>定型化契約</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label> *@
+                    <label class="radio-inline-item pe-3">
+                        <input id="mark" type="checkbox" value="Y">
+                        <span>標示</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                    <label class="radio-inline-item pe-3">
+                        <input id="randomInspection" type="checkbox" value="Y">
+                        <span>抽驗</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                </div>
+                <div class="check-row">
+                    <label class="radio-inline-item pe-3">
+                        <input id="industryHealthyFood" type="checkbox" value="Y">
+                        <span>查驗登記工廠查核(健康食品工廠)</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                    <label class="radio-inline-item pe-3">
+                        <input id="industryAdditives" type="checkbox" value="Y">
+                        <span>查驗登記工廠查核(食品添加物工廠)</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                    <label class="radio-inline-item pe-3">
+                        <input id="industryCapsule" type="checkbox" value="Y">
+                        <span>查驗登記工廠查核(國產維生素錠狀膠囊狀食品工廠)</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                </div>
+                <div class="check-row">
+                    <label class="radio-inline-item pe-3">
+                        <input id="productHealthyFood" type="checkbox" value="Y">
+                        <span>查驗登記產品(健康食品)</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                    <label class="radio-inline-item pe-3">
+                        <input id="productAdditives" type="checkbox" value="Y">
+                        <span>查驗登記產品(食品添加物)</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                    <label class="radio-inline-item pe-3">
+                        <input id="productVitamin" type="checkbox" value="Y">
+                        <span>查驗登記產品(國產維生素錠狀膠囊狀食品)</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                </div>
+                <div class="check-row">
+                    <label class="radio-inline-item pe-3">
+                        <input id="productCapsule" type="checkbox" value="Y">
+                        <span>查驗登記產品(輸入錠狀膠囊狀食品)</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                    <label class="radio-inline-item pe-3">
+                        <input id="productSpecialFood" type="checkbox" value="Y">
+                        <span>查驗登記產品(病人用特殊營養食品)</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                    <label class="radio-inline-item pe-3">
+                        <input id="productBabyFood" type="checkbox" value="Y">
+                        <span>查驗登記產品(嬰兒配方食品及較大嬰兒配方補助食品)</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                </div>
+                <div class="check-row">
+                    <label class="radio-inline-item pe-3">
+                        <input id="connectDietService" type="checkbox" value="Y">
+                        <span>以通訊交易方式訂定之食品或餐飲服務</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                    <label class="radio-inline-item pe-3">
+                        <input id="dietGiftCertificate" type="checkbox" value="Y">
+                        <span>餐飲禮券</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                    <label class="radio-inline-item pe-3">
+                        <input id="dietOrderService" type="checkbox" value="Y">
+                        <span>訂席、外燴</span>
+                        <a class="btn btn-add-form">備註</a>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-editer-card">
+        <div class="form-editer-grid">
+            <div class="form-editer-col2">
+                <div class="check-row2 self-set-row" ">
+                    <label><span style="color: Red">＊</span>自訂欄位：</label>
+                    <label class="radio-inline-item">
+                        <input id="selfSetYes" type="radio" name="IsSelfSet" value="Y" checked="checked">
+                        <span>是</span>
+                    </label>
+
+                    <label class="radio-inline-item">
+                        <input id="selfSetNo" type="radio" name="IsSelfSet" value="N">
+                        <span>否</span>
+                    </label>
+                    <input type="button" class="btn btn-primary-line btn-add-form" id="btnSetItem" value="設定" />
+                </div>
+                <div class="check-row2 status-row">
+                    <label><span style="padding-left:15px;">狀態：</span></label>
+                    <label class="radio-inline-item" for="ctl00_ContentPlaceHolder1_rbtnListProjectStatus_0">
+                        <input id="rdoSelfSetStatus" type="radio" name="IsSetStatus" value="Y" checked="checked">
+                        <span>是</span>
+                    </label>
+                    <label class="radio-inline-item" for="ctl00_ContentPlaceHolder1_rbtnListProjectStatus_0">
+                        <input id="rdoSelfSetStatus" type="radio" name="IsSetStatus" value="N">
+                        <span>否</span>
+                    </label>
+                </div>
+                <div class="check-row3">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-form" onclick="window.history.go(-1);">取消</button>
+                        <input type="submit" class="btn btn-form" name="save" id="save" value="儲存" onclick="return CheckData();" class="btn btn-primary">
+                        <button type="button" class="btn btn-form" onclick="window.history.go(-1);">預覽表單</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+
+
+<!-- 備註遮罩 + 視窗 -->
+<div id="noteOverlay" class="pmds-overlay" style="display:none;">
+    <div class="pmds-note-modal" role="dialog" aria-modal="true" aria-labelledby="noteTitle">
+        <div class="pmds-note-header">
+            <span id="noteTitle" class="pmds-note-title">一級品管 - 備註</span>
+        </div>
+
+        <div class="pmds-note-body">
+            <textarea id="noteText" style="height:300px" class="form-control pmds-note-textarea" placeholder="" maxlength="500"></textarea>
+        </div>
+
+        <div class="pmds-note-footer">
+            <button type="button" id="noteCancelBtn" class="btn btn-success">取消</button>
+            <button type="button" id="noteOkBtn" class="btn btn-success">確定</button>
+        </div>
+    </div>
+</div>
+
+<!-- 設定遮罩 + 視窗 -->
+<div id="SetItemOverlay" class="pmds-overlay" style="display:none;">
+    <div class="pmds-setitem-modal" role="dialog" aria-modal="true" aria-labelledby="setItemTitle">
+        <div class="pmds-setitem-header">
+            <span id="setItemTitle" class="pmds-setitem-title">編輯浮動欄位</span>
+        </div>
+
+        <div class="pmds-setitem-body">
+            <div id="ctl00_ContentPlaceHolder1_Panel_menu" class="pmds-setitem-card">
+
+                <menu ui-id="menu" ui-action="Add" style="margin:0; padding:0;">
+
+                    <!-- 排序 + 標題同一行 -->
+                    <div class="setitem-row setitem-row-top">
+                        <label class="setitem-label" for="selectItemSort">
+                            <span class="setitem-required">＊</span>排序：
+                        </label>
+                        <input name="selectItemSort"
+                               type="text"
+                               id="selectItemSort"
+                               class="form-control setitem-sort-input"
+                               ui-id="txt_Sort"
+                               input-type="numeric"
+                               reset-type="txt">
+
+                        <label class="setitem-label" for="selectItemColumnName">
+                            <span class="setitem-required">＊</span>標題：
+                        </label>
+                        <input name="selectItemColumnName"
+                               type="text"
+                               maxlength="50"
+                               id="selectItemColumnName"
+                               class="form-control setitem-title-input"
+                               ui-id="txtTitle"
+                               reset-type="txt">
+                    </div>
+
+                    <!-- 說明獨立一行，可容納三行 -->
+                    <div class="setitem-desc-row">
+                        <label class="setitem-label" for="selectItemNote">
+                            說明：
+                        </label>
+                        <textarea name="selectItemNote"
+                                  maxlength="200"
+                                  id="selectItemNote"
+                                  class="form-control setitem-desc-textarea"
+                                  ui-id="txtIllustrate"
+                                  reset-type="txt"
+                                  rows="3"></textarea>
+                    </div>
+
+                    <!-- 類型 + 必填同一行，左右對稱 -->
+                    <div class="setitem-radio-row">
+                        <div class="setitem-radio-block">
+                            <label class="setitem-label">
+                                <span class="setitem-required">＊</span>類型：
+                            </label>
+                            <div class="setitem-radio-options">
+                                <span class="radio-inline">
+                                    <input id="reportedTypeNumber"
+                                           type="radio"
+                                           name="ReportedType"
+                                           value="int">
+                                    <label for="reportedTypeNumber">數字</label>
+                                </span>
+
+                                <span class="radio-inline">
+                                    <input id="reportedTypeText"
+                                           type="radio"
+                                           name="ReportedType"
+                                           value="txt">
+                                    <label for="reportedTypeText">文字</label>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="setitem-radio-block">
+                            <label class="setitem-label">
+                                <span class="setitem-required">＊</span>必填：
+                            </label>
+                            <div class="setitem-radio-options">
+                                <span class="radio-inline">
+                                    <input id="reportedRequiredYes"
+                                           type="radio"
+                                           name="ReportedRequired"
+                                           value="Y">
+                                    <label for="reportedRequiredYes">是</label>
+                                </span>
+
+                                <span class="radio-inline">
+                                    <input id="reportedRequiredNo"
+                                           type="radio"
+                                           name="ReportedRequired"
+                                           value="N">
+                                    <label for="reportedRequiredNo">否</label>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 儲存 / 取消 -->
+                    <div class="setitem-button-row">
+                        <div ui-id="newbtnG">
+                            <input type="button"
+                                   class="btn btn-primary"
+                                   name="insert"
+                                   value="儲存"
+                                   onclick="return false;"
+                                   id="insert"
+                                   ui-id="btnNewDynamic">
+
+                            <input type="button"
+                                   class="btn btn-primary"
+                                   name="cancelInsert"
+                                   value="取消"
+                                   onclick="return false;"
+                                   id="cancelInsert"
+                                   ui-id="btnResetDynamic1">
+                        </div>
+
+                        @* <div ui-id="updbtnG" style="display: none;">
+                            <input type="button"
+                                   class="btn btn-primary"
+                                   name="ctl00$ContentPlaceHolder1$btnSaveDynamic"
+                                   value="儲存"
+                                   onclick="return false;"
+                                   id="ctl00_ContentPlaceHolder1_btnSaveDynamic"
+                                   ui-id="btnSaveDynamic">
+
+                            <input type="button"
+                                   class="btn btn-primary"
+                                   name="ctl00$ContentPlaceHolder1$btnResetDynamic2"
+                                   value="取消"
+                                   onclick="return false;"
+                                   id="ctl00_ContentPlaceHolder1_btnResetDynamic2"
+                                   ui-id="btnResetDynamic2">
+                        </div> *@
+                    </div>
+
+                </menu>
+
+                <div class="setitem-add-row">
+                    <input type="button"
+                           class="btn btn-primary"
+                           name="ctl00$ContentPlaceHolder1$btnShowMenu"
+                           value="新增項目"
+                           onclick="return false;"
+                           id="ctl00_ContentPlaceHolder1_btnShowMenu"
+                           ui-id="btnShowMenu">
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+
+            // 開啟「設定」遮罩
+            $("#btnSetItem").on("click", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                var isSelfSet = $("input[name='IsSelfSet']:checked").val();
+                if (isSelfSet !== "Y") {
+                    return false;
+                }
+
+                $("#SetItemOverlay").css("display", "flex");
+            });
+
+            // 點擊遮罩背景關閉
+            $("#SetItemOverlay").on("click", function (e) {
+                if (e.target === this) {
+                    $("#SetItemOverlay").hide();
+                }
+            });
+
+            // 暫時先讓設定視窗內的取消按鈕關閉遮罩
+            $("#ctl00_ContentPlaceHolder1_btnResetDynamic1, #ctl00_ContentPlaceHolder1_btnResetDynamic2").on("click", function (e) {
+                e.preventDefault();
+                $("#SetItemOverlay").hide();
+            });
+
+        });
+
+
+        function pad2(n) {
+            return n.toString().padStart(2, "0");
+        }
+
+        // 西元日期轉民國日期：2026-04-01 => 115/04/01
+        function adDateToRocDate(adDate) {
+            if (!adDate) return "";
+
+            var parts = adDate.replaceAll("/", "-").split("-");
+            if (parts.length !== 3) return "";
+
+            var year = parseInt(parts[0], 10);
+            var month = parseInt(parts[1], 10);
+            var day = parseInt(parts[2], 10);
+
+            if (isNaN(year) || isNaN(month) || isNaN(day)) return "";
+
+            return (year - 1911) + "/" + pad2(month) + "/" + pad2(day);
+        }
+
+        // 民國日期轉西元日期：115/04/01 => 2026-04-01
+        function rocDateToAdDate(rocDate) {
+            if (!rocDate) return "";
+
+            var value = rocDate.trim().replaceAll("-", "/");
+            var parts = value.split("/");
+
+            if (parts.length !== 3) {
+                return null;
+            }
+
+            var year = parseInt(parts[0], 10);
+            var month = parseInt(parts[1], 10);
+            var day = parseInt(parts[2], 10);
+
+            if (isNaN(year) || isNaN(month) || isNaN(day)) {
+                return null;
+            }
+
+            // 民國年轉西元年
+            if (year < 1911) {
+                year = year + 1911;
+            }
+
+            var checkDate = new Date(year, month - 1, day);
+
+            if (
+                checkDate.getFullYear() !== year ||
+                checkDate.getMonth() !== month - 1 ||
+                checkDate.getDate() !== day
+            ) {
+                return null;
+            }
+
+            return year + "-" + pad2(month) + "-" + pad2(day);
+        }
+
+        // 點擊小日曆按鈕，打開對應的 type=date
+        $(document).on("click", ".date-calendar-btn", function () {
+            var pickerSelector = $(this).data("picker");
+            var picker = document.querySelector(pickerSelector);
+
+            if (!picker) return;
+
+            if (picker.showPicker) {
+                picker.showPicker();
+            } else {
+                picker.click();
+            }
+        });
+
+        // 選完西元日期後，自動轉成民國年顯示到 textbox
+        $(document).on("change", ".date-picker-hidden", function () {
+            var adDate = $(this).val();
+            var targetSelector = $(this).data("target");
+
+            $(targetSelector).val(adDateToRocDate(adDate));
+        });
+
+        // 使用者手動輸入民國日期後，自動同步到隱藏的西元日期欄位
+        $(document).on("blur", ".roc-date-text", function () {
+            var textBoxId = "#" + $(this).attr("id");
+            var rocDate = $(this).val();
+
+            if (!rocDate) {
+                if (textBoxId === "#ProjectDeadline") {
+                    $("#ProjectDeadlineAd").val("");
+                }
+
+                return;
+            }
+
+            var adDate = rocDateToAdDate(rocDate);
+
+            if (adDate === null) {
+                alert("日期格式錯誤，請輸入民國年格式，例如：115/04/01");
+                $(this).focus();
+                return;
+            }
+
+            $(this).val(adDateToRocDate(adDate));
+
+            if (textBoxId === "#ProjectDeadlineAd") {
+                $("#ProjectDeadlineAd").val(adDate);
+            }
+        });
+    </script>
+}
+

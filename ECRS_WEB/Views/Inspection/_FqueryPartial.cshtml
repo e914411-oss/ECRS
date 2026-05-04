@@ -1,0 +1,36 @@
+@model ECRS_WEB.DTOs.InspectionDTO.Fquery.SupplierPageViewModel
+
+@{
+    int ii = 1;
+}
+
+@if (Model == null || Model.Suppliers.Count == 0)
+{
+
+}
+else
+{
+
+    @foreach (var item in Model.Suppliers)
+    {
+
+        <tr>
+            <td class="lt">@ii</td>
+            <td class="lt">@item.業者編號</td>
+            <td class="lt">
+                <a class="nav-link text-black ajax-link" asp-controller="Inspection" asp-action="Flist" asp-route-companyId="@item.業者編號">@item.業者名稱</a>
+
+            </td>
+            <td class="lt">@item.食品登錄字號</td>
+            <td>@item.統一編號</td>
+            <td class="lt">@item.電話號碼</td>
+            <td class="lt">@item.業者地址</td>
+            <td class="lt">@Html.DisplayFor(modelItem => item.案件建立日期)</td>
+
+
+        </tr>
+        ii++;
+    }
+
+}
+

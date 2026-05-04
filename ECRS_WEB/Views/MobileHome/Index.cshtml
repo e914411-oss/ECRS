@@ -1,0 +1,231 @@
+@{
+    ViewData["Title"] = "行動版-首頁";
+    Layout = "_LayoutMobile";
+
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+    var isInspection = currentController == "Inspection";
+    var isInspectionWork = isInspection && currentAction == "InspectionQry";
+    var isInspectionVendor = isInspection && currentAction == "Fquery";
+    var isInspectionCase = isInspection && currentAction == "FormQuery";
+    var isInspectionHome = isInspection && currentAction == "Index";
+    var isInspectionPReview = isInspection && currentAction == "PReview";
+
+    var isInspectionGroupOpen =
+        isInspectionHome ||
+        isInspectionWork ||
+        isInspectionVendor ||
+        isInspectionCase;
+
+    var isFormManage = currentController == "FormManage";
+    var isFormManageFormEditer = isFormManage && currentAction == "FormEditer";
+    var isFormManageFormQryByPJ = isFormManage && currentAction == "FormQryByPJ";
+    var isFormManageIndex = isFormManage && currentAction == "Index";
+
+    var isFormManageGroupOpen =
+        isFormManageIndex ||
+        isFormManageFormEditer ||
+        isFormManageFormQryByPJ;
+}
+
+@section Styles {
+    <style>
+        .mobile-home-menu {
+            padding: .5rem 0 1rem;
+        }
+
+        .mobile-home-card {
+            background: #fff;
+            border: 0;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.08);
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .mobile-home-toggle,
+        .mobile-home-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            min-height: 56px;
+            padding: 14px 18px;
+            border: 0;
+            border-radius: 0;
+            background: #4f9f45;
+            color: #fff;
+            font-size: 1rem;
+            line-height: 1.4;
+            text-decoration: none;
+            transition: background-color .2s ease, opacity .2s ease;
+        }
+
+            .mobile-home-toggle:hover,
+            .mobile-home-link:hover,
+            .mobile-home-toggle:focus,
+            .mobile-home-link:focus {
+                color: #fff;
+                background: #468f3d;
+            }
+
+            .mobile-home-toggle .bi {
+                transition: transform .25s ease;
+                flex: 0 0 auto;
+            }
+
+            .mobile-home-toggle[aria-expanded="true"] .bi {
+                transform: rotate(180deg);
+            }
+
+        .mobile-home-collapse {
+            padding: .75rem .75rem .9rem;
+            background: #fff;
+        }
+
+        .mobile-home-submenu {
+            list-style: none;
+            margin: 0;
+            padding: 0 0 0 14px;
+            border-left: 3px solid rgba(79,159,69,.28);
+        }
+
+            .mobile-home-submenu li + li {
+                margin-top: .65rem;
+            }
+
+            .mobile-home-submenu a {
+                display: block;
+                min-height: 48px;
+                padding: 12px 14px;
+                border-radius: 10px;
+                background: #66aa57;
+                color: #fff;
+                text-decoration: none;
+                line-height: 1.4;
+                transition: background-color .2s ease, opacity .2s ease;
+            }
+
+                .mobile-home-submenu a:hover,
+                .mobile-home-submenu a:focus {
+                    background: #5c9a4f;
+                    color: #fff;
+                }
+
+        /* ===== active 狀態 ===== */
+        .mobile-home-card.active > .mobile-home-link,
+        .mobile-home-card.active > .mobile-home-toggle {
+            background: #2f7d32;
+            font-weight: 600;
+        }
+
+        .mobile-home-submenu li.active > a {
+            background: #2f7d32;
+            font-weight: 600;
+            box-shadow: inset 0 0 0 2px rgba(255,255,255,.18);
+        }
+
+        .mobile-home-card.active .mobile-home-collapse {
+            background: #fbfdfb;
+        }
+
+        .mobile-home-card.active .mobile-home-submenu {
+            border-left-color: rgba(47,125,50,.55);
+        }
+
+        .mobile-home-preview .mobile-home-link {
+            background: #212529;
+        }
+
+            .mobile-home-preview .mobile-home-link:hover,
+            .mobile-home-preview .mobile-home-link:focus {
+                background: #1b1f23;
+            }
+    </style>
+}
+
+<div class="container-fluid mobile-home-menu">
+    <div class="accordion" id="mobileHomeAccordion">
+
+        <!-- 稽查管理 -->
+        <div class="mobile-home-card @(isInspectionGroupOpen ? "active" : "")">
+            <button class="mobile-home-toggle"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#mobileInspectionMenu"
+                    aria-expanded="@(isInspectionGroupOpen ? "true" : "false")"
+                    aria-controls="mobileInspectionMenu">
+                <span>稽查管理</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+
+            <div id="mobileInspectionMenu"
+                 class="collapse mobile-home-collapse @(isInspectionGroupOpen ? "show" : "")"
+                 data-bs-parent="#mobileHomeAccordion">
+                <ul class="mobile-home-submenu">
+                    <li class="@(isInspectionHome ? "active" : "")">
+                        <a asp-controller="Inspection" asp-action="Index">稽查首頁</a>
+                    </li>
+                    <li class="@(isInspectionWork ? "active" : "")">
+                        <a asp-controller="Inspection" asp-action="InspectionQry">稽查作業</a>
+                    </li>
+                    <li class="@(isInspectionVendor ? "active" : "")">
+                        <a asp-controller="Inspection" asp-action="Fquery">業者稽查查詢</a>
+                    </li>
+                    <li class="@(isInspectionCase ? "active" : "")">
+                        <a asp-controller="Inspection" asp-action="FormQuery">稽查單查詢</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 待審核案件 -->
+        <div class="mobile-home-card @(isInspectionPReview ? "active" : "")">
+            <a class="mobile-home-link"
+               asp-controller="Inspection"
+               asp-action="PReview">
+                <span>待審核案件</span>
+            </a>
+        </div>
+
+        <!-- 表單管理 -->
+        <div class="mobile-home-card @(isFormManageGroupOpen ? "active" : "")">
+            <button class="mobile-home-toggle"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#mobileFormManageMenu"
+                    aria-expanded="@(isFormManageGroupOpen ? "true" : "false")"
+                    aria-controls="mobileFormManageMenu">
+                <span>表單管理</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+
+            <div id="mobileFormManageMenu"
+                 class="collapse mobile-home-collapse @(isFormManageGroupOpen ? "show" : "")"
+                 data-bs-parent="#mobileHomeAccordion">
+                <ul class="mobile-home-submenu">
+                    <li class="@(isFormManageIndex ? "active" : "")">
+                        <a asp-controller="FormManage" asp-action="Index">表單首頁</a>
+                    </li>
+                    <li class="@(isFormManageFormEditer ? "active" : "")">
+                        <a asp-controller="FormManage" asp-action="FormEditer">表單編輯作業</a>
+                    </li>
+                    <li class="@(isFormManageFormQryByPJ ? "active" : "")">
+                        <a asp-controller="FormManage" asp-action="FormQryByPJ">專案查詢</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Preview -->
+        <div class="mobile-home-card mobile-home-preview">
+            <a class="mobile-home-link"
+               asp-controller="Inspection"
+               asp-action="PReview">
+                <span>Preview</span>
+            </a>
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,910 @@
+@model ECRS_WEB.DTOs.InspectionDTO.Fquery.SupplierPageViewModel
+
+@{
+    var isAjax = Context.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+}
+
+@{
+    var deptList = null as List<ECRS_WEB.Models.PMDS.系統_部門表>;
+    var IndustryClassList = null as List<ECRS_WEB.Models.PMDS.業別主分類表>;
+}
+
+@{
+    deptList = ViewBag.DeptList;
+    IndustryClassList = ViewBag.IndustryClassList;
+}
+
+@if (!isAjax)
+{
+    ViewData["Title"] = "稽查管理-業者稽查查詢";
+}
+
+@section Styles {
+    <style>
+
+        th {
+            text-wrap: nowrap;
+        }
+
+        .main-title {
+            position: relative;
+            display: block;
+            margin: 0 0 24px 0;
+            padding-left: 16px;
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.5;
+            color: #222;
+        }
+
+            .main-title::before {
+                content: "";
+                position: absolute;
+                top: 50%;
+                left: 0;
+                width: 5px;
+                height: 23px;
+                background: #349f41;
+                border-radius: 5px;
+                transform: translateY(-50%);
+            }
+
+        .secend-title {
+            position: relative;
+            display: block;
+            margin: 0 0 24px 0;
+            padding-left: 16px;
+            font-size: 18px;
+            font-weight: 640;
+            line-height: 1.5;
+            color: #222;
+        }
+
+            .secend-title::before {
+                content: "";
+                position: absolute;
+                top: 50%;
+                left: 0;
+                width: 5px;
+                height: 23px;
+                background: #349f41;
+                border-radius: 5px;
+                transform: translateY(-50%);
+            }
+
+        .form-editer-page {
+            padding-bottom: 24px;
+        }
+
+        .form-editer-card {
+            border: 2px solid #7ecb8a;
+            border-radius: 8px;
+            background: #f7fbf7;
+            padding: 28px 18px 36px 18px;
+            box-shadow: 0 0 0 4px rgba(126, 203, 138, .15);
+            position: relative;
+        }
+
+        .form-editer-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 28px;
+        }
+
+        .form-editer-col {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .query-row {
+            display: grid;
+            grid-template-columns: 150px minmax(220px, 1fr);
+            align-items: center;
+            gap: 10px;
+        }
+
+            .query-row.query-row-status {
+                align-items: center;
+            }
+
+        .query-label {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+            white-space: nowrap;
+        }
+
+        .query-inline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .query-inline > .form-control,
+            .query-inline > .form-select {
+                flex: 1 1 auto;
+            }
+
+        .date-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+            .date-input-wrap .form-control {
+                padding-right: 42px;
+            }
+
+            .date-input-wrap .date-icon {
+                position: absolute;
+                right: 12px;
+                color: #4caf50;
+                pointer-events: none;
+                font-size: 16px;
+            }
+
+        .pmds-radio-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+            .pmds-radio-group .radio-inline-item {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                margin: 0;
+                white-space: nowrap;
+                font-weight: normal;
+            }
+
+                .pmds-radio-group .radio-inline-item input[type="radio"] {
+                    margin: 0;
+                }
+
+        .collapse-anchor-wrap {
+            position: absolute;
+            left: -10px;
+            bottom: -14px;
+        }
+
+        .collapse-toggle-fake {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #fff;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            box-shadow: 0 1px 2px rgba(0,0,0,.08);
+        }
+
+            .collapse-toggle-fake:hover {
+                color: #333;
+                text-decoration: none;
+            }
+
+        .query-action-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            margin: 30px 0 40px;
+        }
+
+        .table-title-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn-add-form {
+            min-width: 160px;
+        }
+
+        /* ===== 查詢筆數 ===== */
+        .query-summary {
+            color: #1f9d46;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        /* ===== DataTable 外框 ===== */
+        .form-list-card {
+            border: 2px solid #b9dfc1;
+            border-radius: 10px;
+            /*overflow: hidden;*/
+            overflow: auto;
+            background: #fff;
+        }
+
+        .form-list-wrap {
+            padding: 6px 10px 0 10px;
+        }
+
+        table.dataTable.form-list-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            margin: 0 !important;
+        }
+
+            table.dataTable.form-list-table thead th {
+                background: #cddccf;
+                color: #222;
+                font-size: 18px;
+                font-weight: 700;
+                text-align: center;
+                padding: 14px 10px;
+                border-bottom: 1px solid #b7c9b8 !important;
+                white-space: nowrap;
+            }
+
+            table.dataTable.form-list-table tbody td {
+                font-size: 16px;
+                color: #222;
+                text-align: center;
+                vertical-align: middle;
+                padding: 14px 12px;
+                border-bottom: 1px solid #d8d8d8 !important;
+                background: #fff;
+            }
+
+            table.dataTable.form-list-table tbody tr:last-child td {
+                border-bottom: none !important;
+            }
+
+        .td-project-item,
+        .td-project-name {
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        .td-edit-date {
+            line-height: 1.5;
+            white-space: nowrap;
+        }
+
+        .status-text {
+            color: #2d7a2d;
+            font-weight: 500;
+        }
+
+        .action-stack {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+            .action-stack .btn {
+                min-width: 68px;
+                border-radius: 4px;
+            }
+
+        .btn-outline-ecrs {
+            color: #66b96e;
+            border: 1px solid #7fc987;
+            background: #fff;
+        }
+
+            .btn-outline-ecrs:hover {
+                color: #fff;
+                background: #66b96e;
+                border-color: #66b96e;
+            }
+
+        /* 關掉 DataTables 預設小箭頭佔位 */
+        table.dataTable thead > tr > th.sorting,
+        table.dataTable thead > tr > th.sorting_asc,
+        table.dataTable thead > tr > th.sorting_desc,
+        table.dataTable thead > tr > th.sorting_asc_disabled,
+        table.dataTable thead > tr > th.sorting_desc_disabled {
+            padding-right: 10px !important;
+            background-image: none !important;
+        }
+
+        /* ===== 隱藏 DataTables 預設區塊 ===== */
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate,
+        .dataTables_wrapper .dataTables_length {
+            display: none !important;
+        }
+
+        /* ===== 自訂分頁列 ===== */
+        .dt-footer-bar {
+            border: 2px solid #b9dfc1;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            background: #f7f7f7;
+            padding: 18px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .dt-footer-left,
+        .dt-footer-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .dt-footer-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            color: #222;
+            font-size: 16px;
+        }
+
+        .dt-page-btn {
+            border: none;
+            background: transparent;
+            color: #4aa658;
+            font-size: 24px;
+            line-height: 1;
+            padding: 0 6px;
+        }
+
+            .dt-page-btn:disabled {
+                opacity: .35;
+                cursor: not-allowed;
+            }
+
+        .dt-page-box,
+        .dt-length-box {
+            min-width: 58px;
+            height: 34px;
+            border: 1px solid #d7d7d7;
+            border-radius: 4px;
+            background: #fff;
+            text-align: center;
+            padding: 4px 28px 4px 8px;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+        .dt-select-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+
+            .dt-select-wrap::after {
+                content: "";
+                position: absolute;
+                right: 10px;
+                top: 50%;
+                transform: translateY(-30%);
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 6px solid #58a45d;
+                pointer-events: none;
+            }
+
+        .dt-divider {
+            color: #666;
+        }
+
+        @@media (max-width: 992px) {
+            .form-editer-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dt-footer-bar {
+                justify-content: center;
+            }
+
+            .dt-footer-left,
+            .dt-footer-center,
+            .dt-footer-right {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .query-row {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+
+            .query-label {
+                white-space: normal;
+            }
+
+            .collapse-anchor-wrap {
+                position: static;
+                margin-top: 16px;
+            }
+
+            .form-editer-card {
+                padding-bottom: 20px;
+            }
+
+            table.dataTable.form-list-table thead th,
+            table.dataTable.form-list-table tbody td {
+                font-size: 14px;
+                padding: 10px 8px;
+            }
+        }
+
+        .dataTables_paginate .pagination {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+    </style>
+}
+
+<h1 class="main-title">
+    <span id="ctl00_ContentPlaceHolder1_UC_NodeName_lblNodeName">@ViewData["Title"]</span>
+</h1>
+
+<div class="content">
+
+    <div class="form-editer-card">
+        <div class="mb-0 row">
+            <label class="col-sm-2 text-end"><span style="color: Red;">＊</span>營業地址：​</label>
+            <div class="col-sm-10">
+                <div class="row">
+                    <div class="col-sm-2 mb-2">
+                        <select name="ctl00$ContentPlaceHolder1$cboBusiness_Category_Main" id="citySelect" class="form-control" data-width="100%" data-live-search="true" data-size="5">
+                            <option selected="selected" value="">全部</option>
+                            @if (deptList != null)
+                            {
+                                @foreach (var dept in deptList)
+                                {
+                                    <option value="@dept.所在縣市編號">
+                                        @dept.名稱
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-sm-2 mb-2">
+                        <select name="ctl00$ContentPlaceHolder1$uclBusiness$ddlcounty" id="areaSelect" class="form-control" data-width="100%" data-live-search="true" data-size="5">
+                            <option selected="selected" value="">全部</option>
+
+                        </select>
+                    </div>
+                    <div class="col-sm-8">
+                        <input name="txtAddress" type="text" id="txtAddress" class="form-control" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mb-0 row">
+            <label class="col-sm-2 mb-2 text-end">商業登記名稱：</label>
+            <div class="col-sm-4 mb-2">
+                <input name="ctl00$ContentPlaceHolder1$txtCompany_Name" type="text" id="txtCompany_Name" class="form-control" />
+            </div>
+            <label class="col-sm-2 mb-2 text-end">市招名稱：</label>
+            <div class="col-sm-4 mb-2">
+                <input name="ctl00$ContentPlaceHolder1$txtSignboard_Name" type="text" id="txtSignboard_Name" class="form-control" />
+            </div>
+        </div>
+        <div class="collapse show" id="sub_search">
+            <div class="card card-body mt-2">
+                <div class="mb-0 row">
+                    <label class="col-sm-2 mb-2 text-end">負責人姓名：</label>
+                    <div class="col-sm-4 mb-2">
+                        <input name="ctl00$ContentPlaceHolder1$txtResponsible_Person_Name" type="text" id="txtResponsible_Name" class="form-control" />
+                    </div>
+                    <label class="col-sm-2 mb-2 text-end">電話：</label>
+                    <div class="col-sm-4 mb-2">
+                        <input name="ctl00$ContentPlaceHolder1$txtTelephone" type="text" id="txtTelephone" class="form-control" onkeyup="return ValidateNumber(this,value);" />
+                    </div>
+                </div>
+                <div class="mb-0 row">
+                    <label class="col-sm-2 mb-2 text-end">業者業別主類：</label>
+                    <div class="col-sm-4 mb-2">
+                        <select name="industryClass" id="industryClass" class="form-control" data-width="100%" data-live-search="true" data-size="5">
+                            <option selected="selected" value="">全部</option>
+                            @if (IndustryClassList != null)
+                            {
+                                @foreach (var IndustryClass in IndustryClassList)
+                                {
+                                    <option value="@IndustryClass.主鍵">
+                                        @IndustryClass.業別主分類名稱
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <label class="col-sm-2 mb-2 text-end">業者業別次類：</label>
+                    <div class="col-sm-4 mb-2">
+                        <select name="industrySecondClass" id="industrySecondClass" class="form-control" data-width="100%" data-live-search="true" data-size="5">
+                            <option value="">全部</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-0 row">
+                    <label class="col-sm-2 mb-2 text-end">業者編號：</label>
+                    <div class="col-sm-4 mb-2">
+                        <input name="ctl00$ContentPlaceHolder1$id" type="text" id="Company_id" class="form-control" />
+                    </div>
+                    <label class="col-sm-2 mb-2 text-end">營業狀況：</label>
+                    <div class="col-sm-4 mb-2">
+                        <select name="ctl00$ContentPlaceHolder1$cboIndustryState" id="cboIndustryState" class="form-control" data-width="100%">
+                            <option value="0">營業</option>
+                            <option value="1">停業</option>
+                            <option value="2">歇業</option>
+                            <option value="3">廢業</option>
+                            <option value="全部">全部</option>
+
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-0 row">
+                    <label class="col-sm-2 mb-2 text-end">統一編號：</label>
+                    <div class="col-sm-4 mb-2">
+                        <input name="ctl00$ContentPlaceHolder1$txtCompany_Tax_ID" type="text" id="txtCompany_Tax_ID" class="form-control" />
+                    </div>
+                    <label class="col-sm-2 mb-2 text-end">食品登錄字號：</label>
+                    <div class="col-sm-4 mb-2">
+                        <input name="ctl00$ContentPlaceHolder1$txt食品登錄字號" type="text" id="txt食品登錄字號" class="form-control" />
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <button class="btn btn-outline-secondary btn-sm expanded d-flex align-items-center gap-2"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#sub_search"
+                aria-expanded="false"
+                aria-controls="sub_search">
+
+            <!-- 文字 -->
+            <span class="when-collapsed">展開全部</span>
+            <span class="when-expanded">收合內容</span>
+
+            <!-- 箭頭 -->
+            <span class="arrow-icon">
+                ▼
+            </span>
+        </button>
+    </div>
+
+    <div class="query-action-area">
+        <input type="button" name="ctl00$ContentPlaceHolder1$cmdReset" value="清除" onclick="clearSearchF();" id="ctl00_ContentPlaceHolder1_cmdReset" class="btn btn-success px-4" />
+        <input type="button" name="ctl00$ContentPlaceHolder1$cmdSearch" value="查詢" onclick="preSearch();" id="ctl00_ContentPlaceHolder1_cmdSearch" class="btn btn-success px-4" />
+        <!--<span id="btnExcel2"><a title="匯出Xls" href="javascript:void();"><img src="" style="border-width:0px;" /></a></span>-->
+    </div>
+
+    <h4 class="secend-title">
+        <div class="table-title-row">
+            <span>查詢清單​</span>
+            <div class="btn-group">
+                <a class="btn btn-default" id="btn_FExcel"><i class="bi bi-inbox"></i>匯出​</a>
+            </div>
+            <input onclick="__doPostBack('ctl00$ContentPlaceHolder1$btn_IndustryMerge','')" name="ctl00$ContentPlaceHolder1$btn_IndustryMerge" type="button" id="ctl00_ContentPlaceHolder1_btn_IndustryMerge" style="display: none" />
+        </div>
+    </h4>
+    <!--查詢狀態提示-->
+    <div class="query-summary"></div>
+    <!-- END pull-right -->
+
+
+
+    <div class="form-list-card">
+
+        <div class="form-list-wrap">
+
+
+            <table id="supplierTable" class="table table-bordered table-striped tb-multi form-list-table">
+                <thead>
+                    <tr>
+                        <th>項次</th>
+                        <th>業者編號</th>
+                        <th>業者名稱</th>
+                        <th>食品登錄字號</th>
+                        <th>統一編號</th>
+                        <th>電話號碼</th>
+                        <th>業者地址</th>
+                        <th>案件建立日期</th>
+                    </tr>
+                </thead>
+                <tbody id="resultDiv">
+                    @await Html.PartialAsync("_FqueryPartial", Model)
+                </tbody>
+            </table>
+
+        </div>
+
+
+
+
+
+
+        <input type="hidden" name="ctl00$ContentPlaceHolder1$hidIndMergeID" id="ctl00_ContentPlaceHolder1_hidIndMergeID" />
+        <input type="hidden" name="ctl00$ContentPlaceHolder1$hidSIndustryID" id="ctl00_ContentPlaceHolder1_hidSIndustryID" />
+        <div class="modal fade modal-1" tabindex="-1" role="dialog" id="div_IndustryMerge">
+            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                        <h4 class="modal-title">業者資料整併</h4>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table tb-multi">
+                            <tr>
+                                <td align="center" style="text-align: left;">
+                                    <div class="resultBox_header">
+                                        <font color="red">注意： 此動作將整併表列業者資料與相對應之稽查事件，整併後，原則上僅剩下欲保留之業者資料，<br />但會合併不同登錄字號及業別，並將併入其他待整併業者之稽查事件。</font>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="center" style="text-align: left;">
+                                    <div>
+                                        <font>請選取欲保留之主業者：</font>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="scroll_table has-foot">
+                                        <table class="table tb-multi">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align: center">選取</th>
+                                                    <th style="text-align: center">市招名稱</th>
+                                                    <th style="text-align: center">營業地址</th>
+                                                    <th style="text-align: center">食品登錄字號</th>
+                                                    <th style="text-align: center">業別</th>
+                                                    <th style="text-align: center">工廠登記證號</th>
+                                                    <th style="text-align: center">業者編號</th>
+                                                    <th style="text-align: center">資料轉入來源</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tb_IMList">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="button" id="btn_IMCancel" value="取消" class="btn btn-primary"
+                               data-dismiss="modal" />
+                        <input type="button" id="btn_IMCommit" value="確定" class="btn btn-primary"
+                               data-dismiss="modal" onclick="IndMerge();" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="loadingBlock"
+             class="d-none position-fixed top-0 start-0 w-100 vh-100 d-flex justify-content-center align-items-center"
+             style="background: rgba(255,255,255,0.7); z-index: 1050;">
+
+            <div class="text-center">
+                <div class="spinner-border text-primary"></div>
+                <div class="mt-3">
+                    <i class="bi bi-hourglass-split me-2"></i>
+                    查詢中，請稍候...
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script>
+        function preSearch() {
+            var Company = $("#txtCompany_Name").val();
+            var Signboard = $("#txtSignboard_Name").val();
+            var Responsible = $("#txtResponsible_Name").val();
+            var Telephone = $("#txtTelephone").val();
+            var Company_Tax_ID = $("#txtCompany_Tax_ID").val();
+            var Reg_No = $("#txt食品登錄字號").val();
+            var IndustryClass = $("#industryClass").val();
+            var industrySecondClass = $("#industrySecondClass").val();
+            // var mainSelect = $("#mainSelect").val();
+            //alert(mainSelect);
+            // var subSelect = $("#subSelect").val();
+            var IndustryState = $("#cboIndustryState").val();
+            //alert(IndustryState);
+            var CitySelect = $("#citySelect").val();
+            var AreaSelect = $("#areaSelect").val();
+            //alert('='+AreaSelect+'=');
+            var Address = $("#txtAddress").val();
+            //alert(Company);
+            var companyId= $("#Company_id").val();
+
+            var supplier1 = {
+                縣市代碼: CitySelect,
+                鄉鎮區代碼: AreaSelect,
+                業者地址: Address,
+                商業登記名稱: Company,
+                市招名稱: Signboard,
+                負責人: Responsible,
+                電話號碼: Telephone,
+                業者業別主類: IndustryClass,
+                業者業別次類: industrySecondClass,
+                業者編號: companyId,
+                營業狀況: IndustryState,
+                統一編號: Company_Tax_ID,
+                食品登錄字號: Reg_No
+            };
+
+            //window.location.href = '/Inspection/Fquery?' + $.param(supplier1);
+            // 顯示 loading
+            document.getElementById("loadingBlock").classList.remove("d-none");
+            //let progress = 0;
+            //let progressTimer = null;
+            //startLoading();
+            $.ajax({
+                url: '/Inspection/Fquery',
+                type: 'GET',
+                cache: false,
+                data: supplier1,
+                success: function (result) {
+                // 隱藏 loading
+                document.getElementById("loadingBlock").classList.add("d-none");
+                //stopLoading();
+                // alert("後端傳回的長度是：" + result.length);
+                // alert("後端傳回的內容是：" + result);
+
+                    if(result != '') {
+                        var totalPages = $("#totalPages").val();
+                        var currentPage = $("#currentPage").val();
+
+                        if ($.fn.DataTable.isDataTable('#supplierTable')) {
+                            $('#supplierTable').DataTable().destroy();
+                        }
+
+                        $("#resultDiv").html(result);
+
+                        $('#supplierTable').DataTable({
+                            pageLength: 10,
+                                dom: '<"d-flex justify-content-between"l f>rt<"d-flex justify-content-between align-items-center"i p>',
+                            language: {
+                                lengthMenu: "顯示 _MENU_ 筆資料",
+                                zeroRecords: "查無結果",
+                                emptyTable: "查無結果",
+                                info: "顯示第 _START_ 到 _END_ 筆，共 _TOTAL_ 筆",
+                                infoEmpty: "沒有資料",
+                                infoFiltered: "(從 _MAX_ 筆資料中篩選)",
+                                search: "搜尋:",
+                                paginate: {
+                                    first: "首頁",
+                                    last: "末頁",
+                                    next: "下一頁",
+                                    previous: "上一頁"
+                                }
+                            },
+                            initComplete: function () {
+                                $('.dataTables_paginate ul.pagination')
+                                    .addClass('w-100 d-flex justify-content-between');
+                            }
+                        });
+                    }
+
+                    //window.location.href = '/Inspection/Fquery?' + $.param(supplier1);
+
+                    // 如果使用 bootstrap-select
+                    //areaSelect.selectpicker('refresh');
+                },
+                error: function (xhr, status, error) {
+                    console.error("Fquery ajax error:", status, error, xhr.responseText);
+                    alert("查詢失敗，請查看 API / WEB log。");
+                },
+                complete: function () {
+                    $("#loadingBlock").addClass("d-none");
+                }
+            });
+        }
+
+        function clearSearchF() {
+            var Company = $("#txtCompany_Name").val();
+            //alert(Company);
+            var supplier1 = {
+                Id: null,
+                業者編號: null,
+                業者名稱: null,
+                食品登錄字號: null,
+                統一編號: null,
+                電話號碼: null,
+                業者地址: null,
+                案件建立日期: null,
+            };
+
+            window.location.href = '/Inspection/Fquery?' + $.param(supplier1);
+
+
+        }
+
+        $(document).ready(function () {
+
+                document.getElementById("btn_FExcel").addEventListener("click", function () {
+
+                    var Company = $("#txtCompany_Name").val();
+                    //alert(Company);
+                    var supplier1 = {
+                        Id: null,
+                        業者編號: null,
+                        業者名稱: Company,
+                        食品登錄字號: null,
+                        統一編號: null,
+                        電話號碼: null,
+                        業者地址: null,
+                        案件建立日期: null,
+                    };
+
+                    window.location.href = '/Inspection/ExportExcelF?' + $.param(supplier1);
+
+                });
+
+                $("#citySelect").change(function () {
+                    var cityId = $(this).val();
+
+                    $.ajax({
+                        url: '/Inspection/GetAreaByCity',
+                        type: 'GET',
+                        data: { cityId: cityId },
+                        success: function (data) {
+
+                            var areaSelect = $("#areaSelect");
+                            areaSelect.empty();
+
+                            areaSelect.append('<option value="">全部</option>');
+
+                            $.each(data, function (i, item) {
+                                areaSelect.append(
+                                            '<option value="' + item.鄉鎮編號 + '">' + item.鄉鎮區名稱 + '</option>'
+                                );
+                            });
+
+                            // 如果使用 bootstrap-select
+                            //areaSelect.selectpicker('refresh');
+                        }
+                    });
+
+                });
+
+                $("#industryClass").change(function () {
+
+                    var kindId = $(this).val();
+
+                    $.ajax({
+                        url: '/Inspection/GetSubByKind',
+                        type: 'GET',
+                        data: { kindId: kindId },
+                        success: function (data) {
+
+                            var areaSelect = $("#industrySecondClass");
+                            areaSelect.empty();
+                            areaSelect.append('<option value="" selected>全部</option>');
+
+                            $.each(data, function (i, item) {
+                                areaSelect.append(
+                                    '<option value="' + item.主鍵 + '">' + item.業別次分類名稱 + '</option>'
+                                );
+                            });
+
+                            // 如果使用 bootstrap-select
+                            //areaSelect.selectpicker('refresh');
+                        }
+                    });
+
+                });
+
+            });
+    </script>
+}

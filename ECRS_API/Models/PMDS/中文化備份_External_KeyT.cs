@@ -1,0 +1,9 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace ECRS_API.Models.PMDS;
+
+public partial class 中文化備份_External_KeyT
+{
+    public string External_Key { get; set; } = null!;
+}
