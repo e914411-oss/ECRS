@@ -2,12 +2,31 @@
     ViewData["Title"] = "新增/編輯表單";
     string? formName = ViewData["FormName"] as string;
     string strFormName = string.IsNullOrEmpty(formName) ? string.Empty : formName;
+    string newFormId = ViewData["newInspectionIDs"] as string ?? string.Empty;
 
     @Html.AntiForgeryToken()
     ;
 }
 @section Styles {
     <style>
+        .main-title {
+            font-size: 1.35rem;
+            font-weight: 600;
+            position: relative;
+            padding-left: 12px;
+        }
+
+            .main-title::before {
+                content: "";
+                position: absolute;
+                left: 0;
+                top: 3px;
+                width: 4px;
+                height: 20px;
+                background: #198754;
+                border-radius: 2px;
+            }
+
         .form-editer-page {
             padding-bottom: 24px;
         }
@@ -304,7 +323,7 @@
         }
 
         .btn-add-form {
-            min-width:30px;
+            min-width: 30px;
             margin: 0;
             padding: 0;
             font-size: 9pt;
@@ -925,58 +944,58 @@
             <div class="form-editer-col">
                 <div class="check-row">
                     <label class="radio-inline-item pe-3">
-                        <input id="ghp" type="checkbox" value="Y">
+                        <input id="ghp" type="checkbox" value="1">
                         <span>GHP</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                     <label class="radio-inline-item pe-3">
-                        <input id="industryFoodRecord" type="checkbox" value="Y">
+                        <input id="industryFoodRecord" type="checkbox" value="2">
                         <span>食品業者登錄</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                     <label class="radio-inline-item pe-3">
-                        <input id="responsibility" type="checkbox" value="Y">
+                        <input id="responsibility" type="checkbox" value="3">
                         <span>產品責任險</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                 </div>
                 <div class="check-row">
                     <label class="radio-inline-item pe-3">
-                        <input id="HACCP" type="checkbox" value="Y">
+                        <input id="HACCP" type="checkbox" value="4">
                         <span>HACCP</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                     <label class="radio-inline-item pe-3">
-                        <input id="sourceSafe" type="checkbox" value="Y">
+                        <input id="sourceSafe" type="checkbox" value="5">
                         <span>保存來源文件</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                     <label class="radio-inline-item pe-3">
-                        <input id="traceBack" type="checkbox" value="Y">
+                        <input id="traceBack" type="checkbox" value="6">
                         <span>追溯追蹤</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                 </div>
                 <div class="check-row">
                     <label class="radio-inline-item pe-3">
-                        <input id="qualityControl" type="checkbox" value="Y">
+                        <input id="qualityControl" type="checkbox" value="7">
                         <span>一級品管</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                     <label class="radio-inline-item pe-3">
-                        <input id="expiredFood" type="checkbox" value="Y">
+                        <input id="expiredFood" type="checkbox" value="8">
                         <span>逾期食品</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                     <label class="radio-inline-item pe-3">
-                        <input id="healthManagers" type="checkbox" value="Y">
+                        <input id="healthManagers" type="checkbox" value="9">
                         <span>衛生管理人員</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                 </div>
                 <div class="check-row">
                     <label class="radio-inline-item pe-3">
-                        <input id="licenceCheck" type="checkbox" value="Y">
+                        <input id="licenceCheck" type="checkbox" value="10">
                         <span>專門職業或技術證照人員查核</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
@@ -986,80 +1005,80 @@
                         <a class="btn btn-add-form">備註</a>
                     </label> *@
                     <label class="radio-inline-item pe-3">
-                        <input id="mark" type="checkbox" value="Y">
+                        <input id="mark" type="checkbox" value="11">
                         <span>標示</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                     <label class="radio-inline-item pe-3">
-                        <input id="randomInspection" type="checkbox" value="Y">
+                        <input id="randomInspection" type="checkbox" value="12">
                         <span>抽驗</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                 </div>
                 <div class="check-row">
                     <label class="radio-inline-item pe-3">
-                        <input id="industryHealthyFood" type="checkbox" value="Y">
+                        <input id="industryHealthyFood" type="checkbox" value="13">
                         <span>查驗登記工廠查核(健康食品工廠)</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                     <label class="radio-inline-item pe-3">
-                        <input id="industryAdditives" type="checkbox" value="Y">
+                        <input id="industryAdditives" type="checkbox" value="14">
                         <span>查驗登記工廠查核(食品添加物工廠)</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                     <label class="radio-inline-item pe-3">
-                        <input id="industryCapsule" type="checkbox" value="Y">
+                        <input id="industryCapsule" type="checkbox" value="15">
                         <span>查驗登記工廠查核(國產維生素錠狀膠囊狀食品工廠)</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                 </div>
                 <div class="check-row">
                     <label class="radio-inline-item pe-3">
-                        <input id="productHealthyFood" type="checkbox" value="Y">
+                        <input id="productHealthyFood" type="checkbox" value="16">
                         <span>查驗登記產品(健康食品)</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                     <label class="radio-inline-item pe-3">
-                        <input id="productAdditives" type="checkbox" value="Y">
+                        <input id="productAdditives" type="checkbox" value="17">
                         <span>查驗登記產品(食品添加物)</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                     <label class="radio-inline-item pe-3">
-                        <input id="productVitamin" type="checkbox" value="Y">
+                        <input id="productVitamin" type="checkbox" value="18">
                         <span>查驗登記產品(國產維生素錠狀膠囊狀食品)</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                 </div>
                 <div class="check-row">
                     <label class="radio-inline-item pe-3">
-                        <input id="productCapsule" type="checkbox" value="Y">
+                        <input id="productCapsule" type="checkbox" value="19">
                         <span>查驗登記產品(輸入錠狀膠囊狀食品)</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                     <label class="radio-inline-item pe-3">
-                        <input id="productSpecialFood" type="checkbox" value="Y">
+                        <input id="productSpecialFood" type="checkbox" value="20">
                         <span>查驗登記產品(病人用特殊營養食品)</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                     <label class="radio-inline-item pe-3">
-                        <input id="productBabyFood" type="checkbox" value="Y">
+                        <input id="productBabyFood" type="checkbox" value="21">
                         <span>查驗登記產品(嬰兒配方食品及較大嬰兒配方補助食品)</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                 </div>
                 <div class="check-row">
                     <label class="radio-inline-item pe-3">
-                        <input id="connectDietService" type="checkbox" value="Y">
+                        <input id="connectDietService" type="checkbox" value="22">
                         <span>以通訊交易方式訂定之食品或餐飲服務</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                     <label class="radio-inline-item pe-3">
-                        <input id="dietGiftCertificate" type="checkbox" value="Y">
+                        <input id="dietGiftCertificate" type="checkbox" value="23">
                         <span>餐飲禮券</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
                     <label class="radio-inline-item pe-3">
-                        <input id="dietOrderService" type="checkbox" value="Y">
+                        <input id="dietOrderService" type="checkbox" value="24">
                         <span>訂席、外燴</span>
                         <a class="btn btn-add-form">備註</a>
                     </label>
@@ -1072,7 +1091,7 @@
         <div class="form-editer-grid">
             <div class="form-editer-col2">
                 <div class="check-row2 self-set-row" ">
-                    <label><span style="color: Red">＊</span>自訂欄位：</label>
+                    <label>自訂欄位：</label>
                     <label class="radio-inline-item">
                         <input id="selfSetYes" type="radio" name="IsSelfSet" value="Y" checked="checked">
                         <span>是</span>
@@ -1086,19 +1105,19 @@
                 </div>
                 <div class="check-row2 status-row">
                     <label><span style="padding-left:15px;">狀態：</span></label>
-                    <label class="radio-inline-item" for="ctl00_ContentPlaceHolder1_rbtnListProjectStatus_0">
-                        <input id="rdoSelfSetStatus" type="radio" name="IsSetStatus" value="Y" checked="checked">
-                        <span>是</span>
+                    <label class="radio-inline-item" for="rdoSelfSetStatusY">
+                        <input id="rdoSelfSetStatusY" type="radio" name="IsSetStatus" value="Y" checked="checked">
+                        <span>啟用</span>
                     </label>
-                    <label class="radio-inline-item" for="ctl00_ContentPlaceHolder1_rbtnListProjectStatus_0">
-                        <input id="rdoSelfSetStatus" type="radio" name="IsSetStatus" value="N">
-                        <span>否</span>
+                    <label class="radio-inline-item" for="rdoSelfSetStatusN">
+                        <input id="rdoSelfSetStatusN" type="radio" name="IsSetStatus" value="N">
+                        <span>停用</span>
                     </label>
                 </div>
                 <div class="check-row3">
                     <div class="btn-group">
                         <button type="button" class="btn btn-form" onclick="window.history.go(-1);">取消</button>
-                        <input type="submit" class="btn btn-form" name="save" id="save" value="儲存" class="btn btn-primary">
+                        <input type="submit" class="btn btn-form" name="save" id="save" value="儲存">
                         <button type="button" class="btn btn-form" onclick="window.history.go(-1);">預覽表單</button>
                     </div>
                 </div>
@@ -1285,6 +1304,21 @@
     </div>
 </div>
 
+<div id="loadingBlock"
+     class="d-none position-fixed top-0 start-0 w-100 vh-100 d-flex justify-content-center align-items-center"
+     style="background: rgba(255,255,255,0.7); z-index: 1050;">
+
+    <div class="text-center">
+        <div class="spinner-border text-primary"></div>
+        <div class="mt-3">
+            <i class="bi bi-hourglass-split me-2"></i>
+            處理中，請稍候...
+        </div>
+
+    </div>
+</div>
+<input type="hidden" id="newFormId" value="@newFormId" />
+
 @section Scripts {
     <script>
         $(function () {
@@ -1380,40 +1414,97 @@
             return year + "-" + pad2(month) + "-" + pad2(day);
         }
 
-
-
         function getFormAddInputValues() {
             var formName = $.trim($("#FormName").val());
             var projectDeadline = $.trim($("#ProjectDeadline").val());
+
             var inspectionItems = $(".check-row input[type='checkbox']:checked").map(function () {
-                return $(this).attr("id");
+                return $(this).closest("label").find("span").first().text().trim();
             }).get().join(",");
 
+            var inspectionItemsvalue = $(".check-row input[type='checkbox']:checked").map(function () {
+                return $(this).val();
+            }).get().join(",");
+
+            var SetStatus = $("input[name='IsSetStatus']:checked").val();
+
+            var condictionValidate = true;
+            if(formName == "")
+            {
+                condictionValidate = false;
+            }
+            if(inspectionItems == "" || inspectionItemsvalue == "")
+            {
+                condictionValidate = false;
+            }
+
+            if(!condictionValidate)
+            {
+                return null;
+            }
+           
             return {
                 formName: formName,
                 projectDeadline: projectDeadline,
-                inspectionItems: inspectionItems
+                status: SetStatus,
+                inspectionItems: inspectionItems,
+                inspectionItemsvalue: inspectionItemsvalue
             };
         }
 
         function CheckData() {
-            var formData = getFormAddInputValues();
+             // 顯示 loading
+            document.getElementById("loadingBlock").classList.remove("d-none");
 
-            $.ajax({
-                url: "@Url.Content("~/FormManage/FormAdd")",
-                type: "GET",
-                data: {
-                    FormName: formData.formName,
-                    ProjectDeadline: formData.projectDeadline,
-                    InspectionItems: formData.inspectionItems
-                },
-                success: function () {
-                    alert("儲存成功");
-                },
-                error: function (xhr, status, error) {
-                    alert(xhr.responseText + "\n" + status + "\n" + error);
+            var formData = getFormAddInputValues();
+            if(formData == null)
+            {
+                alert("請填寫必填項目");
+                document.getElementById("loadingBlock").classList.add("d-none");
+                return false;
+            }
+
+                    $.ajax({
+            url: "@Url.Content("~/FormManage/FormAdd")",
+            type: "POST",
+            dataType: "json",
+            data: {
+                FormName: formData.formName,
+                ProjectDeadline: formData.projectDeadline,
+                Status: formData.status,
+                InspectionItems: formData.inspectionItems,
+                InspectionItemsValue: formData.inspectionItemsvalue
+            },
+            success: function (response) {
+                document.getElementById("loadingBlock").classList.add("d-none");
+
+                console.log("FormAdd API 回傳：", response);
+
+                if (response && response.success === true) {
+                    alert("儲存成功，新增主鍵為：" + response.id);
+
+                    var newId = response.id;
+                    console.log("新增資料主鍵：", newId);
+                } else {
+                    alert(response.message || "儲存失敗");
                 }
-            });
+            },
+            error: function (xhr, status, error) {
+                document.getElementById("loadingBlock").classList.add("d-none");
+
+                console.log("FormAdd error xhr：", xhr);
+
+                var msg = "儲存失敗";
+
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                } else if (xhr.responseText) {
+                    msg = xhr.responseText;
+                }
+
+                alert(msg + "\n" + status + "\n" + error);
+            }
+        });
 
             return false;
         }

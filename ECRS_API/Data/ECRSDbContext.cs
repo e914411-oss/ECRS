@@ -1686,6 +1686,16 @@ public partial class ECRSDbContext : DbContext
         get; set;
     }
 
+    public virtual DbSet<專案名稱_稽查項目附表> 專案名稱_稽查項目附表s
+    {
+        get; set;
+    }
+
+    public virtual DbSet<專案名稱_稽查項目代碼表> 專案名稱_稽查項目代碼表s
+    {
+        get; set;
+    }
+
     public virtual DbSet<專案檔案表> 專案檔案表s
     {
         get; set;
@@ -14721,6 +14731,27 @@ public partial class ECRSDbContext : DbContext
             entity.Property(e => e.醫療器材專案).HasMaxLength(1);
             entity.Property(e => e.食品郵購買賣定型化契約).HasMaxLength(1);
             entity.Property(e => e.餐飲禮券定型化契約).HasMaxLength(1);
+        });
+
+        modelBuilder.Entity<專案名稱_稽查項目附表>(entity => {
+            entity.HasKey(e => e.主鍵).HasName("PK_專案名稱_稽查項目附表");
+
+            entity.ToTable("專案名稱_稽查項目附表");
+            
+            entity.Property(e => e.專案名稱代碼主鍵).HasMaxLength(1);
+            entity.Property(e => e.稽查項目).HasMaxLength(1);
+            entity.Property(e => e.稽查項目代碼).HasMaxLength(1);
+        });
+
+        modelBuilder.Entity<專案名稱_稽查項目代碼表>(entity =>
+        {
+            entity.HasKey(e => e.稽查項目代碼).HasName("PK_專案名稱_稽查項目代碼表");
+
+            entity.ToTable("專案名稱_稽查項目代碼表");
+
+            entity.Property(e => e.稽查項目).HasMaxLength(1);
+            entity.Property(e => e.資料有效日期)
+                .HasColumnType("datetime");
         });
 
         modelBuilder.Entity<專案檔案表>(entity =>

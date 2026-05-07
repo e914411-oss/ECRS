@@ -1,4 +1,4 @@
-@model IEnumerable<ECRS_WEB.Models.ECRS.專案名稱代碼表>
+@model IEnumerable<ECRS_WEB.DTOs.FormManageDTO.FormEditer.AddProject_Result>
 
 @{
     int ii = 1;
@@ -17,11 +17,11 @@ else
             <td class="lt">@item.專案名稱</td>
             <td class="lt">
                 @* <a class="nav-link text-black ajax-link" asp-controller="Inspection" asp-action="Flist" asp-route-companyId="@item.稽查項目">@item.稽查項目</a> *@
-                @* @item.稽查項目 *@
+                @item.稽查項目
             </td>
-            <td class="lt">@DateTime.Now.ToString("yyyy/MM/dd")</td>
-            <td class="lt">@("測試員")</td>
-            <td class="lt"></td>
+            <td class="lt">@item.修改日期</td>
+            <td class="lt">@item.異動人員</td>
+            <td class="lt">@item.稽查項目</td>
             <td class="lt text-nowrap action-cell">
                 <div class="d-flex flex-nowrap justify-content-center align-items-center gap-2">
                     <button type="button" class="btn btn-move-datatable pb-1">預覽</button>

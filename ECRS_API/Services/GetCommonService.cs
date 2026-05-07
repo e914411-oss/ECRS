@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CoreAPI.Controllers;
 using ECRS_API.Data;
-using ECRS_API.DTOs.FormMangeDTO.FormEditer;
+using ECRS_API.DTOs.FormManageDTO.FormEditer;
 using ECRS_API.Models.PMDS;
 using Microsoft.EntityFrameworkCore;
 

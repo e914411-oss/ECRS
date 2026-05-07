@@ -1,7 +1,7 @@
 using CoreAPI.Controllers;
 using ECRS_API.Data;
 using ECRS_API.DTOs;
-using ECRS_API.DTOs.FormMangeDTO.FormEditer;
+using ECRS_API.DTOs.FormManageDTO.FormEditer;
 using ECRS_API.DTOs.InspectionDTO.Fquery;
 using ECRS_API.DTOs.InspectionDTO.PReview;
 using ECRS_API.DTOs.Security;

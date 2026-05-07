@@ -1,11 +1,14 @@
 using System.Net;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using ECRS_WEB.DTOs.FormManageDTO.FormEditer;
 using ECRS_WEB.DTOs.InspectionDTO.Fquery;
 using ECRS_WEB.DTOs.InspectionDTO.PReview;
 using ECRS_WEB.Models;
 using ECRS_WEB.Models.ECRS;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 //using static CoreWebApp.Controllers.InspectionController;
 
@@ -37,7 +40,7 @@ namespace ECRS_WEB.Services
 
             return token;
         }
-        public async Task<List<專案名稱代碼表>> Query_專案名稱代碼表(QueryCondiction _queryCondiction, CancellationToken ct = default)
+        public async Task<List<AddProject_Result>> Query_專案名稱代碼表(QueryCondiction _queryCondiction, CancellationToken ct = default)
         {
             var token = GetTokenOrThrow();
 
@@ -46,7 +49,7 @@ namespace ECRS_WEB.Services
 
             using var req = new HttpRequestMessage(HttpMethod.Post, url);
             req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            //req.Content = JsonContent.Create(_cityies);
+            req.Content = JsonContent.Create(_queryCondiction);
 
             using var resp = await _http.PostAsJsonAsync(url, _queryCondiction, ct);
 
@@ -56,11 +59,58 @@ namespace ECRS_WEB.Services
                 throw new Exception($"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}");
             }
 
-            var result = await resp.Content.ReadFromJsonAsync<List<專案名稱代碼表>>(cancellationToken: ct);
-            return result ?? new List<專案名稱代碼表>();
+            var result = await resp.Content.ReadFromJsonAsync<List<AddProject_Result>>(cancellationToken: ct);
+            return result ?? new List<AddProject_Result>();
         }
 
+        public async Task<ApiAddProjectResult> Add_新增專案名稱代碼(AddProject_Form addProject_Form, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
 
+            var action = Uri.EscapeDataString("新增專案名稱代碼");
+            var url = $"/Api/FormManage/{action}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = JsonContent.Create(addProject_Form);
+
+            using var resp = await _http.SendAsync(req, ct);
+
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                return new ApiAddProjectResult
+                {
+                    Success = false,
+                    Id = 0,
+                    Message = $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                };
+            }
+
+            var apiResult = JsonSerializer.Deserialize<ApiAddProjectResult>(
+                raw,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+            if (apiResult is null)
+            {
+                return new ApiAddProjectResult
+                {
+                    Success = false,
+                    Id = 0,
+                    Message = "API 回傳資料格式錯誤"
+                };
+            }
+
+            return new ApiAddProjectResult
+            {
+                Success = apiResult.Success,
+                Id = apiResult.Id,
+                Message = apiResult.Message
+            };
+        }
 
     }
 }

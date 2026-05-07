@@ -1,12 +1,13 @@
 using System;
 using ECRS_API.Data;
 using ECRS_API.DTOs;
-using ECRS_API.DTOs.FormMangeDTO;
+using ECRS_API.DTOs.FormManageDTO.FormEditer;
 using ECRS_API.DTOs.FormMangeDTO.FormEditer;
 using ECRS_API.DTOs.Security;
 using ECRS_API.Models;
+using ECRS_API.Models.ECRS;
+
 /*using ECRS_API.Models.PMDS;*/
-using ECRS_ECRS_API.DTOs.FormMangeDTO.FormEditer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -111,7 +112,7 @@ namespace CoreAPI.Controllers
 
         [HttpPost("專案名稱代碼表")]
         [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<ECRS_API.Models.ECRS.專案名稱代碼表>>> 專案名稱代碼表(QueryCondiction queryCondiction)
+        public async Task<ActionResult<IEnumerable<ECRS_API.Models.ECRS.專案名稱代碼表>>> 專案名稱代碼表(ECRS_ECRS_API.DTOs.FormManageDTO.FormEditer.QueryCondiction queryCondiction)
         {
             queryCondiction.CreateDepartment ??= string.Empty;
             queryCondiction.ProjectName ??= string.Empty;
@@ -119,19 +120,95 @@ namespace CoreAPI.Controllers
             queryCondiction.ProjectDeadlineStart ??= string.Empty;
             queryCondiction.ProjectDeadlineEnd ??= string.Empty;
 
-            IQueryable<ECRS_API.Models.ECRS.專案名稱代碼表> result = from n in _ECRSdb.專案名稱代碼表s
-                                                              where (queryCondiction.CreateDepartment == "" || n.建立部門 == queryCondiction.CreateDepartment)
-                                                              && (queryCondiction.ProjectName == "" || (n.專案名稱 ?? string.Empty).Contains(queryCondiction.ProjectName))
-                                                              && (queryCondiction.ProjectDeadlineStart == "" || (n.專案截止日期 != null && n.專案截止日期.Length == 7 && string.Compare(n.專案截止日期, queryCondiction.ProjectDeadlineStart) >= 0))
-                                                              && (queryCondiction.ProjectDeadlineEnd == "" || (n.專案截止日期 != null && n.專案截止日期.Length == 7 && string.Compare(n.專案截止日期, queryCondiction.ProjectDeadlineEnd) <= 0))
-                                                              && (queryCondiction.FormStatus == "" || n.是否啟用 == queryCondiction.FormStatus)
-                                                              select n;
+            IQueryable<AddProject_Result> result = from n in _ECRSdb.專案名稱代碼表s
+                                                join d in _ECRSdb.專案名稱_稽查項目附表s on n.專案名稱代碼表主鍵 equals d.專案名稱代碼主鍵 into gj
+                                                where (queryCondiction.CreateDepartment == "" || n.建立部門 == queryCondiction.CreateDepartment)
+                                                && (queryCondiction.ProjectName == "" || (n.專案名稱 ?? string.Empty).Contains(queryCondiction.ProjectName))
+                                                && (queryCondiction.ProjectDeadlineStart == "" || (n.專案截止日期 != null && n.專案截止日期.Length == 7 && string.Compare(n.專案截止日期, queryCondiction.ProjectDeadlineStart) >= 0))
+                                                && (queryCondiction.ProjectDeadlineEnd == "" || (n.專案截止日期 != null && n.專案截止日期.Length == 7 && string.Compare(n.專案截止日期, queryCondiction.ProjectDeadlineEnd) <= 0))
+                                                //&& (queryCondiction.FormStatus == "" || n.是否啟用 == queryCondiction.FormStatus)
+                                                select new AddProject_Result
+                                                {
+                                                    專案名稱 = n.專案名稱,
+                                                    稽查項目 = gj.Select(x => x.稽查項目).FirstOrDefault(),
+                                                    修改日期 = n.異動時間 ?? default,
+                                                    異動人員 = n.異動人員主鍵,
+                                                    狀態 = n.是否啟用
+                                                };
 
-            List<ECRS_API.Models.ECRS.專案名稱代碼表> data = await result.ToListAsync();
+            List<AddProject_Result> data = await result.ToListAsync();
             return Ok(data);
         }
 
         #endregion
 
+        #region DAta動作（新增、修改、刪除）
+
+        [HttpPost("新增專案名稱代碼")]
+        [AllowAnonymous]
+        public async Task<ActionResult> 新增專案名稱代碼([FromBody] AddProject_Form _addform)
+        {
+            if (_addform is null)
+            {
+                return BadRequest("未收到新增資料");
+            }
+
+            _addform.FormName ??= string.Empty;
+            _addform.ProjectDeadline ??= string.Empty;
+            _addform.Status ??= string.Empty;
+            _addform.InspectionItems ??= string.Empty;
+            _addform.InspectionItemsValue ??= string.Empty;
+
+            await using var tx = await _ECRSdb.Database.BeginTransactionAsync();
+
+            try
+            {
+                var 專案名稱代碼_新增資料 = new ECRS_API.Models.ECRS.專案名稱代碼表
+                {
+                    專案名稱 = _addform.FormName,
+                    專案截止日期 = _addform.ProjectDeadline.Replace(@"/", ""),
+                    是否啟用 = _addform.Status,
+                    建立時間 = DateTime.Now
+                };
+
+                _ECRSdb.專案名稱代碼表s.Add(專案名稱代碼_新增資料);
+                await _ECRSdb.SaveChangesAsync();
+
+                var newProjectId = 專案名稱代碼_新增資料.專案名稱代碼表主鍵;
+
+                var 專案名稱_稽查項目附表_新增資料 = new ECRS_API.Models.ECRS.專案名稱_稽查項目附表
+                {
+                    專案名稱代碼主鍵 = newProjectId,
+                    稽查項目 = _addform.InspectionItems,
+                    稽查項目代碼 = _addform.InspectionItemsValue
+                };
+
+                _ECRSdb.專案名稱_稽查項目附表s.Add(專案名稱_稽查項目附表_新增資料);
+                await _ECRSdb.SaveChangesAsync();
+
+                await tx.CommitAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    id = newProjectId
+                });
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "新增專案名稱代碼失敗",
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message
+                });
+            }
+
+        }
+
+        #endregion
     }
 }

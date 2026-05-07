@@ -1,4 +1,4 @@
-namespace ECRS_API.DTOs.FormMangeDTO.FormEditer
+namespace ECRS_API.DTOs.FormManageDTO.FormEditer
 {
     public class QueryContents
     {

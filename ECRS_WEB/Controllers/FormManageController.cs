@@ -1,11 +1,13 @@
+using System.Net.Http;
+using System.Threading.Tasks;
+using ECRS_WEB.DTOs.FormManageDTO.FormEditer;
 using ECRS_WEB.Models;
 //using ECRS_WEB.Models.ECRS;
 using ECRS_WEB.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using static System.Net.WebRequestMethods;
-using System.Threading.Tasks;
-using ECRS_WEB.DTOs.FormManageDTO.FormEditer;
 
 
 
@@ -69,7 +71,7 @@ namespace ECRS_WEB.Controllers
             }
 
             List<ECRS_WEB.Models.PMDS.系統_部門表> _departments = await Get_系統_部門表("") ?? [];
-            List<ECRS_WEB.Models.ECRS.專案名稱代碼表> _projectNames = await Get_專案名稱代碼表(queryCondiction) ?? [];
+            List<AddProject_Result> _projectNames = await Get_專案名稱代碼表(queryCondiction) ?? [];
 
             ViewBag.Departments = _departments;
 
@@ -99,20 +101,57 @@ namespace ECRS_WEB.Controllers
         }
 
         [HttpPost]
-        public IActionResult FormAdd(string FormName)
+        public async Task<IActionResult> FormAdd([FromForm] AddProject_Form addProject_Form, CancellationToken ct)
         {
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            if (addProject_Form is null)
             {
-                ViewData["FormName"] = string.IsNullOrEmpty(FormName) ? string.Empty : FormName;
-                return PartialView("FormAdd");
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "未收到新增資料"
+                });
             }
 
-            return View();
-        }
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState
+                    .Where(x => x.Value?.Errors.Count > 0)
+                    .ToDictionary(
+                        x => x.Key,
+                        x => x.Value!.Errors.Select(e => e.ErrorMessage).ToList()
+                    );
 
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "表單資料驗證失敗",
+                    errors
+                });
+            }
+
+            ApiAddProjectResult apiResult = await _apiECRS.Add_新增專案名稱代碼(addProject_Form, ct);
+
+            if (!apiResult.Success)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = apiResult.Message ?? "API 新增失敗"
+                });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                id = apiResult.Id,
+                message = apiResult.Message ?? "儲存成功"
+            });
+        }
 
         #endregion
 
+
+        #region 呼叫Service端
 
         public async Task<List<ECRS_WEB.Models.PMDS.系統_部門表>> Get_系統_部門表(string cities = "")
         {
@@ -126,7 +165,7 @@ namespace ECRS_WEB.Controllers
             }
         }
 
-        public async Task<List<ECRS_WEB.Models.ECRS.專案名稱代碼表>> Get_專案名稱代碼表(QueryCondiction queryCondiction)
+        public async Task<List<AddProject_Result>> Get_專案名稱代碼表(QueryCondiction queryCondiction)
         {
             try
             {
@@ -138,6 +177,8 @@ namespace ECRS_WEB.Controllers
                 throw;
             }
         }
+
+        #endregion
 
     }
 }
