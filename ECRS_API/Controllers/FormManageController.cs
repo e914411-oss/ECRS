@@ -1,7 +1,6 @@
 using System;
 using ECRS_API.Data;
 using ECRS_API.DTOs;
-using ECRS_API.DTOs.FormManageDTO.FormEditer;
 using ECRS_API.DTOs.FormMangeDTO.FormEditer;
 using ECRS_API.DTOs.Security;
 using ECRS_API.Models;
@@ -121,20 +120,20 @@ namespace CoreAPI.Controllers
             queryCondiction.ProjectDeadlineEnd ??= string.Empty;
 
             IQueryable<AddProject_Result> result = from n in _ECRSdb.專案名稱代碼表s
-                                                join d in _ECRSdb.專案名稱_稽查項目附表s on n.專案名稱代碼表主鍵 equals d.專案名稱代碼主鍵 into gj
-                                                where (queryCondiction.CreateDepartment == "" || n.建立部門 == queryCondiction.CreateDepartment)
-                                                && (queryCondiction.ProjectName == "" || (n.專案名稱 ?? string.Empty).Contains(queryCondiction.ProjectName))
-                                                && (queryCondiction.ProjectDeadlineStart == "" || (n.專案截止日期 != null && n.專案截止日期.Length == 7 && string.Compare(n.專案截止日期, queryCondiction.ProjectDeadlineStart) >= 0))
-                                                && (queryCondiction.ProjectDeadlineEnd == "" || (n.專案截止日期 != null && n.專案截止日期.Length == 7 && string.Compare(n.專案截止日期, queryCondiction.ProjectDeadlineEnd) <= 0))
-                                                //&& (queryCondiction.FormStatus == "" || n.是否啟用 == queryCondiction.FormStatus)
-                                                select new AddProject_Result
-                                                {
-                                                    專案名稱 = n.專案名稱,
-                                                    稽查項目 = gj.Select(x => x.稽查項目).FirstOrDefault(),
-                                                    修改日期 = n.異動時間 ?? default,
-                                                    異動人員 = n.異動人員主鍵,
-                                                    狀態 = n.是否啟用
-                                                };
+                                                   join d in _ECRSdb.專案名稱_稽查項目附表s on n.專案名稱代碼表主鍵 equals d.專案名稱代碼主鍵 into gj
+                                                   where (queryCondiction.CreateDepartment == "" || n.建立部門 == queryCondiction.CreateDepartment)
+                                                   && (queryCondiction.ProjectName == "" || (n.專案名稱 ?? string.Empty).Contains(queryCondiction.ProjectName))
+                                                   && (queryCondiction.ProjectDeadlineStart == "" || (n.專案截止日期 != null && n.專案截止日期.Length == 7 && string.Compare(n.專案截止日期, queryCondiction.ProjectDeadlineStart) >= 0))
+                                                   && (queryCondiction.ProjectDeadlineEnd == "" || (n.專案截止日期 != null && n.專案截止日期.Length == 7 && string.Compare(n.專案截止日期, queryCondiction.ProjectDeadlineEnd) <= 0))
+                                                   //&& (queryCondiction.FormStatus == "" || n.是否啟用 == queryCondiction.FormStatus)
+                                                   select new AddProject_Result
+                                                   {
+                                                       專案名稱 = n.專案名稱 ?? string.Empty,
+                                                       稽查項目 = gj.Select(x => x.稽查項目).FirstOrDefault() ?? string.Empty,
+                                                       修改日期 = n.異動時間 ?? default,
+                                                       異動人員 = n.異動人員主鍵 ?? string.Empty,
+                                                       狀態 = n.是否啟用 ?? string.Empty
+                                                   };
 
             List<AddProject_Result> data = await result.ToListAsync();
             return Ok(data);
@@ -203,6 +202,63 @@ namespace CoreAPI.Controllers
                     success = false,
                     message = "新增專案名稱代碼失敗",
                     error = ex.Message,
+                    innerError = ex.InnerException?.Message
+                });
+            }
+
+        }
+
+        [HttpPost("新增專案名稱浮動欄位")]
+        [AllowAnonymous]
+        public async Task<ActionResult> 新增專案名稱浮動欄位([FromBody] AddProject_FloatColumn _FloatColumn)
+        {
+            if (_FloatColumn is null)
+            {
+                return BadRequest("未收到新增資料");
+            }
+
+            _FloatColumn.columnname ??= string.Empty;
+            _FloatColumn.type ??= string.Empty;
+            _FloatColumn.note ??= string.Empty;
+
+            await using var tx = await _ECRSdb.Database.BeginTransactionAsync();
+
+            try
+            {
+                var 專案浮動欄位設定表 = new ECRS_API.Models.ECRS.專案浮動欄位設定表
+                {
+                    專案名稱代碼表主鍵 = _FloatColumn.專案名稱代碼主鍵,
+                    欄位排序 = _FloatColumn.Sort,
+                    欄位名稱 = _FloatColumn.columnname,
+                    欄位說明 = _FloatColumn.note,
+                    欄位類型 = _FloatColumn.type,
+                    欄位是否必填 = _FloatColumn.ismusttobe
+                };
+
+                _ECRSdb.專案浮動欄位設定表s.Add(專案浮動欄位設定表);
+                await _ECRSdb.SaveChangesAsync();
+
+                var newDataId = 專案浮動欄位設定表.專案浮動欄位設定表主鍵;
+
+                await _ECRSdb.SaveChangesAsync();
+
+                await tx.CommitAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    id = newDataId
+                });
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex.Message,
+                    error = ex.StackTrace,
                     innerError = ex.InnerException?.Message
                 });
             }

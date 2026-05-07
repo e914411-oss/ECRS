@@ -10,7 +10,6 @@ using ECRS_WEB.Models;
 using ECRS_WEB.Models.ECRS;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
-//using static CoreWebApp.Controllers.InspectionController;
 
 namespace ECRS_WEB.Services
 {
@@ -112,5 +111,52 @@ namespace ECRS_WEB.Services
             };
         }
 
+        public async Task<ApiAddProject_FloatColumn> Add_專案浮動欄位設定表(AddProject_FloatColumn _FloatColumn, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+
+            var action = Uri.EscapeDataString("新增專案名稱浮動欄位");
+            var url = $"/Api/FormManage/{action}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = JsonContent.Create(_FloatColumn);
+
+            using var resp = await _http.SendAsync(req, ct);
+
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                return new ApiAddProject_FloatColumn
+                {
+                    Success = false,
+                    Message = $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                };
+            }
+
+            var apiResult = JsonSerializer.Deserialize<ApiAddProjectResult>(
+                raw,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+            if (apiResult is null)
+            {
+                return new ApiAddProject_FloatColumn
+                {
+                    Success = false,
+                    Id = 0,
+                    Message = "API 回傳資料格式錯誤"
+                };
+            }
+
+            return new ApiAddProject_FloatColumn
+            {
+                Success = apiResult.Success,
+                Id = apiResult.Id,
+                Message = apiResult.Message
+            };
+        }
     }
 }

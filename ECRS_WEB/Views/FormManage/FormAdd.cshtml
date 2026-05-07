@@ -1090,15 +1090,15 @@
     <div class="form-editer-card">
         <div class="form-editer-grid">
             <div class="form-editer-col2">
-                <div class="check-row2 self-set-row" ">
+                <div class="check-row2 self-set-row">
                     <label>自訂欄位：</label>
                     <label class="radio-inline-item">
-                        <input id="selfSetYes" type="radio" name="IsSelfSet" value="Y" checked="checked">
+                        <input id="selfSetYes" type="radio" name="IsSelfSet" value="Y">
                         <span>是</span>
                     </label>
 
                     <label class="radio-inline-item">
-                        <input id="selfSetNo" type="radio" name="IsSelfSet" value="N">
+                        <input id="selfSetNo" type="radio" name="IsSelfSet" value="N" checked="checked">
                         <span>否</span>
                     </label>
                     <input type="button" class="btn btn-primary-line btn-add-form" id="btnSetItem" value="設定" />
@@ -1255,7 +1255,7 @@
                                    class="btn btn-form"
                                    name="insert"
                                    value="儲存"
-                                   onclick="return false;"
+                                   onclick="return Savefloatcolumn();"
                                    id="insert"
                                    ui-id="btnNewDynamic">
 
@@ -1267,24 +1267,6 @@
                                    id="cancelInsert"
                                    ui-id="btnResetDynamic1">
                         </div>
-
-                        @* <div ui-id="updbtnG" style="display: none;">
-                            <input type="button"
-                                   class="btn btn-primary"
-                                   name="ctl00$ContentPlaceHolder1$btnSaveDynamic"
-                                   value="儲存"
-                                   onclick="return false;"
-                                   id="ctl00_ContentPlaceHolder1_btnSaveDynamic"
-                                   ui-id="btnSaveDynamic">
-
-                            <input type="button"
-                                   class="btn btn-primary"
-                                   name="ctl00$ContentPlaceHolder1$btnResetDynamic2"
-                                   value="取消"
-                                   onclick="return false;"
-                                   id="ctl00_ContentPlaceHolder1_btnResetDynamic2"
-                                   ui-id="btnResetDynamic2">
-                        </div> *@
                     </div>
 
                 </menu>
@@ -1317,13 +1299,14 @@
 
     </div>
 </div>
-<input type="hidden" id="newFormId" value="@newFormId" />
+
+<input type="hidden" id="newFormId" />
 
 @section Scripts {
     <script>
         $(function () {
 
-            // 開啟「設定」遮罩
+            // 開啟「編輯浮動欄位設定」遮罩
             $("#btnSetItem").on("click", function (e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -1349,7 +1332,7 @@
             });
 
             // 暫時先讓設定視窗內的取消按鈕關閉遮罩
-            $("#ctl00_ContentPlaceHolder1_btnResetDynamic1, #ctl00_ContentPlaceHolder1_btnResetDynamic2").on("click", function (e) {
+            $("#cancelInsert").on("click", function (e) {
                 e.preventDefault();
                 $("#SetItemOverlay").hide();
             });
@@ -1464,50 +1447,149 @@
                 return false;
             }
 
-                    $.ajax({
-            url: "@Url.Content("~/FormManage/FormAdd")",
-            type: "POST",
-            dataType: "json",
-            data: {
-                FormName: formData.formName,
-                ProjectDeadline: formData.projectDeadline,
-                Status: formData.status,
-                InspectionItems: formData.inspectionItems,
-                InspectionItemsValue: formData.inspectionItemsvalue
-            },
-            success: function (response) {
-                document.getElementById("loadingBlock").classList.add("d-none");
+            $.ajax({
+                url: "@Url.Content("~/FormManage/FormAdd")",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    FormName: formData.formName,
+                    ProjectDeadline: formData.projectDeadline,
+                    Status: formData.status,
+                    InspectionItems: formData.inspectionItems,
+                    InspectionItemsValue: formData.inspectionItemsvalue
+                },
+                success: function (response) {
+                    document.getElementById("loadingBlock").classList.add("d-none");
 
-                console.log("FormAdd API 回傳：", response);
+                    console.log("FormAdd API 回傳：", response);
 
-                if (response && response.success === true) {
-                    alert("儲存成功，新增主鍵為：" + response.id);
+                    if (response && response.success === true) {
+                        //alert("儲存成功，新增主鍵為：" + response.id);
+                        $("#newFormId").val(response.id);   //把新增的專案ID暫存
+                        var newId = response.id;
+                        console.log("新增資料主鍵：", newId);
+                    } else {
+                        alert(response.message || "儲存失敗");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    document.getElementById("loadingBlock").classList.add("d-none");
 
-                    var newId = response.id;
-                    console.log("新增資料主鍵：", newId);
-                } else {
-                    alert(response.message || "儲存失敗");
+                    console.log("FormAdd error xhr：", xhr);
+
+                    var msg = "儲存失敗";
+
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    } else if (xhr.responseText) {
+                        msg = xhr.responseText;
+                    }
+
+                    alert(msg + "\n" + status + "\n" + error);
                 }
-            },
-            error: function (xhr, status, error) {
-                document.getElementById("loadingBlock").classList.add("d-none");
-
-                console.log("FormAdd error xhr：", xhr);
-
-                var msg = "儲存失敗";
-
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    msg = xhr.responseJSON.message;
-                } else if (xhr.responseText) {
-                    msg = xhr.responseText;
-                }
-
-                alert(msg + "\n" + status + "\n" + error);
-            }
-        });
+            });
 
             return false;
         }
+
+        //編輯浮動欄位設定
+        function Savefloatcolumn() {
+            var sort = $.trim($("#selectItemSort").val());
+            var title = $.trim($("#selectItemColumnName").val());
+            var type = $("input[name='ReportedType']:checked").val() || "";
+            var ismust = $("input[name='ReportedRequired']:checked").val() || "";
+            var note = $.trim($("#selectItemNote").val());
+
+            var newinspectionid = $("#newFormId").val();
+
+            var validateresult = true;
+
+            if (sort === "") {
+                validateresult = false;
+            }
+
+            if (title === "") {
+                validateresult = false;
+            }
+
+            if (type === "") {
+                validateresult = false;
+            }
+
+            if (ismust === "") {
+                validateresult = false;
+            }
+
+            if (!validateresult) {
+                alert("請填寫必填項目");
+                return false;
+            }
+
+            if (newinspectionid === "") {
+                alert("判斷目前尚未新增此專案，請先確定是否已新增過再編輯浮動欄位");
+                return false;
+            }
+
+            var columndata = {
+                newinspectionid: newinspectionid,
+                sort: sort,
+                title: title,
+                note: note,
+                type: type,
+                ismust: ismust
+            };
+
+            return Savefloatcolumndata(columndata);
+        }
+
+        function Savefloatcolumndata(_columndata)
+        {
+            $.ajax({
+                url: "@Url.Content("~/FormManage/FormAddFloatColumn")",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    專案名稱代碼主鍵: _columndata.newinspectionid,
+                    Sort: _columndata.sort,
+                    ColumnName: _columndata.title,
+                    Note: _columndata.note,
+                    Type: _columndata.type,
+                    IsmustTobe: _columndata.ismust
+                },
+                success: function (response) {
+                    document.getElementById("loadingBlock").classList.add("d-none");
+                    console.log("FormAddFloatColumn API 回傳：", response);
+
+                    if (response && response.success === true) {
+                        //alert("儲存成功，新增主鍵為：" + response.id);
+                        // $("#newFormId").val(response.id);   //把新增的專案ID暫存
+                        // var newId = response.id;
+                        // console.log("新增資料主鍵：", newId);
+                        alert(response.message);
+                    } else {
+                        alert(response.message || "浮動欄位設定失敗");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    document.getElementById("loadingBlock").classList.add("d-none");
+
+                    console.log("FormAddFloatColumn error xhr：", xhr);
+
+                    var msg = "儲存失敗";
+
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    } else if (xhr.responseText) {
+                        msg = xhr.responseText;
+                    }
+
+                    alert(msg + "\n" + status + "\n" + error);
+                }
+            });
+
+            return false;
+        }
+
         // 點擊小日曆按鈕，打開對應的 type=date
         $(document).on("click", ".date-calendar-btn", function () {
             var pickerSelector = $(this).data("picker");

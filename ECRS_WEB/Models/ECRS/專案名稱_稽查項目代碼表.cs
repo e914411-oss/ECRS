@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ECRS_API.Models.ECRS
+namespace ECRS_WEB.Models.ECRS
 {
     public class 專案名稱_稽查項目代碼表
     {

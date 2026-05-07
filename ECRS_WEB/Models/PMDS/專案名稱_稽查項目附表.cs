@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ECRS_API.Models.ECRS
+namespace ECRS_WEB.Models.PMDS
 {
     public class 專案名稱_稽查項目附表
     {

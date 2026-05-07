@@ -1,30 +1,34 @@
 namespace ECRS_WEB.DTOs.FormManageDTO.FormEditer
 {
-    public class AddProject_Form
+    public class AddProject_FloatColumn
     {
-        public required string FormName
+        public required int 專案名稱代碼主鍵
         {
             get; set;
         }
-        public required string ProjectDeadline
+        public required int Sort
         {
             get; set;
         }
-        public required string Status
+        public required string columnname
         {
             get; set;
         }
-        public required string InspectionItems
+        public required string type
         {
             get; set;
         }
-        public required string InspectionItemsValue
+        public required string ismusttobe
+        {
+            get; set;
+        }
+        public required string note
         {
             get; set;
         }
     }
 
-    public class ApiAddProjectResult
+    public class ApiAddProject_FloatColumn
     {
         public bool Success
         {

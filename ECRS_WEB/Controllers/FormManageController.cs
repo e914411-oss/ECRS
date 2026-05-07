@@ -9,9 +9,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using static System.Net.WebRequestMethods;
 
-
-
-
 namespace ECRS_WEB.Controllers
 {
     [Authorize]
@@ -145,6 +142,49 @@ namespace ECRS_WEB.Controllers
                 success = true,
                 id = apiResult.Id,
                 message = apiResult.Message ?? "儲存成功"
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> FormAddFloatColumn([FromForm] AddProject_FloatColumn _FloatColumn, CancellationToken ct)
+        {
+            if (_FloatColumn is null)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "未收到編輯資料"
+                });
+            }
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState
+                    .Where(x => x.Value?.Errors.Count > 0)
+                    .ToDictionary(
+                        x => x.Key,
+                        x => x.Value!.Errors.Select(e => e.ErrorMessage).ToList()
+                    );
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "表單資料驗證失敗",
+                    errors
+                });
+            }
+            ApiAddProject_FloatColumn apiResult = await _apiECRS.Add_專案浮動欄位設定表(_FloatColumn, ct);
+            if (!apiResult.Success)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = apiResult.Message ?? "API，專案浮動欄位設定失敗"
+                });
+            }
+            return Ok(new
+            {
+                success = true,
+                id = apiResult.Id,
+                message = apiResult.Message ?? "設定成功"
             });
         }
 
