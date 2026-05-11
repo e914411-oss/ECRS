@@ -24,9 +24,9 @@ else
             <td class="lt">@item.狀態</td>
             <td class="lt text-nowrap action-cell">
                 <div class="d-flex flex-nowrap justify-content-center align-items-center gap-2">
-                    <button type="button" class="btn btn-move-datatable pb-1">預覽</button>
-                    <button type="button" class="btn btn-move-datatable pb-1">修改</button>
-                    <button type="button" class="btn btn-move-datatable pb-1">刪除</button>
+                    <a class="btn btn-move-datatable pb-1" asp-controller="FormManage" asp-action="FormPreview" asp-route-projectId="@item.專案主鍵">預覽</a>
+                    <a class="btn btn-move-datatable pb-1" asp-controller="FormManage" asp-action="FormUpdate" asp-route-projectId="@item.專案主鍵">修改</a>
+                    <a class="btn btn-move-datatable pb-1" asp-controller="FormManage" asp-action="FormDelete" asp-route-projectId="@item.專案主鍵">刪除</a>
                 </div>
             </td>
         </tr>

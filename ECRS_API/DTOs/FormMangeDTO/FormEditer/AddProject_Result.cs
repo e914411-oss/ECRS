@@ -2,6 +2,10 @@ namespace ECRS_API.DTOs.FormMangeDTO.FormEditer
 {
     public class AddProject_Result
     {
+        public int 專案主鍵
+        {
+            get; set;
+        }
         public string 專案名稱
         {
             get; set;

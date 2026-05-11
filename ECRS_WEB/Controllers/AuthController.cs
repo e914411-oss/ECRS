@@ -74,11 +74,11 @@ namespace ECRS_WEB.Controllers
                 HttpContext.Session.SetString("DisplayName", displayName);
 
                 var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.NameIdentifier, apiResp.User?.UserName ?? vm.UserName),
-            new Claim(ClaimTypes.Name, displayName),
-            new Claim("access_token", apiResp.Token)
-        };
+                {
+                    new Claim(ClaimTypes.NameIdentifier, apiResp.User?.UserName ?? vm.UserName),
+                    new Claim(ClaimTypes.Name, displayName),
+                    new Claim("access_token", apiResp.Token)
+                };
 
                 var identity = new ClaimsIdentity(claims, "AppCookie");
                 var principal = new ClaimsPrincipal(identity);
@@ -100,7 +100,10 @@ namespace ECRS_WEB.Controllers
                     displayName,
                     returnUrl);
 
-                return RedirectToAction("AfterLogin", "Entry", new { returnUrl });
+                return RedirectToAction("AfterLogin", "Entry", new
+                {
+                    returnUrl
+                });
             }
             catch (Exception ex)
             {
