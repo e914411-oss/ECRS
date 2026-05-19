@@ -18,19 +18,19 @@
                     </div>
                 }
 
-                <form asp-action="Login" asp-controller="Auth" method="post">
+                <form asp-action="Login" asp-controller="Auth" method="post" autocomplete="off">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="returnUrl" value="@returnUrl" />
 
                     <div class="mb-3">
                         <label class="form-label">帳號</label>
-                        <input asp-for="UserName" class="form-control" autocomplete="username" />
+                        <input asp-for="UserName" class="form-control" autocomplete="off" />
                         <span asp-validation-for="UserName" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">密碼</label>
-                        <input asp-for="Password" class="form-control" autocomplete="current-password" />
+                        <input asp-for="Password" class="form-control" autocomplete="off" />
                         <span asp-validation-for="Password" class="text-danger"></span>
                     </div>
 
