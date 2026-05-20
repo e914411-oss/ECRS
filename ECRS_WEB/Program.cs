@@ -33,16 +33,37 @@ try
     // 弱點掃描修正：強化 Cookie 屬性，避免登入/驗證 Cookie 在非 HTTPS 情境下傳送。
     builder.Services.Configure<CookiePolicyOptions>(options =>
     {
+        //正式上線這段要註解，改下面那段。
         options.MinimumSameSitePolicy = SameSiteMode.Strict;
         options.HttpOnly = HttpOnlyPolicy.Always;
-        options.Secure = CookieSecurePolicy.Always;
+
+        options.Secure = builder.Environment.IsDevelopment()
+            ? CookieSecurePolicy.SameAsRequest
+            : CookieSecurePolicy.Always;
+
+        //options.MinimumSameSitePolicy = SameSiteMode.Strict;
+        //options.HttpOnly = HttpOnlyPolicy.Always;
+        //options.Secure = CookieSecurePolicy.Always;
     });
 
     builder.Services.AddAntiforgery(options =>
     {
+        //正式上線這段要註解，改下面那段。
+        options.Cookie.Name = "XSRF-TOKEN";
         options.Cookie.HttpOnly = true;
+        options.HeaderName = "X-XSRF-TOKEN";
+
+        // 本機偵錯如果使用 HTTP，不能用 Always，否則會出現：
+        // AntiforgeryOptions.Cookie.SecurePolicy = Always, but the current request is not an SSL request.
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+            ? CookieSecurePolicy.SameAsRequest
+            : CookieSecurePolicy.Always;
+
         options.Cookie.SameSite = SameSiteMode.Strict;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+
+        //options.Cookie.HttpOnly = true;
+        //options.Cookie.SameSite = SameSiteMode.Strict;
+        //options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     });
 
 
@@ -142,17 +163,33 @@ try
     app.UseForwardedHeaders();
 
     // 弱點掃描修正：所有正式環境 HTTP 請求直接轉 HTTPS，避免帳密從 HTTP POST 傳送。
+    var forceHttpsRedirect = builder.Configuration.GetValue<bool>("Security:ForceHttpsRedirect"); //正式機上版時這段要註解。
     app.Use(async (context, next) =>
     {
-        if (!context.Request.IsHttps && !app.Environment.IsDevelopment())
+        //正式機上版時這段要註解。
+        if (forceHttpsRedirect &&
+        !context.Request.IsHttps &&
+        !app.Environment.IsDevelopment())
         {
-            var httpsUrl = $"https://{context.Request.Host}{context.Request.PathBase}{context.Request.Path}{context.Request.QueryString}";
+            var httpsUrl =
+                $"https://{context.Request.Host}{context.Request.PathBase}{context.Request.Path}{context.Request.QueryString}";
+
             context.Response.StatusCode = StatusCodes.Status308PermanentRedirect;
             context.Response.Headers.Location = httpsUrl;
             return;
         }
 
         await next();
+
+        //if (!context.Request.IsHttps && !app.Environment.IsDevelopment())
+        //{
+        //    var httpsUrl = $"https://{context.Request.Host}{context.Request.PathBase}{context.Request.Path}{context.Request.QueryString}";
+        //    context.Response.StatusCode = StatusCodes.Status308PermanentRedirect;
+        //    context.Response.Headers.Location = httpsUrl;
+        //    return;
+        //}
+
+        //await next();
     });
 
     // 弱點掃描修正：補齊安全標頭並移除 ASP.NET/IIS 技術指紋標頭。
