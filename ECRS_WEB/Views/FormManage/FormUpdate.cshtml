@@ -1101,22 +1101,7 @@
                         <input id="selfSetNo" type="radio" name="IsSelfSet" value="N" checked="checked">
                         <span>否</span>
                     </label>
-                    <input type="button" class="btn btn-primary-line btn-add-form" id="btnSetItem" value="設定" disabled />
-                </div>
-                <div id="questionListContainer" class="my-3 p-3" style="display: none; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f8f9fa;">
-                    <table class="table table-bordered bg-white mb-0 text-center align-middle">
-                        <thead style="background-color: #eaf3ea; color: #333;">
-                            <tr>
-                                <th scope="col" style="width: 8%;">題號</th>
-                                <th scope="col" style="width: 20%;">題目</th>
-                                <th scope="col" style="width: 15%;">題目類別</th>
-                                <th scope="col" style="width: 45%;">題目內容</th>
-                                <th scope="col" style="width: 12%;">動作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="questionListBody">
-                        </tbody>
-                    </table>
+                    <input type="button" class="btn btn-primary-line btn-add-form" id="btnSetItem" value="設定" />
                 </div>
                 <div class="check-row2 status-row">
                     <label><span style="padding-left:15px;">狀態：</span></label>
@@ -1132,7 +1117,7 @@
                 <div class="check-row3">
                     <div class="btn-group">
                         <button type="button" class="btn btn-form" onclick="window.history.go(-1);">取消</button>
-                        <input type="submit" class="btn btn-form" name="save" id="save" value="儲存" disabled>
+                        <input type="submit" class="btn btn-form" name="save" id="save" value="儲存">
                         <button type="button" class="btn btn-form" onclick="window.history.go(-1);">預覽表單</button>
                     </div>
                 </div>
@@ -1163,110 +1148,143 @@
     </div>
 </div>
 
-<div class="modal fade" id="questionEditModal" tabindex="-1" aria-labelledby="questionEditModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content" style="border: none;">
+<!-- 設定遮罩 + 視窗 -->
+<div id="SetItemOverlay" class="pmds-overlay" style="display:none;">
+    <div class="pmds-setitem-modal" role="dialog" aria-modal="true" aria-labelledby="setItemTitle">
+        <div class="pmds-setitem-header">
+            <span id="setItemTitle" class="pmds-setitem-title">編輯浮動欄位</span>
+        </div>
 
-            <div class="modal-header" style="background-color: #2c7a3f; color: white; border-radius: 4px 4px 0 0;">
-                <h5 class="modal-title fs-6" id="questionEditModalLabel">題目編輯</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="font-size: 0.8rem;"></button>
+        <div class="pmds-setitem-body">
+            <div id="ctl00_ContentPlaceHolder1_Panel_menu" class="pmds-setitem-card">
+
+                <menu ui-id="menu" ui-action="Add" style="margin:0; padding:0;">
+
+                    <!-- 排序 + 標題同一行 -->
+                    <div class="setitem-row setitem-row-top">
+                        <label class="setitem-label" for="selectItemSort">
+                            <span class="setitem-required">＊</span>排序：
+                        </label>
+                        <input name="selectItemSort"
+                               type="text"
+                               id="selectItemSort"
+                               class="form-control setitem-sort-input"
+                               ui-id="txt_Sort"
+                               input-type="numeric"
+                               reset-type="txt">
+
+                        <label class="setitem-label" for="selectItemColumnName">
+                            <span class="setitem-required">＊</span>標題：
+                        </label>
+                        <input name="selectItemColumnName"
+                               type="text"
+                               maxlength="50"
+                               id="selectItemColumnName"
+                               class="form-control setitem-title-input"
+                               ui-id="txtTitle"
+                               reset-type="txt">
+                    </div>
+
+                    <!-- 說明獨立一行，可容納三行 -->
+                    <div class="setitem-desc-row">
+                        <label class="setitem-label" for="selectItemNote">
+                            說明：
+                        </label>
+                        <textarea name="selectItemNote"
+                                  maxlength="200"
+                                  id="selectItemNote"
+                                  class="form-control setitem-desc-textarea"
+                                  ui-id="txtIllustrate"
+                                  reset-type="txt"
+                                  rows="3"></textarea>
+                    </div>
+
+                    <!-- 類型 + 必填同一行，左右對稱 -->
+                    <div class="setitem-radio-row">
+                        <div class="setitem-radio-block">
+                            <label class="setitem-label">
+                                <span class="setitem-required">＊</span>類型：
+                            </label>
+                            <div class="setitem-radio-options">
+                                <span class="radio-inline">
+                                    <input id="reportedTypeNumber"
+                                           type="radio"
+                                           name="ReportedType"
+                                           value="int">
+                                    <label for="reportedTypeNumber">數字</label>
+                                </span>
+
+                                <span class="radio-inline">
+                                    <input id="reportedTypeText"
+                                           type="radio"
+                                           name="ReportedType"
+                                           value="txt">
+                                    <label for="reportedTypeText">文字</label>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="setitem-radio-block">
+                            <label class="setitem-label">
+                                <span class="setitem-required">＊</span>必填：
+                            </label>
+                            <div class="setitem-radio-options">
+                                <span class="radio-inline">
+                                    <input id="reportedRequiredYes"
+                                           type="radio"
+                                           name="ReportedRequired"
+                                           value="Y">
+                                    <label for="reportedRequiredYes">是</label>
+                                </span>
+
+                                <span class="radio-inline">
+                                    <input id="reportedRequiredNo"
+                                           type="radio"
+                                           name="ReportedRequired"
+                                           value="N">
+                                    <label for="reportedRequiredNo">否</label>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 儲存 / 取消 -->
+                    <div class="setitem-button-row">
+                        <div ui-id="newbtnG">
+                            <input type="button"
+                                   class="btn btn-form"
+                                   name="insert"
+                                   value="儲存"
+                                   onclick="return Savefloatcolumn();"
+                                   id="insert"
+                                   ui-id="btnNewDynamic">
+
+                            <input type="button"
+                                   class="btn btn-form"
+                                   name="cancelInsert"
+                                   value="取消"
+                                   onclick="return false;"
+                                   id="cancelInsert"
+                                   ui-id="btnResetDynamic1">
+                        </div>
+                    </div>
+
+                </menu>
+
+                <div class="setitem-add-row">
+                    <input type="button"
+                           class="btn btn-form"
+                           name="ctl00$ContentPlaceHolder1$btnShowMenu"
+                           value="新增項目"
+                           onclick="return false;"
+                           id="ctl00_ContentPlaceHolder1_btnShowMenu"
+                           ui-id="btnShowMenu">
+                </div>
+
             </div>
-
-            <div class="modal-body p-0">
-                <table class="table table-bordered mb-0" style="border-color: #e0e0e0;">
-                    <tbody>
-                        <tr>
-                            <td class="text-center align-middle" style="background-color: #eaf3ea; width: 15%; color: #333;">排序</td>
-                            <td class="align-top" style="width: 35%; padding: 15px;">
-                                <input type="text" class="form-control mb-2">
-                                <small style="color: #d9534f; font-size: 13px;">建議輸入不連續數字，例如10、20、30，俾利後續新增題目與調整順序。</small>
-                            </td>
-                            <td class="text-center align-middle" style="background-color: #eaf3ea; width: 15%; color: #333;">題號</td>
-                            <td class="align-top" style="width: 35%; padding: 15px;">
-                                <input type="text" class="form-control mb-2" id="modalInputQNum">
-                                <small style="color: #d9534f; font-size: 13px;">可輸入中英文、數字及符號，例如一、(1)、A。</small>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td class="text-center align-middle" style="background-color: #eaf3ea; color: #333;">題目類別</td>
-                            <td colspan="3" class="align-middle" style="padding: 15px;">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="questionCategory" id="catAnswer" value="answer" checked>
-                                    <label class="form-check-label" for="catAnswer">回答問題</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="questionCategory" id="catDesc" value="desc">
-                                    <label class="form-check-label" for="catDesc">段落說明</label>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td class="text-center align-middle" style="background-color: #eaf3ea; color: #333;">
-                                <span class="text-danger">＊</span> 題目內容
-                            </td>
-                            <td colspan="3" style="padding: 15px;">
-                                <textarea class="form-control" rows="3" id="modalInputTitle"></textarea>
-                            </td>
-                        </tr>
-
-                        <tr id="answerTypeRow">
-                            <td class="text-center align-middle" style="background-color: #eaf3ea; color: #333;">回答類型</td>
-                            <td colspan="3" class="align-middle" style="padding: 15px;">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="answerType" id="typeText" value="text">
-                                    <label class="form-check-label" for="typeText">一般文字</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="answerType" id="typeMulti" value="multi" checked>
-                                    <label class="form-check-label" for="typeMulti">複選清單</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="answerType" id="typeSingle" value="single">
-                                    <label class="form-check-label" for="typeSingle">單選清單</label>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <tr id="optionsRow">
-                            <td class="text-center align-middle" style="background-color: #eaf3ea; color: #333;" id="optionsLabel">
-                                複選清單
-                            </td>
-                            <td colspan="3" style="padding: 15px;">
-                                <div id="optionsContainer">
-                                    <div class="option-item d-flex align-items-center mb-3 pb-2 border-bottom">
-                                        <input type="text" class="form-control me-3" style="flex: 1;">
-                                        <div class="form-check me-3 mb-0">
-                                            <input class="form-check-input" type="checkbox">
-                                            <label class="form-check-label text-nowrap">開放填寫說明</label>
-                                        </div>
-                                        <button type="button" class="btn btn-link p-0 delete-option" title="刪除選項">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#389745" viewBox="0 0 16 16">
-                                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
-                                                <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                                <button type="button" class="btn rounded-pill mt-1" style="background-color: #389745; color: white; padding: 4px 16px;" id="btnAddOption">
-                                    ＋ 新增
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="modal-footer justify-content-center border-top-0 pt-4 pb-4">
-                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 me-2" data-bs-dismiss="modal">← 關閉</button>
-                <button type="button" class="btn rounded-pill px-4 py-2" style="background-color: #389745; color: white;" id="btnConfirmModal">✔ 確定</button>
-            </div>
-
         </div>
     </div>
 </div>
-
 
 <div id="loadingBlock"
      class="d-none position-fixed top-0 start-0 w-100 vh-100 d-flex justify-content-center align-items-center"
@@ -1286,40 +1304,40 @@
 
 @section Scripts {
     <script>
-        // $(function () {
+        $(function () {
 
-        //     // 開啟「編輯浮動欄位設定」遮罩
-        //     $("#btnSetItem").on("click", function (e) {
-        //         e.preventDefault();
-        //         e.stopPropagation();
+            // 開啟「編輯浮動欄位設定」遮罩
+            $("#btnSetItem").on("click", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
 
-        //         var isSelfSet = $("input[name='IsSelfSet']:checked").val();
-        //         if (isSelfSet !== "Y") {
-        //             return false;
-        //         }
+                var isSelfSet = $("input[name='IsSelfSet']:checked").val();
+                if (isSelfSet !== "Y") {
+                    return false;
+                }
 
-        //         $("#questionEditModal").css("display", "flex");
-        //     });
+                $("#SetItemOverlay").css("display", "flex");
+            });
 
-        //     // 點擊遮罩背景關閉
-        //     $("#questionEditModal").on("click", function (e) {
-        //         if (e.target === this) {
-        //             $("#questionEditModal").hide();
-        //         }
-        //     });
+            // 點擊遮罩背景關閉
+            $("#SetItemOverlay").on("click", function (e) {
+                if (e.target === this) {
+                    $("#SetItemOverlay").hide();
+                }
+            });
 
-        //     $("#save").on("click", function (e) {
-        //         e.preventDefault();
-        //         CheckData();
-        //     });
+            $("#save").on("click", function (e) {
+                e.preventDefault();
+                CheckData();
+            });
 
-        //     // 暫時先讓設定視窗內的取消按鈕關閉遮罩
-        //     $("#cancelInsert").on("click", function (e) {
-        //         e.preventDefault();
-        //         $("#questionEditModal").hide();
-        //     });
+            // 暫時先讓設定視窗內的取消按鈕關閉遮罩
+            $("#cancelInsert").on("click", function (e) {
+                e.preventDefault();
+                $("#SetItemOverlay").hide();
+            });
 
-        // });
+        });
 
 
         function pad2(n) {
@@ -1621,253 +1639,6 @@
                 $("#ProjectDeadlineAd").val(adDate);
             }
         });
-
-
-
-        document.addEventListener("DOMContentLoaded", function() {
-            // --- 全域變數：用來記錄目前正在編輯哪一列 (null 代表是新增模式) ---
-            let currentEditingRow = null;
-
-            // 共用的垃圾桶 SVG 圖示
-            const trashSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#389745" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>`;
-
-            // 共用的表格動作按鈕 HTML
-            const actionBtnsHtml = `
-                <button type="button" class="btn btn-link p-0 me-2 text-success edit-question" title="編輯">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/></svg>
-                </button>
-                <button type="button" class="btn btn-link p-0 text-success delete-question" title="刪除">${trashSvg}</button>
-            `;
-
-            // 初始化/重置彈窗的函式
-            function resetModal() {
-                document.getElementById('modalInputQNum').value = '';
-                document.getElementById('modalInputTitle').value = '';
-                document.getElementById('catAnswer').checked = true;
-                document.getElementById('typeMulti').checked = true;
-                document.getElementById('optionsContainer').innerHTML = `
-                    <div class="option-item d-flex align-items-center mb-3 pb-2 border-bottom">
-                        <input type="text" class="form-control me-3" style="flex: 1;">
-                        <div class="form-check me-3 mb-0">
-                            <input class="form-check-input" type="checkbox">
-                            <label class="form-check-label text-nowrap">開放填寫說明</label>
-                        </div>
-                        <button type="button" class="btn btn-link p-0 delete-option">${trashSvg}</button>
-                    </div>`;
-                updateVisibility();
-            }
-
-            // 控制彈窗內顯示/隱藏的函式
-            function updateVisibility() {
-                const answerTypeRow = document.getElementById('answerTypeRow');
-                const optionsRow = document.getElementById('optionsRow');
-                const optionsLabel = document.getElementById('optionsLabel');
-                const catChecked = document.querySelector('input[name="questionCategory"]:checked');
-                const typeChecked = document.querySelector('input[name="answerType"]:checked');
-
-                if (!catChecked || !answerTypeRow || !optionsRow) return;
-
-                if (catChecked.value === 'desc') {
-                    answerTypeRow.style.display = 'none';
-                    optionsRow.style.display = 'none';
-                } else {
-                    answerTypeRow.style.display = 'table-row';
-                    if (typeChecked && typeChecked.value === 'text') {
-                        optionsRow.style.display = 'none';
-                    } else if (typeChecked) {
-                        optionsRow.style.display = 'table-row';
-                        if (optionsLabel) optionsLabel.textContent = typeChecked.value === 'multi' ? '複選清單' : '單選清單';
-                    }
-                }
-            }
-
-            updateVisibility();
-
-            // --- 1. 點擊「設定」按鈕 (新增模式) ---
-            var btnSetItem = document.getElementById("btnSetItem");
-            if(btnSetItem) {
-                btnSetItem.addEventListener("click", function() {
-                    currentEditingRow = null; // 確保是新增模式
-                    resetModal(); // 清空舊資料
-                    var modalEl = document.getElementById('questionEditModal');
-                    bootstrap.Modal.getOrCreateInstance(modalEl).show();
-                });
-            }
-
-            // --- 2. 監聽 Change 事件 ---
-            document.body.addEventListener('change', function(e) {
-                if (e.target.name === 'IsSelfSet') {
-                    const listContainer = document.getElementById('questionListContainer');
-                    const listBody = document.getElementById('questionListBody');
-                    if (e.target.value === 'Y') {
-                        if(btnSetItem) btnSetItem.disabled = false;
-                        if(listContainer && listBody && listBody.children.length > 0) listContainer.style.display = 'block';
-                    } else {
-                        if(btnSetItem) btnSetItem.disabled = true;
-                        if(listContainer) listContainer.style.display = 'none';
-                    }
-                }
-                if (e.target.name === 'questionCategory' || e.target.name === 'answerType') updateVisibility();
-            });
-
-            // --- 3. 監聽 Click 事件 (各種點擊動作) ---
-            document.body.addEventListener('click', function(e) {
-
-                // A. 彈窗內：新增選項
-                if (e.target.closest('#btnAddOption')) {
-                    const newOptionHtml = `
-                        <div class="option-item d-flex align-items-center mb-3 pb-2 border-bottom">
-                            <input type="text" class="form-control me-3" style="flex: 1;">
-                            <div class="form-check me-3 mb-0">
-                                <input class="form-check-input" type="checkbox">
-                                <label class="form-check-label text-nowrap">開放填寫說明</label>
-                            </div>
-                            <button type="button" class="btn btn-link p-0 delete-option">${trashSvg}</button>
-                        </div>`;
-                    document.getElementById('optionsContainer').insertAdjacentHTML('beforeend', newOptionHtml);
-                }
-
-                // B. 彈窗內：刪除單一選項
-                if (e.target.closest('.delete-option')) {
-                    const optionsContainer = document.getElementById('optionsContainer');
-                    if (optionsContainer.querySelectorAll('.option-item').length > 1) {
-                        e.target.closest('.option-item').remove();
-                    } else {
-                        alert('請至少保留一個選項。');
-                    }
-                }
-
-                // C. 主畫面：刪除整列題目
-                if (e.target.closest('.delete-question')) {
-                    if(confirm('確定要刪除此題目嗎？')) {
-                        e.target.closest('tr').remove();
-                        const listBody = document.getElementById('questionListBody');
-                        if (listBody && listBody.children.length === 0) document.getElementById('questionListContainer').style.display = 'none';
-                    }
-                }
-
-                // D. 主畫面：點擊「編輯」按鈕 (重點新增！)
-                if (e.target.closest('.edit-question')) {
-                    const tr = e.target.closest('tr');
-                    currentEditingRow = tr; // 紀錄目前正在編輯這一列
-
-                    // 抓取該列資料
-                    const qNum = tr.children[0].textContent.replace('*', '').trim();
-                    const qTitle = tr.children[1].textContent.trim();
-                    const qCatText = tr.children[2].textContent.trim();
-                    const contentTd = tr.children[3]; // 放題型的格子
-
-                    // 填回彈窗輸入框
-                    document.getElementById('modalInputQNum').value = qNum;
-                    document.getElementById('modalInputTitle').value = qTitle;
-
-                    // 判斷並還原選項按鈕
-                    if (qCatText === '段落說明') {
-                        document.getElementById('catDesc').checked = true;
-                    } else {
-                        document.getElementById('catAnswer').checked = true;
-                        // 檢查內容區塊有什麼標籤來判斷題型
-                        if (contentTd.querySelector('input[type="text"]')) {
-                            document.getElementById('typeText').checked = true;
-                        } else if (contentTd.querySelector('input[type="radio"]')) {
-                            document.getElementById('typeSingle').checked = true;
-                        } else if (contentTd.querySelector('input[type="checkbox"]')) {
-                            document.getElementById('typeMulti').checked = true;
-                        }
-
-                        // 如果是單/複選，抓出裡面的 label 內容重建選項清單
-                        if (contentTd.querySelector('input[type="radio"]') || contentTd.querySelector('input[type="checkbox"]')) {
-                            const labels = contentTd.querySelectorAll('.form-check-label');
-                            let optionsHtml = '';
-                            labels.forEach(label => {
-                                optionsHtml += `
-                                    <div class="option-item d-flex align-items-center mb-3 pb-2 border-bottom">
-                                        <input type="text" class="form-control me-3" style="flex: 1;" value="${label.textContent.trim()}">
-                                        <div class="form-check me-3 mb-0">
-                                            <input class="form-check-input" type="checkbox">
-                                            <label class="form-check-label text-nowrap">開放填寫說明</label>
-                                        </div>
-                                        <button type="button" class="btn btn-link p-0 delete-option">${trashSvg}</button>
-                                    </div>`;
-                            });
-                            document.getElementById('optionsContainer').innerHTML = optionsHtml;
-                        }
-                    }
-
-                    updateVisibility(); // 更新顯示狀態
-                    bootstrap.Modal.getOrCreateInstance(document.getElementById('questionEditModal')).show(); // 開啟彈窗
-                }
-
-                // E. 彈窗：按下「確定」按鈕
-                if (e.target.closest('#btnConfirmModal')) {
-                    const qNum = document.getElementById('modalInputQNum').value.trim();
-                    const qTitle = document.getElementById('modalInputTitle').value.trim();
-
-                    if (!qTitle) {
-                        alert("請輸入題目內容！");
-                        return;
-                    }
-
-                    const qCategory = document.querySelector('input[name="questionCategory"]:checked').value;
-                    const qCategoryText = (qCategory === 'answer') ? '回答問題' : '段落說明';
-                    const ansTypeNode = document.querySelector('input[name="answerType"]:checked');
-                    const ansType = ansTypeNode ? ansTypeNode.value : 'text';
-
-                    // 生成「題目內容」欄位的 HTML
-                    let displayContentHtml = '';
-                    if (qCategory === 'answer') {
-                        if (ansType === 'text') {
-                            displayContentHtml = '<input type="text" class="form-control form-control-sm">';
-                        } else {
-                            const inputType = ansType === 'single' ? 'radio' : 'checkbox';
-                            const uniqueName = "group_" + Date.now();
-                            const optionInputs = document.querySelectorAll('#optionsContainer .option-item input[type="text"]');
-
-                            let optionsHtml = '<div class="d-flex align-items-center flex-wrap">';
-                            optionInputs.forEach(opt => {
-                                if(opt.value.trim() !== '') {
-                                    optionsHtml += `
-                                        <div class="form-check form-check-inline mb-0 me-2">
-                                            <input class="form-check-input" type="${inputType}" name="${uniqueName}">
-                                            <label class="form-check-label">${opt.value}</label>
-                                        </div>`;
-                                }
-                            });
-                            optionsHtml += '</div>';
-                            displayContentHtml = optionsHtml;
-                        }
-                    } else {
-                        displayContentHtml = '<textarea class="form-control form-control-sm" rows="2" placeholder="請輸入說明內容..."></textarea>';
-                    }
-
-                    // 組合內部 <td> 的內容
-                    const innerTdHtml = `
-                        <td class="text-danger">*${qNum}</td>
-                        <td class="text-start">${qTitle}</td>
-                        <td>${qCategoryText}</td>
-                        <td>${displayContentHtml}</td>
-                        <td>${actionBtnsHtml}</td>
-                    `;
-
-                    // 判斷是「更新」還是「新增」
-                    if (currentEditingRow) {
-                        // 更新模式：直接替換該列的內容
-                        currentEditingRow.innerHTML = innerTdHtml;
-                        currentEditingRow = null; // 解除編輯狀態
-                    } else {
-                        // 新增模式：產生新的 <tr> 插入表格
-                        const newRowHtml = `<tr>${innerTdHtml}</tr>`;
-                        document.getElementById('questionListBody').insertAdjacentHTML('beforeend', newRowHtml);
-                        document.getElementById('questionListContainer').style.display = 'block';
-                    }
-
-                    // 關閉並重置彈窗
-                    bootstrap.Modal.getInstance(document.getElementById('questionEditModal')).hide();
-                    resetModal();
-                }
-            });
-        });
-
     </script>
 }
 
