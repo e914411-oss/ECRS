@@ -86,34 +86,7 @@ namespace ECRS_WEB.Controllers
             return View("FormEditer");
         }
 
-        public IActionResult FormPreview(int _projectId)
-        {
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                return PartialView("FormPreview");
-            }
-            return View();
-        }
-
-        public IActionResult FormUpdate(int _projectId)
-        {
-
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                return PartialView("FormUpdate");
-            }
-            return View();
-        }
-
-        public IActionResult FormDelete(int _projectId)
-        {
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                return PartialView("FormDelete");
-            }
-            return View();
-        }
-
+        //[HttpGet]
         public Task<IActionResult> FormAdd()
         {
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")

@@ -128,7 +128,6 @@ namespace CoreAPI.Controllers
                                                    //&& (queryCondiction.FormStatus == "" || n.是否啟用 == queryCondiction.FormStatus)
                                                    select new AddProject_Result
                                                    {
-                                                       專案主鍵 = n.專案名稱代碼表主鍵,
                                                        專案名稱 = n.專案名稱 ?? string.Empty,
                                                        稽查項目 = gj.Select(x => x.稽查項目).FirstOrDefault() ?? string.Empty,
                                                        修改日期 = n.異動時間 ?? default,
