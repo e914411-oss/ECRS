@@ -59,7 +59,7 @@ namespace ECRS_WEB.Controllers
 
             try
             {
-                List<AddProject_Result> projectNames = await Get_專案名稱代碼表(queryCondiction) ?? [];
+                List<AddProject_Result> projectNames = await Get_專案名稱代碼表_PMDS(queryCondiction) ?? [];
                 var options = projectNames.Select(project => new
                 {
                     value = project.專案主鍵.ToString(),
@@ -268,6 +268,19 @@ namespace ECRS_WEB.Controllers
             try
             {
                 return await _apiECRS.Query_專案名稱代碼表(queryCondiction);
+
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<List<AddProject_Result>> Get_專案名稱代碼表_PMDS(QueryCondiction queryCondiction)
+        {
+            try
+            {
+                return await _apiECRS.Query_專案名稱代碼表_PMDS(queryCondiction);
 
             }
             catch (Exception)

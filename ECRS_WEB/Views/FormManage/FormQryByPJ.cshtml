@@ -156,13 +156,13 @@
 
     <div class="query-grid">
         <label for="FormName" class="query-radio-label">
-            <input id="radioCustom" type="radio" name="groupType" checked />
+            <input id="radioCustom" type="radio" name="groupType" />
             <span>自訂表單名稱：</span>
         </label>
-        <input id="FormName" type="text" placeholder="請輸自訂表單名稱..." class="form-control" />
+        <input id="FormName" type="text" placeholder="請輸入自訂表單名稱..." class="form-control" />
 
         <label for="ProjectName" class="query-radio-label">
-            <input id="radioProject" type="radio" name="groupType" />
+            <input id="radioProject" type="radio" name="groupType" checked />
             <span>專案名稱：</span>
         </label>
         <input id="ProjectName" type="text" class="form-control" placeholder="請輸入專案名稱..." />
@@ -194,9 +194,9 @@
         <div class="dual-list-body">
             <div class="dual-list-box">
                 <select size="4"
-                        name="ctl00$ContentPlaceHolder1$LBSelect"
+                        name="ProjectResult"
                         multiple="multiple"
-                        id="ctl00_ContentPlaceHolder1_LBSelect"
+                        id="ProjectResult"
                         class="form-control">
                 </select>
                 <div id="searchStatus" class="form-text text-center mt-2">請輸入條件後按「搜尋」。</div>
@@ -218,15 +218,10 @@
 
             <div class="dual-list-box">
                 <select size="4"
-                        name="ctl00$ContentPlaceHolder1$LBUnselect"
+                        name="SelectedProject"
                         multiple="multiple"
-                        id="ctl00_ContentPlaceHolder1_LBUnselect"
+                        id="SelectedProject"
                         class="form-control">
-                    <option value="V221289119">包裝飲料產品之咖啡因標示稽查（FDA）</option>
-                    <option value="X220084101">超商，速食樂（FDA）</option>
-                    <option value="T222133276">真空包裝即食飲品販售溫度稽查1（FDA）</option>
-                    <option value="T222211257">網路食品（FDA）</option>
-                    <option value="T223161916">市售禽肉來源及標示與其衛生安全（FDA）</option>
                 </select>
             </div>
         </div>
@@ -249,15 +244,15 @@
 
 
 
-@section Scripts{
+@section Scripts {
     <script>
         function qry_clear() {
             $('#FormName').val('');
             $('#ProjectName').val('');
             $('#Select1').prop('selectedIndex', 0);
-            $('#ctl00_ContentPlaceHolder1_LBSelect').empty();
+            $('#ProjectResult').empty();
             $('#searchStatus').text('請輸入條件後按「搜尋」。').removeClass('text-danger');
-            $('#radioCustom').prop('checked', true);
+            $('#radioProject').prop('checked', true);
         }
 
         function buildQueryCondition() {
@@ -274,15 +269,44 @@
             };
         }
 
-        function addOptions($target, items) {
+        var searchListSelector = '#ProjectResult';
+        var selectedListSelector = '#SelectedProject';
+
+        function getOptionValues($list) {
+            return $list.find('option').map(function () {
+                return this.value;
+            }).get();
+        }
+
+        function hasOptionValue(values, value) {
+            return values.indexOf(value) !== -1;
+        }
+
+        function addOptions($target, items, excludedValues) {
+            var existingValues = getOptionValues($target);
+            var excluded = excludedValues || [];
+            var addedCount = 0;
+
             items.forEach(function (item) {
-                if ($target.find('option[value="' + item.value + '"]').length === 0) {
-                    $('<option/>', {
-                        value: item.value,
-                        text: item.text
-                    }).appendTo($target);
+                if (hasOptionValue(existingValues, item.value) || hasOptionValue(excluded, item.value)) {
+                    return;
                 }
+
+                $('<option/>', {
+                    value: item.value,
+                    text: item.text
+                }).appendTo($target);
+
+                existingValues.push(item.value);
+                addedCount += 1;
             });
+
+            return addedCount;
+        }
+
+        function updateSearchStatus() {
+            var count = $(searchListSelector).find('option').length;
+            $('#searchStatus').text('共查得 ' + count + ' 筆資料。').removeClass('text-danger');
         }
 
         function moveSelectedOptions(sourceSelector, targetSelector) {
@@ -301,11 +325,15 @@
 
             addOptions($(targetSelector), selectedItems);
             $source.find('option:selected').remove();
+
+            if (sourceSelector === searchListSelector || targetSelector === searchListSelector) {
+                updateSearchStatus();
+            }
         }
 
         $('#btnSearch').on('click', function () {
             var $button = $(this);
-            var $resultList = $('#ctl00_ContentPlaceHolder1_LBSelect');
+            var $resultList = $('#ProjectResult');
             var $status = $('#searchStatus');
 
             $button.prop('disabled', true);
@@ -323,8 +351,14 @@
                         return;
                     }
 
-                    addOptions($resultList, items);
-                    $status.text('共查得 ' + items.length + ' 筆資料。');
+                    var selectedValues = getOptionValues($(selectedListSelector));
+                    var addedCount = addOptions($resultList, items, selectedValues);
+                    if (addedCount === 0) {
+                        $status.text('查無資料。');
+                        return;
+                    }
+
+                    $status.text('共查得 ' + addedCount + ' 筆資料。');
                 },
                 error: function (xhr) {
                     var message = xhr.responseJSON && xhr.responseJSON.message
@@ -339,11 +373,11 @@
         });
 
         $('#ctl00_ContentPlaceHolder1_right').on('click', function () {
-            moveSelectedOptions('#ctl00_ContentPlaceHolder1_LBSelect', '#ctl00_ContentPlaceHolder1_LBUnselect');
+            moveSelectedOptions(searchListSelector, selectedListSelector);
         });
 
         $('#ctl00_ContentPlaceHolder1_left').on('click', function () {
-            moveSelectedOptions('#ctl00_ContentPlaceHolder1_LBUnselect', '#ctl00_ContentPlaceHolder1_LBSelect');
+            moveSelectedOptions(selectedListSelector, searchListSelector);
         });
     </script>
 }

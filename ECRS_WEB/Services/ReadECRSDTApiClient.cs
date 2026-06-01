@@ -62,6 +62,29 @@ namespace ECRS_WEB.Services
             return result ?? new List<AddProject_Result>();
         }
 
+        public async Task<List<AddProject_Result>> Query_專案名稱代碼表_PMDS(QueryCondiction _queryCondiction, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+
+            var action = Uri.EscapeDataString("專案名稱代碼表_PMDS");
+            var url = $"/Api/FormManage/{action}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = JsonContent.Create(_queryCondiction);
+
+            using var resp = await _http.PostAsJsonAsync(url, _queryCondiction, ct);
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                var raw = await resp.Content.ReadAsStringAsync(ct);
+                throw new Exception($"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}");
+            }
+
+            var result = await resp.Content.ReadFromJsonAsync<List<AddProject_Result>>(cancellationToken: ct);
+            return result ?? new List<AddProject_Result>();
+        }
+
         public async Task<ApiAddProjectResult> Add_新增專案名稱代碼(AddProject_Form addProject_Form, CancellationToken ct = default)
         {
             var token = GetTokenOrThrow();

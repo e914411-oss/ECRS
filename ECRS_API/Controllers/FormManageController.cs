@@ -140,6 +140,37 @@ namespace CoreAPI.Controllers
             return Ok(data);
         }
 
+        [HttpPost("專案名稱代碼表_PMDS")]
+        [AllowAnonymous]
+        public async Task<ActionResult<IEnumerable<ECRS_API.Models.PMDS.專案名稱代碼表>>> 專案名稱代碼表_PMDS(ECRS_ECRS_API.DTOs.FormManageDTO.FormEditer.QueryCondiction queryCondiction)
+        {
+            queryCondiction.CreateDepartment ??= string.Empty;
+            queryCondiction.ProjectName ??= string.Empty;
+            queryCondiction.FormStatus ??= string.Empty;
+            queryCondiction.ProjectDeadlineStart ??= string.Empty;
+            queryCondiction.ProjectDeadlineEnd ??= string.Empty;
+
+            IQueryable<AddProject_Result> result = from n in _ECRSdb.專案名稱代碼表s
+                                                   join d in _ECRSdb.專案名稱_稽查項目附表s on n.專案名稱代碼表主鍵 equals d.專案名稱代碼主鍵 into gj
+                                                   where (queryCondiction.CreateDepartment == "" || n.建立部門 == queryCondiction.CreateDepartment)
+                                                   && (queryCondiction.ProjectName == "" || (n.專案名稱 ?? string.Empty).Contains(queryCondiction.ProjectName))
+                                                   && (queryCondiction.ProjectDeadlineStart == "" || (n.專案截止日期 != null && n.專案截止日期.Length == 7 && string.Compare(n.專案截止日期, queryCondiction.ProjectDeadlineStart) >= 0))
+                                                   && (queryCondiction.ProjectDeadlineEnd == "" || (n.專案截止日期 != null && n.專案截止日期.Length == 7 && string.Compare(n.專案截止日期, queryCondiction.ProjectDeadlineEnd) <= 0))
+                                                   //&& (queryCondiction.FormStatus == "" || n.是否啟用 == queryCondiction.FormStatus)
+                                                   select new AddProject_Result
+                                                   {
+                                                       專案主鍵 = n.專案名稱代碼表主鍵,
+                                                       專案名稱 = n.專案名稱 ?? string.Empty,
+                                                       稽查項目 = gj.Select(x => x.稽查項目).FirstOrDefault() ?? string.Empty,
+                                                       修改日期 = n.異動時間 ?? default,
+                                                       異動人員 = n.異動人員主鍵 ?? string.Empty,
+                                                       狀態 = n.是否啟用 ?? string.Empty
+                                                   };
+
+            List<AddProject_Result> data = await result.ToListAsync();
+            return Ok(data);
+        }
+
         #endregion
 
         #region DAta動作（新增、修改、刪除）
