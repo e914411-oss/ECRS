@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using ECRS_WEB.DTOs.FormManageDTO.FormEditer;
+using ECRS_WEB.DTOs.FormManageDTO.FormQryByPJ;
 using ECRS_WEB.DTOs.InspectionDTO.Fquery;
 using ECRS_WEB.DTOs.InspectionDTO.PReview;
 using ECRS_WEB.Models;
@@ -175,6 +176,54 @@ namespace ECRS_WEB.Services
             }
 
             return new ApiAddProject_FloatColumn
+            {
+                Success = apiResult.Success,
+                Id = apiResult.Id,
+                Message = apiResult.Message
+            };
+        }
+        public async Task<ApiAddProjectResult> Save_PMDS專案名稱代碼(ProjectCopy projectCopy, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+
+            var action = Uri.EscapeDataString("儲存PMDS專案名稱代碼");
+            var url = $"/Api/FormManage/{action}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = JsonContent.Create(projectCopy);
+
+            using var resp = await _http.SendAsync(req, ct);
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                return new ApiAddProjectResult
+                {
+                    Success = false,
+                    Id = 0,
+                    Message = $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                };
+            }
+
+            var apiResult = JsonSerializer.Deserialize<ApiAddProjectResult>(
+                raw,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+            if (apiResult is null)
+            {
+                return new ApiAddProjectResult
+                {
+                    Success = false,
+                    Id = 0,
+                    Message = "API 回傳資料格式錯誤"
+                };
+            }
+
+            return new ApiAddProjectResult
             {
                 Success = apiResult.Success,
                 Id = apiResult.Id,

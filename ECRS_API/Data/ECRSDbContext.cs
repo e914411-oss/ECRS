@@ -14646,6 +14646,7 @@ public partial class ECRSDbContext : DbContext
             entity.ToTable("專案名稱代碼表");
 
             entity.Property(e => e.專案名稱代碼表主鍵).HasComment("識別碼");
+            entity.Property(e => e.專案名稱代碼表主鍵_PMDS).HasComment("PMDS 專案名稱代碼表主鍵");
             entity.Property(e => e.GHP專案)
                 .HasMaxLength(1)
                 .IsUnicode(false)

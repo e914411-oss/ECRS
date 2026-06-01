@@ -25730,6 +25730,10 @@ namespace ECRS_API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("專案名稱代碼表主鍵"));
 
+                    b.Property<int?>("專案名稱代碼表主鍵_PMDS")
+                        .HasColumnType("int")
+                        .HasComment("PMDS 專案名稱代碼表主鍵");
+
                     b.Property<string>("GHP專案")
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(1)

@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using ECRS_WEB.DTOs.FormManageDTO.FormEditer;
+using ECRS_WEB.DTOs.FormManageDTO.FormQryByPJ;
 using ECRS_WEB.Models;
 //using ECRS_WEB.Models.ECRS;
 using ECRS_WEB.Services;
@@ -76,6 +77,37 @@ namespace ECRS_WEB.Controllers
                     message = "查詢專案資料失敗"
                 });
             }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> FormQryByPJSave([FromBody] ProjectCopy projectCopy, CancellationToken ct)
+        {
+            if (projectCopy is null || projectCopy.ProjectIds.Count == 0)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "請先選擇專案"
+                });
+            }
+
+            ApiAddProjectResult apiResult = await _apiECRS.Save_PMDS專案名稱代碼(projectCopy, ct);
+
+            if (!apiResult.Success)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = apiResult.Message ?? "API 儲存失敗"
+                });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                id = apiResult.Id,
+                message = apiResult.Message ?? "儲存成功"
+            });
         }
 
 

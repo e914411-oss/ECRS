@@ -2,6 +2,7 @@ using System;
 using ECRS_API.Data;
 using ECRS_API.DTOs;
 using ECRS_API.DTOs.FormMangeDTO.FormEditer;
+using ECRS_API.DTOs.FormMangeDTO.FormQryByPJ;
 using ECRS_API.DTOs.Security;
 using ECRS_API.Models;
 using ECRS_API.Models.ECRS;
@@ -150,18 +151,16 @@ namespace CoreAPI.Controllers
             queryCondiction.ProjectDeadlineStart ??= string.Empty;
             queryCondiction.ProjectDeadlineEnd ??= string.Empty;
 
-            IQueryable<AddProject_Result> result = from n in _ECRSdb.專案名稱代碼表s
-                                                   join d in _ECRSdb.專案名稱_稽查項目附表s on n.專案名稱代碼表主鍵 equals d.專案名稱代碼主鍵 into gj
+            IQueryable<AddProject_Result> result = from n in _PMDSdb.專案名稱代碼表s
                                                    where (queryCondiction.CreateDepartment == "" || n.建立部門 == queryCondiction.CreateDepartment)
                                                    && (queryCondiction.ProjectName == "" || (n.專案名稱 ?? string.Empty).Contains(queryCondiction.ProjectName))
                                                    && (queryCondiction.ProjectDeadlineStart == "" || (n.專案截止日期 != null && n.專案截止日期.Length == 7 && string.Compare(n.專案截止日期, queryCondiction.ProjectDeadlineStart) >= 0))
                                                    && (queryCondiction.ProjectDeadlineEnd == "" || (n.專案截止日期 != null && n.專案截止日期.Length == 7 && string.Compare(n.專案截止日期, queryCondiction.ProjectDeadlineEnd) <= 0))
-                                                   //&& (queryCondiction.FormStatus == "" || n.是否啟用 == queryCondiction.FormStatus)
                                                    select new AddProject_Result
                                                    {
                                                        專案主鍵 = n.專案名稱代碼表主鍵,
                                                        專案名稱 = n.專案名稱 ?? string.Empty,
-                                                       稽查項目 = gj.Select(x => x.稽查項目).FirstOrDefault() ?? string.Empty,
+                                                       稽查項目 = string.Empty,
                                                        修改日期 = n.異動時間 ?? default,
                                                        異動人員 = n.異動人員主鍵 ?? string.Empty,
                                                        狀態 = n.是否啟用 ?? string.Empty
@@ -172,6 +171,123 @@ namespace CoreAPI.Controllers
         }
 
         #endregion
+
+        [HttpPost("儲存PMDS專案名稱代碼")]
+        [AllowAnonymous]
+        public async Task<ActionResult> 儲存PMDS專案名稱代碼([FromBody] ProjectCopy projectCopy)
+        {
+            if (projectCopy is null || projectCopy.ProjectIds.Count == 0)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "請先選擇專案"
+                });
+            }
+
+            var projectIds = projectCopy.ProjectIds.Distinct().ToList();
+
+            await using var tx = await _ECRSdb.Database.BeginTransactionAsync();
+
+            try
+            {
+                var existingPMDSProjectIds = await _ECRSdb.專案名稱代碼表s
+                    .Where(project => project.專案名稱代碼表主鍵_PMDS.HasValue && projectIds.Contains(project.專案名稱代碼表主鍵_PMDS.Value))
+                    .Select(project => project.專案名稱代碼表主鍵_PMDS!.Value)
+                    .ToListAsync();
+
+                var projects = await _PMDSdb.專案名稱代碼表s
+                    .Where(project => projectIds.Contains(project.專案名稱代碼表主鍵) && !existingPMDSProjectIds.Contains(project.專案名稱代碼表主鍵))
+                    .ToListAsync();
+
+                foreach (var project in projects)
+                {
+                    _ECRSdb.專案名稱代碼表s.Add(new ECRS_API.Models.ECRS.專案名稱代碼表
+                    {
+                        專案名稱代碼表主鍵_PMDS = project.專案名稱代碼表主鍵,
+                        建立部門 = project.建立部門,
+                        專案截止日期 = project.專案截止日期,
+                        專案名稱 = project.專案名稱,
+                        GHP專案 = project.GHP專案,
+                        標示專案 = project.標示專案,
+                        抽驗專案 = project.抽驗專案,
+                        熟食專案 = project.熟食專案,
+                        建立時間 = project.建立時間 ?? DateTime.Now,
+                        建立人員主鍵 = project.建立人員主鍵,
+                        保留欄位用 = project.保留欄位用,
+                        油炸油專案 = project.油炸油專案,
+                        HACCP專案 = project.HACCP專案,
+                        查驗登記工廠專案_健康食品工廠 = project.查驗登記工廠專案_健康食品工廠,
+                        查驗登記產品專案_健康食品 = project.查驗登記產品專案_健康食品,
+                        異動時間 = project.異動時間,
+                        衛生局稽查系統主鍵 = project.衛生局稽查系統主鍵,
+                        異動人員主鍵 = project.異動人員主鍵,
+                        GHP專案_體檢情形 = project.GHP專案_體檢情形,
+                        查驗登記工廠專案_食品添加物工廠 = project.查驗登記工廠專案_食品添加物工廠,
+                        查驗登記工廠專案_國產維生素錠狀膠囊狀工廠 = project.查驗登記工廠專案_國產維生素錠狀膠囊狀工廠,
+                        查驗登記產品專案_食品添加物 = project.查驗登記產品專案_食品添加物,
+                        查驗登記產品專案_國產維生素錠狀膠囊狀食品 = project.查驗登記產品專案_國產維生素錠狀膠囊狀食品,
+                        查驗登記產品專案_輸入錠狀膠囊狀食品 = project.查驗登記產品專案_輸入錠狀膠囊狀食品,
+                        查驗登記產品專案_病人用特殊營養食品 = project.查驗登記產品專案_病人用特殊營養食品,
+                        查驗登記產品專案_嬰兒配方食品及較大嬰兒配方輔助食品 = project.查驗登記產品專案_嬰兒配方食品及較大嬰兒配方輔助食品,
+                        是否啟用 = project.是否啟用,
+                        真空包裝專案 = project.真空包裝專案,
+                        GHP專案_標示符合性 = project.GHP專案_標示符合性,
+                        專案承辦人員主鍵 = project.專案承辦人員主鍵,
+                        是否有專案目標數 = project.是否有專案目標數,
+                        是否有設定浮動欄位 = project.是否有設定浮動欄位,
+                        瘦身美容業稽專案 = project.瘦身美容業稽專案,
+                        化粧品工廠專案 = project.化粧品工廠專案,
+                        化粧品專案 = project.化粧品專案,
+                        藥商藥局醫療機構專案 = project.藥商藥局醫療機構專案,
+                        藥品專案 = project.藥品專案,
+                        藥廠自用原料查核專案 = project.藥廠自用原料查核專案,
+                        藥品回收專案 = project.藥品回收專案,
+                        醫療器材專案 = project.醫療器材專案,
+                        稽查事由及內容 = project.稽查事由及內容,
+                        派案 = project.派案,
+                        是否派案 = project.是否派案,
+                        登錄查核專案 = project.登錄查核專案,
+                        追溯追蹤專案 = project.追溯追蹤專案,
+                        一級品管專案 = project.一級品管專案,
+                        食品郵購買賣定型化契約 = project.食品郵購買賣定型化契約,
+                        餐飲禮券定型化契約 = project.餐飲禮券定型化契約,
+                        訂席_外燴定型化契約 = project.訂席_外燴定型化契約,
+                        藥品回收後續處理結果 = project.藥品回收後續處理結果,
+                        醫療器材回收後續處理結果 = project.醫療器材回收後續處理結果,
+                        化粧品回收後續處理結果 = project.化粧品回收後續處理結果,
+                        化粧品業者專案 = project.化粧品業者專案,
+                        產品責任保險 = project.產品責任保險,
+                        來源文件保存 = project.來源文件保存,
+                        逾期食品保存 = project.逾期食品保存,
+                        衛生管理人員 = project.衛生管理人員,
+                        專門職業或技術證照人員 = project.專門職業或技術證照人員,
+                    });
+                }
+
+                await _ECRSdb.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                return Ok(new
+                {
+                    success = true,
+                    id = projects.Count,
+                    message = $"儲存成功，共新增 {projects.Count} 筆專案。"
+                });
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "儲存 PMDS 專案名稱代碼失敗",
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message
+                });
+            }
+        }
 
         #region DAta動作（新增、修改、刪除）
 
