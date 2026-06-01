@@ -38,13 +38,44 @@ namespace ECRS_WEB.Controllers
 
         public async Task<IActionResult> FormQryByPJ()
         {
-            // 這個方法沒有任何 await，建議移除 async 修飾詞並回傳 Task.FromResult
+            ViewBag.Departments = await Get_系統_部門表("") ?? [];
+
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
-                return await Task.FromResult(PartialView("FormQryByPJ"));
+                return PartialView("FormQryByPJ");
             }
 
-            return await Task.FromResult(View());
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> FormQryByPJSearch(QueryCondiction queryCondiction)
+        {
+            queryCondiction.CreateDepartment ??= string.Empty;
+            queryCondiction.ProjectName ??= string.Empty;
+            queryCondiction.FormStatus ??= string.Empty;
+            queryCondiction.ProjectDeadlineStart ??= string.Empty;
+            queryCondiction.ProjectDeadlineEnd ??= string.Empty;
+
+            try
+            {
+                List<AddProject_Result> projectNames = await Get_專案名稱代碼表(queryCondiction) ?? [];
+                var options = projectNames.Select(project => new
+                {
+                    value = project.專案主鍵.ToString(),
+                    text = project.專案名稱
+                });
+
+                return Ok(options);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "FormQryByPJ 專案查詢失敗");
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    message = "查詢專案資料失敗"
+                });
+            }
         }
 
 

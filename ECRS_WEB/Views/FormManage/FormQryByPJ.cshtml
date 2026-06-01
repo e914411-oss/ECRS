@@ -1,5 +1,7 @@
+@using ECRS_WEB.Models.PMDS
 @{
     ViewData["Title"] = "表單管理-專案查詢";
+    var departments = ViewBag.Departments as IEnumerable<系統_部門表> ?? Enumerable.Empty<系統_部門表>();
 }
 
 @section Styles {
@@ -159,7 +161,7 @@
         </label>
         <input id="FormName" type="text" placeholder="請輸自訂表單名稱..." class="form-control" />
 
-        <label for="PJName" class="query-radio-label">
+        <label for="ProjectName" class="query-radio-label">
             <input id="radioProject" type="radio" name="groupType" />
             <span>專案名稱：</span>
         </label>
@@ -168,13 +170,17 @@
         <label for="Select1" class="query-label">建立單位：</label>
         <div>
             <select id="Select1" class="form-select" style="max-width: 220px;">
-                <option>全部</option>
+                <option value="">全部</option>
+                @foreach (var department in departments)
+                {
+                    <option value="@department.部門編號">@department.名稱</option>
+                }
             </select>
         </div>
     </div>
 
     <div class="query-actions">
-        <button type="button" class="btn btn-success px-4">搜尋</button>
+        <button type="button" id="btnSearch" class="btn btn-success px-4">搜尋</button>
         <input id="btnClear" type="button" class="btn btn-success px-4" onclick="qry_clear()" value="清除" />
     </div>
 
@@ -192,21 +198,20 @@
                         multiple="multiple"
                         id="ctl00_ContentPlaceHolder1_LBSelect"
                         class="form-control">
-                    <option value="S221178181">鄭慧君</option>
                 </select>
+                <div id="searchStatus" class="form-text text-center mt-2">請輸入條件後按「搜尋」。</div>
             </div>
 
             <div class="dual-list-actions">
-                <input type="submit"
+                <input type="button"
                        name="ctl00$ContentPlaceHolder1$right"
                        value="-&gt;"
                        id="ctl00_ContentPlaceHolder1_right"
                        class="btn btn-outline-primary btn-transfer" />
 
-                <input type="submit"
+                <input type="button"
                        name="ctl00$ContentPlaceHolder1$left"
                        value="&lt;-"
-                       onclick="return chkMail();"
                        id="ctl00_ContentPlaceHolder1_left"
                        class="btn btn-outline-primary btn-transfer" />
             </div>
@@ -247,9 +252,98 @@
 @section Scripts{
     <script>
         function qry_clear() {
-          $('#FormName').val('');
-          $('#ProjectName').val('');
-          $('#Select1').prop('selectedIndex', 0);
+            $('#FormName').val('');
+            $('#ProjectName').val('');
+            $('#Select1').prop('selectedIndex', 0);
+            $('#ctl00_ContentPlaceHolder1_LBSelect').empty();
+            $('#searchStatus').text('請輸入條件後按「搜尋」。').removeClass('text-danger');
+            $('#radioCustom').prop('checked', true);
         }
+
+        function buildQueryCondition() {
+            var keyword = $('#radioCustom').is(':checked')
+                ? $.trim($('#FormName').val())
+                : $.trim($('#ProjectName').val());
+
+            return {
+                CreateDepartment: $('#Select1').val(),
+                ProjectName: keyword,
+                FormStatus: '',
+                ProjectDeadlineStart: '',
+                ProjectDeadlineEnd: ''
+            };
+        }
+
+        function addOptions($target, items) {
+            items.forEach(function (item) {
+                if ($target.find('option[value="' + item.value + '"]').length === 0) {
+                    $('<option/>', {
+                        value: item.value,
+                        text: item.text
+                    }).appendTo($target);
+                }
+            });
+        }
+
+        function moveSelectedOptions(sourceSelector, targetSelector) {
+            var $source = $(sourceSelector);
+            var selectedItems = $source.find('option:selected').map(function () {
+                return {
+                    value: this.value,
+                    text: this.text
+                };
+            }).get();
+
+            if (selectedItems.length === 0) {
+                alert('請先選擇要移動的項目。');
+                return;
+            }
+
+            addOptions($(targetSelector), selectedItems);
+            $source.find('option:selected').remove();
+        }
+
+        $('#btnSearch').on('click', function () {
+            var $button = $(this);
+            var $resultList = $('#ctl00_ContentPlaceHolder1_LBSelect');
+            var $status = $('#searchStatus');
+
+            $button.prop('disabled', true);
+            $resultList.empty();
+            $status.text('查詢中，請稍候...').removeClass('text-danger');
+
+            $.ajax({
+                url: '@Url.Action("FormQryByPJSearch", "FormManage")',
+                type: 'GET',
+                cache: false,
+                data: buildQueryCondition(),
+                success: function (items) {
+                    if (!items || items.length === 0) {
+                        $status.text('查無資料。');
+                        return;
+                    }
+
+                    addOptions($resultList, items);
+                    $status.text('共查得 ' + items.length + ' 筆資料。');
+                },
+                error: function (xhr) {
+                    var message = xhr.responseJSON && xhr.responseJSON.message
+                        ? xhr.responseJSON.message
+                        : '查詢失敗，請稍後再試。';
+                    $status.text(message).addClass('text-danger');
+                },
+                complete: function () {
+                    $button.prop('disabled', false);
+                }
+            });
+        });
+
+        $('#ctl00_ContentPlaceHolder1_right').on('click', function () {
+            moveSelectedOptions('#ctl00_ContentPlaceHolder1_LBSelect', '#ctl00_ContentPlaceHolder1_LBUnselect');
+        });
+
+        $('#ctl00_ContentPlaceHolder1_left').on('click', function () {
+            moveSelectedOptions('#ctl00_ContentPlaceHolder1_LBUnselect', '#ctl00_ContentPlaceHolder1_LBSelect');
+        });
     </script>
 }
