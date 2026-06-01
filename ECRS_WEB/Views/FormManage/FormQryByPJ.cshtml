@@ -237,7 +237,17 @@
         <button type="button" class="btn btn-secondary" onclick="window.history.go(-1);">取消</button>
     </div>
 
-    <div id="formAddHost"></div>
+    <div id="loadingBlock"
+         class="d-none position-fixed top-0 start-0 w-100 vh-100 d-flex justify-content-center align-items-center"
+         style="background: rgba(255,255,255,0.7); z-index: 1050;">
+        <div class="text-center">
+            <div class="spinner-border text-primary"></div>
+            <div class="mt-3">
+                <i class="bi bi-hourglass-split me-2"></i>
+                查詢中，請稍候...
+            </div>
+        </div>
+    </div>
 </div>
 
 
@@ -376,6 +386,7 @@
             $button.prop('disabled', true);
             $resultList.empty();
             $status.text('查詢中，請稍候...').removeClass('text-danger');
+            $('#loadingBlock').removeClass('d-none');
 
             $.ajax({
                 url: '@Url.Action("FormQryByPJSearch", "FormManage")',
@@ -405,6 +416,7 @@
                 },
                 complete: function () {
                     $button.prop('disabled', false);
+                    $('#loadingBlock').addClass('d-none');
                 }
             });
         });
