@@ -11,6 +11,11 @@ public partial class 專案名稱代碼表
     public int 專案名稱代碼表主鍵 { get; set; }
 
     /// <summary>
+    /// PMDS 專案名稱代碼表主鍵
+    /// </summary>
+    public int? 專案名稱代碼表主鍵_PMDS { get; set; }
+
+    /// <summary>
     /// 建立部門
     /// </summary>
     public string? 建立部門 { get; set; }

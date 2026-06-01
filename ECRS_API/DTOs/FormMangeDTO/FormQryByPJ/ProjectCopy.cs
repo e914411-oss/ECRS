@@ -1,4 +1,4 @@
-namespace ECRS_WEB.DTOs.FormManageDTO.FormQryByPJ
+namespace ECRS_API.DTOs.FormMangeDTO.FormQryByPJ
 {
     public class ProjectCopy
     {

@@ -229,10 +229,8 @@
 
     <div class="bottom-actions">
         <button type="button"
-                id="btnLoadForm"
-                class="btn btn-success"
-                data-url="@Url.Action("FormAdd", "FormManage")"
-                onclick="loadForm()">
+                id="btnSaveProjects"
+                class="btn btn-success">
             儲存
         </button>
 
@@ -330,6 +328,45 @@
                 updateSearchStatus();
             }
         }
+
+        function getSelectedProjectIds() {
+            return $(selectedListSelector).find('option').map(function () {
+                return parseInt(this.value, 10);
+            }).get().filter(function (value) {
+                return !isNaN(value);
+            });
+        }
+
+        $('#btnSaveProjects').on('click', function () {
+            var projectIds = getSelectedProjectIds();
+
+            if (projectIds.length === 0) {
+                alert('請先選擇要儲存的專案。');
+                return;
+            }
+
+            var $button = $(this);
+            $button.prop('disabled', true);
+
+            $.ajax({
+                url: '@Url.Action("FormQryByPJSave", "FormManage")',
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                data: JSON.stringify({ projectIds: projectIds }),
+                success: function (result) {
+                    alert(result && result.message ? result.message : '儲存成功');
+                },
+                error: function (xhr) {
+                    var message = xhr.responseJSON && xhr.responseJSON.message
+                        ? xhr.responseJSON.message
+                        : '儲存失敗，請稍後再試。';
+                    alert(message);
+                },
+                complete: function () {
+                    $button.prop('disabled', false);
+                }
+            });
+        });
 
         $('#btnSearch').on('click', function () {
             var $button = $(this);
