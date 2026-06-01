@@ -112,7 +112,9 @@ namespace CoreAPI.Controllers
 
         [HttpPost("專案名稱代碼表")]
         [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<ECRS_API.Models.ECRS.專案名稱代碼表>>> 專案名稱代碼表(ECRS_ECRS_API.DTOs.FormManageDTO.FormEditer.QueryCondiction queryCondiction)
+        public async Task<ActionResult<IEnumerable<AddProject_Result>>> 專案名稱代碼表(
+            ECRS_ECRS_API.DTOs.FormManageDTO.FormEditer.QueryCondiction queryCondiction)
+
         {
             queryCondiction.CreateDepartment ??= string.Empty;
             queryCondiction.ProjectName ??= string.Empty;
@@ -143,7 +145,8 @@ namespace CoreAPI.Controllers
 
         [HttpPost("專案名稱代碼表_PMDS")]
         [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<ECRS_API.Models.PMDS.專案名稱代碼表>>> 專案名稱代碼表_PMDS(ECRS_ECRS_API.DTOs.FormManageDTO.FormEditer.QueryCondiction queryCondiction)
+        public async Task<ActionResult<IEnumerable<AddProject_Result>>> 專案名稱代碼表_PMDS(
+            ECRS_ECRS_API.DTOs.FormManageDTO.FormEditer.QueryCondiction queryCondiction)
         {
             queryCondiction.CreateDepartment ??= string.Empty;
             queryCondiction.ProjectName ??= string.Empty;
@@ -186,15 +189,23 @@ namespace CoreAPI.Controllers
             }
 
             var projectIds = projectCopy.ProjectIds.Distinct().ToList();
+            var projectId = projectIds.First();
+
 
             await using var tx = await _ECRSdb.Database.BeginTransactionAsync();
 
             try
             {
+                //var existingPMDSProjectIds = await _ECRSdb.專案名稱代碼表s
+                //    .Where(project => project.專案名稱代碼表主鍵_PMDS.HasValue && projectIds.Contains(project.專案名稱代碼表主鍵_PMDS.Value))
+                //    .Select(project => project.專案名稱代碼表主鍵_PMDS!.Value)
+                //    .ToListAsync();
                 var existingPMDSProjectIds = await _ECRSdb.專案名稱代碼表s
-                    .Where(project => project.專案名稱代碼表主鍵_PMDS.HasValue && projectIds.Contains(project.專案名稱代碼表主鍵_PMDS.Value))
-                    .Select(project => project.專案名稱代碼表主鍵_PMDS!.Value)
-                    .ToListAsync();
+                        .Where(project =>
+                            project.專案名稱代碼表主鍵_PMDS.HasValue &&
+                            project.專案名稱代碼表主鍵_PMDS.Value == projectId)
+                        .Select(project => project.專案名稱代碼表主鍵_PMDS!.Value)
+                        .ToListAsync();
 
                 var projects = await _PMDSdb.專案名稱代碼表s
                     .Where(project => projectIds.Contains(project.專案名稱代碼表主鍵) && !existingPMDSProjectIds.Contains(project.專案名稱代碼表主鍵))

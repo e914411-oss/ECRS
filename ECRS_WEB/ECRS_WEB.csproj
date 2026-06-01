@@ -39,7 +39,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="DTOs\FormManageDTO\FormQryByPJ\" />
 	  <Folder Include="DTOs\InspectionDTO\InspectionQry\" />
 	  <Folder Include="DTOs\InspectionDTO\FormQuery\" />
 	  <Folder Include="Views\MobileHome\ViewsOfMobile\" />

@@ -46,13 +46,35 @@ try
 
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
+
+
+    //這樣 Swagger schema 名稱會變成類似：
+    //ECRS_API.Models.ECRS.專案名稱代碼表
+    //ECRS_API.Models.PMDS.專案名稱代碼表
+    //就不會撞名。
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
+    });
 
     // EF Core
+    //builder.Services.AddDbContext<PMDSDbContext>(opt =>
+    //    opt.UseSqlServer(builder.Configuration.GetConnectionString("PMDS")));
+    //builder.Services.AddDbContext<ECRSDbContext>(opt =>
+    //    opt.UseSqlServer(builder.Configuration.GetConnectionString("ECRS")));
+
     builder.Services.AddDbContext<PMDSDbContext>(opt =>
-        opt.UseSqlServer(builder.Configuration.GetConnectionString("PMDS")));
+    opt.UseSqlServer(
+        builder.Configuration.GetConnectionString("PMDS"),
+        sqlOptions => sqlOptions.UseCompatibilityLevel(120)
+    ));
+
     builder.Services.AddDbContext<ECRSDbContext>(opt =>
-        opt.UseSqlServer(builder.Configuration.GetConnectionString("ECRS")));
+        opt.UseSqlServer(
+            builder.Configuration.GetConnectionString("ECRS"),
+            sqlOptions => sqlOptions.UseCompatibilityLevel(120)
+        ));
+
     builder.Services.AddDbContext<ISMSDbContext>(opt =>
         opt.UseSqlServer(builder.Configuration.GetConnectionString("ISMS")));
 
@@ -115,7 +137,7 @@ try
         });
     });
 
-    
+
     // 不只 Development，正式站也啟用
     app.UseSwagger();
     app.UseSwaggerUI(c =>
