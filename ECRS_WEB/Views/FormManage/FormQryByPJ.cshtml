@@ -379,6 +379,12 @@
         });
 
         $('#btnSearch').on('click', function () {
+
+            if ($('#radioProject').is(':checked') && $.trim($('#ProjectName').val()) === '' && $('#Select1').val() === '') {
+                alert('專案名稱與建立單位不可同為空');
+                return;
+            }
+
             var $button = $(this);
             var $resultList = $('#ProjectResult');
             var $status = $('#searchStatus');
