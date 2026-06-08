@@ -211,6 +211,66 @@ namespace CoreAPI.Controllers
                     .Where(project => projectIds.Contains(project.專案名稱代碼表主鍵) && !existingPMDSProjectIds.Contains(project.專案名稱代碼表主鍵))
                     .ToListAsync();
 
+                var projects2 = await _PMDSdb.專案名稱代碼表s
+                     .Where(project =>
+                         projectIds.Contains(project.專案名稱代碼表主鍵) &&
+                         !existingPMDSProjectIds.Contains(project.專案名稱代碼表主鍵))
+                     .ToListAsync();
+
+                var allItemId = await _ECRSdb.專案名稱_稽查項目代碼表s
+                    .Select(x => new
+                    {
+                        稽查項目代碼 = x.稽查項目代碼,
+                        稽查項目 = x.稽查項目,
+                        專案名稱代碼表_稽查欄位名稱 = x.專案名稱代碼表_稽查欄位名稱
+                    })
+                    .Distinct()
+                    .ToListAsync();
+
+                foreach (var project in projects)
+                {
+                    var inspectionSelectedCodes = new List<string>();
+                    var inspectionSelectedColumns = new List<string>();
+
+                    foreach (var item in allItemId)
+                    {
+                        var columnName = item.專案名稱代碼表_稽查欄位名稱;
+
+                        if (string.IsNullOrWhiteSpace(columnName))
+                        {
+                            continue;
+                        }
+
+                        var propertyInfo = project.GetType().GetProperty(columnName);
+
+                        if (propertyInfo == null)
+                        {
+                            continue;
+                        }
+
+                        var value = propertyInfo.GetValue(project)?.ToString();
+
+                        if (value == "Y")
+                        {
+                            inspectionSelectedCodes.Add(item.稽查項目代碼.ToString());
+                            inspectionSelectedColumns.Add(item.稽查項目);
+                        }
+                    }
+
+                    var inspectionSelectedCodesText = string.Join(",", inspectionSelectedCodes);
+                    var inspectionSelectedColumnsText = string.Join(",", inspectionSelectedColumns);
+
+                    var insertData = new 專案名稱_稽查項目附表
+                    {
+                        專案名稱代碼主鍵 = project.專案名稱代碼表主鍵,
+                        稽查項目代碼 = inspectionSelectedCodesText,
+                        稽查項目 = inspectionSelectedColumnsText
+                    };
+
+                    _ECRSdb.專案名稱_稽查項目附表s.Add(insertData);
+                }
+
+                //存回ECRS的專案名稱代碼表
                 foreach (var project in projects)
                 {
                     _ECRSdb.專案名稱代碼表s.Add(new ECRS_API.Models.ECRS.專案名稱代碼表
@@ -274,6 +334,7 @@ namespace CoreAPI.Controllers
                         衛生管理人員 = project.衛生管理人員,
                         專門職業或技術證照人員 = project.專門職業或技術證照人員,
                     });
+
                 }
 
                 await _ECRSdb.SaveChangesAsync();
@@ -344,6 +405,50 @@ namespace CoreAPI.Controllers
                 _ECRSdb.專案名稱_稽查項目附表s.Add(專案名稱_稽查項目附表_新增資料);
                 await _ECRSdb.SaveChangesAsync();
 
+                //回填專案名稱代碼表上各個稽查項目的值
+                var inspectionItemCodes = (專案名稱_稽查項目附表_新增資料.稽查項目代碼 ?? "")
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => x.Trim())
+                    .Where(x => int.TryParse(x, out _))
+                    .Select(int.Parse)
+                    .ToList();
+
+                var selectedColumnNames = _ECRSdb.專案名稱_稽查項目代碼表s
+                    .Where(x => inspectionItemCodes.Contains(x.稽查項目代碼))
+                    .Select(x => x.專案名稱代碼表_稽查欄位名稱)
+                    .Where(x => x != null && x != "")
+                    .Distinct()
+                    .ToList();
+
+                var allColumnNames = _ECRSdb.專案名稱_稽查項目代碼表s
+                    .Select(x => x.專案名稱代碼表_稽查欄位名稱)
+                    .Where(x => x != null && x != "")
+                    .Distinct()
+                    .ToList();
+
+                //先全部設成 N
+                foreach (var columnName in allColumnNames)
+                {
+                    var prop = 專案名稱代碼_新增資料.GetType().GetProperty(columnName);
+
+                    if (prop != null && prop.CanWrite)
+                    {
+                        prop.SetValue(專案名稱代碼_新增資料, "N");
+                    }
+                }
+
+                //被選到的欄位設成 Y
+                foreach (var columnName in selectedColumnNames)
+                {
+                    var prop = 專案名稱代碼_新增資料.GetType().GetProperty(columnName);
+
+                    if (prop != null && prop.CanWrite)
+                    {
+                        prop.SetValue(專案名稱代碼_新增資料, "Y");
+                    }
+                }
+
+                await _ECRSdb.SaveChangesAsync();
                 await tx.CommitAsync();
 
                 return Ok(new

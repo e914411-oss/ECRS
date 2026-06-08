@@ -14751,6 +14751,7 @@ public partial class ECRSDbContext : DbContext
             entity.ToTable("專案名稱_稽查項目代碼表");
 
             entity.Property(e => e.稽查項目).HasMaxLength(1);
+            entity.Property(e => e.專案名稱代碼表_稽查欄位名稱).HasMaxLength(1);
             entity.Property(e => e.資料有效日期)
                 .HasColumnType("datetime");
         });

@@ -1132,7 +1132,7 @@
                 <div class="check-row3">
                     <div class="btn-group">
                         <button type="button" class="btn btn-form" onclick="window.history.go(-1);">取消</button>
-                        <input type="submit" class="btn btn-form" name="save" id="save" value="儲存" disabled>
+                        <input type="submit" class="btn btn-form" name="save" id="save" value="儲存">
                         <button type="button" class="btn btn-form" onclick="window.history.go(-1);">預覽表單</button>
                     </div>
                 </div>
@@ -1286,6 +1286,13 @@
 
 @section Scripts {
     <script>
+        $(function(){
+            $("#save").on("click", function (e) {
+                e.preventDefault();
+                CheckData();
+            });
+
+        });
         // $(function () {
 
         //     // 開啟「編輯浮動欄位設定」遮罩

@@ -12,7 +12,11 @@ namespace ECRS_API.Models.ECRS
         public string 稽查項目
         {
             get; set;
-        }
+        } = string.Empty;
+        public string 專案名稱代碼表_稽查欄位名稱
+        {
+            get; set;
+        } = string.Empty;
         public DateTime 資料有效日期
         {
             get; set;
