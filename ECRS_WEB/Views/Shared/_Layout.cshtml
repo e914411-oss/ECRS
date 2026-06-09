@@ -418,9 +418,9 @@
 
                             <div id="inspectionMenu" class="collapse @(isInspection ? "show" : "")" data-bs-parent="#sidebaru">
                                 <ul class="ecrs-submenu">
-                                    <li class="@(isInspectionWork ? "active" : "")">
+                                    @* <li class="@(isInspectionWork ? "active" : "")">
                                         <a asp-controller="Inspection" asp-action="InspectionQry" asp-route-departmentCode="">稽查作業</a>
-                                    </li>
+                                    </li> *@
                                     <li class="@(isInspectionVendor ? "active" : "")">
                                         <a asp-controller="Inspection" asp-action="Fquery">業者稽查查詢</a>
                                     </li>
