@@ -14,6 +14,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 using static ECRS_WEB.Services.ReadPMDSDTApiClient;
 using ECRS_WEB.DTOs.InspectionDTO.PReview;
 using ECRS_WEB.DTOs.InspectionDTO.Fquery;
+using ECRS_WEB.DTOs.InspectionDTO.InspectionQry;
 
 namespace CoreWebApp.Controllers
 {
@@ -40,11 +41,17 @@ namespace CoreWebApp.Controllers
             return View(/* model */);
         }
 
-        public IActionResult InspectionQry()
+        [HttpGet]
+        public async Task<IActionResult> InspectionQry([FromBody] IndustryQueryOptions? _IndustryQueryOption)
         {
-            if (Request.Headers.XRequestedWith == "XMLHttpRequest")
+            if (Request.Headers.XRequestedWith == "XMLHttpRequest"
+                && _IndustryQueryOption == null)
             {
                 return PartialView("InspectionQry");
+            }
+            else if (_IndustryQueryOption != null)
+            {
+                return View();
             }
 
             return View();
@@ -129,7 +136,7 @@ namespace CoreWebApp.Controllers
                 }
 
                 //點擊查詢或其他按鈕後要呈現資料的方式，PartialView
-                return PartialView("_FqueryPartial", vm);   
+                return PartialView("_FqueryPartial", vm);
             }
 
             //首次進入頁面在還沒查詢以前不用帶資料進去
