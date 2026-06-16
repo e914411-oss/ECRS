@@ -143,6 +143,42 @@ namespace CoreAPI.Controllers
             return Ok(data);
         }
 
+
+        [HttpPost("專案稽查項目附表")]
+        [AllowAnonymous]
+        public async Task<ActionResult<IEnumerable<InspectionProjectItemGroup>>> 專案稽查項目附表([FromBody] int[] projectIds)
+        {
+            projectIds ??= [];
+
+            if (projectIds.Length == 0)
+            {
+                return Ok(new List<InspectionProjectItemGroup>());
+            }
+
+            var distinctProjectIds = projectIds.Distinct().ToList();
+
+            var groups = await _ECRSdb.專案名稱代碼表s
+                .Where(project => distinctProjectIds.Contains(project.專案名稱代碼表主鍵))
+                .Select(project => new InspectionProjectItemGroup
+                {
+                    ProjectId = project.專案名稱代碼表主鍵,
+                    ProjectName = project.專案名稱 ?? string.Empty,
+                    Items = _ECRSdb.專案名稱_稽查項目附表s
+                        .Where(item => item.專案名稱代碼主鍵 == project.專案名稱代碼表主鍵)
+                        .OrderBy(item => item.主鍵)
+                        .Select(item => new InspectionItemLink
+                        {
+                            Id = item.主鍵,
+                            ItemName = item.稽查項目 ?? string.Empty,
+                            ItemCode = item.稽查項目代碼 ?? string.Empty
+                        })
+                        .ToList()
+                })
+                .ToListAsync();
+
+            return Ok(groups);
+        }
+
         [HttpPost("專案名稱代碼表_PMDS")]
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<AddProject_Result>>> 專案名稱代碼表_PMDS(

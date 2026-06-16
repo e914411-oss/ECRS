@@ -85,7 +85,7 @@ namespace CoreWebApp.Controllers
             return await _apiECRS.Query_專案名稱代碼表(queryCondiction);
         }
 
-        public IActionResult InspectionForms(string? _IsCompleted, string? _FormName)
+        public async Task<IActionResult> InspectionForms(string? _IsCompleted, string? _FormName, string? companyId, int[]? projectIds)
         {
             if (!string.IsNullOrEmpty(_IsCompleted) || !string.IsNullOrEmpty(_FormName))
             {
@@ -104,7 +104,40 @@ namespace CoreWebApp.Controllers
             ViewBag.IsCompletedForm = isCompleted;
             ViewBag.FormName = TempData["FormName"]?.ToString();
 
-            return View();
+            var vm = new InspectionFormsViewModel
+            {
+                CompanyId = companyId ?? string.Empty,
+                InspectionDate = DateTime.Now.ToString("yyyy/MM/dd")
+            };
+
+            if (!string.IsNullOrWhiteSpace(companyId))
+            {
+                try
+                {
+                    var supplier = new Supplier { 業者編號 = companyId };
+                    vm.Company = await Get_Company(supplier) ?? new 業者資料表();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "InspectionForms 業者資料查詢失敗，companyId={CompanyId}", companyId);
+                    ModelState.AddModelError(string.Empty, "查詢業者資料失敗");
+                }
+            }
+
+            if (projectIds is { Length: > 0 })
+            {
+                try
+                {
+                    vm.ProjectGroups = await _apiECRS.Query_專案稽查項目附表(projectIds) ?? [];
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "InspectionForms 專案稽查項目附表查詢失敗");
+                    ModelState.AddModelError(string.Empty, "查詢專案稽查項目附表失敗");
+                }
+            }
+
+            return View(vm);
         }
 
         public IActionResult InspectionFormContent()
