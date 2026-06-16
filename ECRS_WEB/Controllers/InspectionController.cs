@@ -22,13 +22,13 @@ namespace CoreWebApp.Controllers
     [Authorize]
     public class InspectionController : Controller
     {
-        private readonly ReadPMDSDTApiClient _api;
+        private readonly ReadPMDSDTApiClient _apiPMDS;
         private readonly ReadECRSDTApiClient _apiECRS;
         private readonly ILogger<InspectionController> _logger;
 
-        public InspectionController(ReadPMDSDTApiClient api, ReadECRSDTApiClient apiECRS, ILogger<InspectionController> logger)
+        public InspectionController(ReadPMDSDTApiClient apiPMDS, ReadECRSDTApiClient apiECRS, ILogger<InspectionController> logger)
         {
-            _api = api;
+            _apiPMDS = apiPMDS;
             _apiECRS = apiECRS;
             _logger = logger;
         }
@@ -312,7 +312,7 @@ namespace CoreWebApp.Controllers
         {
             try
             {
-                return await _api.Query_系統_部門表(cities);
+                return await _apiPMDS.Query_系統_部門表(cities);
             }
             catch (Exception)
             {
@@ -324,7 +324,7 @@ namespace CoreWebApp.Controllers
         {
             try
             {
-                return await _api.Query_業別主分類表(_key);
+                return await _apiPMDS.Query_業別主分類表(_key);
             }
             catch (Exception)
             {
@@ -336,7 +336,7 @@ namespace CoreWebApp.Controllers
         {
             try
             {
-                return await _api.Query_業別次分類表(_key);
+                return await _apiPMDS.Query_業別次分類表(_key);
             }
             catch (Exception)
             {
@@ -350,7 +350,7 @@ namespace CoreWebApp.Controllers
             {
                 if (cityId != null)
                 {
-                    return await _api.Query_PMDS_機構_縣市匹配(cityId);
+                    return await _apiPMDS.Query_PMDS_機構_縣市匹配(cityId);
                 }
                 else
                 {
@@ -370,7 +370,7 @@ namespace CoreWebApp.Controllers
             {
                 if (cityId != null)
                 {
-                    return await _api.Query_鄉鎮代碼表(cityId);
+                    return await _apiPMDS.Query_鄉鎮代碼表(cityId);
                 }
                 else
                 {
@@ -388,7 +388,7 @@ namespace CoreWebApp.Controllers
         {
             try
             {
-                return await _api.Query_業別次分類表(kindId);
+                return await _apiPMDS.Query_業別次分類表(kindId);
             }
             catch (Exception)
             {
@@ -400,7 +400,7 @@ namespace CoreWebApp.Controllers
         {
             try
             {
-                return await _api.Query_Supplier(supplierQ);
+                return await _apiPMDS.Query_Supplier(supplierQ);
             }
             catch (Exception)
             {
@@ -412,7 +412,7 @@ namespace CoreWebApp.Controllers
         {
             try
             {
-                return await _api.Query_業者資料表(supplierQ);
+                return await _apiPMDS.Query_業者資料表(supplierQ);
             }
             catch (Exception)
             {
@@ -424,7 +424,7 @@ namespace CoreWebApp.Controllers
         {
             try
             {
-                return await _api.Query_稽查資料(companyId);
+                return await _apiPMDS.Query_稽查資料(companyId);
             }
             catch (Exception)
             {
@@ -436,7 +436,7 @@ namespace CoreWebApp.Controllers
         {
             try
             {
-                return await _api.Query_待審核資料("");
+                return await _apiPMDS.Query_待審核資料("");
             }
             catch (Exception)
             {
@@ -450,7 +450,7 @@ namespace CoreWebApp.Controllers
         {
             try
             {
-                return await _api.Upd_待審核資料M1(eventI);
+                return await _apiPMDS.Upd_待審核資料M1(eventI);
             }
             catch (Exception)
             {
@@ -462,7 +462,7 @@ namespace CoreWebApp.Controllers
         {
             try
             {
-                return await _api.Query_待審核資料M1(eventId);
+                return await _apiPMDS.Query_待審核資料M1(eventId);
             }
             catch (Exception)
             {
@@ -474,7 +474,7 @@ namespace CoreWebApp.Controllers
         {
             try
             {
-                return await _api.Query_待審核資料D(eventId);
+                return await _apiPMDS.Query_待審核資料D(eventId);
             }
             catch (Exception)
             {
