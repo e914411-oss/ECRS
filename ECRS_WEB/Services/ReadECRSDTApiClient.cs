@@ -6,6 +6,7 @@ using System.Text.Json;
 using ECRS_WEB.DTOs.FormManageDTO.FormEditer;
 using ECRS_WEB.DTOs.FormManageDTO.FormQryByPJ;
 using ECRS_WEB.DTOs.InspectionDTO.Fquery;
+using ECRS_WEB.DTOs.InspectionDTO.InspectionQry;
 using ECRS_WEB.DTOs.InspectionDTO.PReview;
 using ECRS_WEB.Models;
 using ECRS_WEB.Models.ECRS;
@@ -84,6 +85,24 @@ namespace ECRS_WEB.Services
 
             var result = await resp.Content.ReadFromJsonAsync<List<AddProject_Result>>(cancellationToken: ct);
             return result ?? new List<AddProject_Result>();
+        }
+
+
+        public async Task<List<InspectionProjectItemGroup>> Query_專案稽查項目附表(IEnumerable<int> projectIds, CancellationToken ct = default)
+        {
+            var action = Uri.EscapeDataString("專案稽查項目附表");
+            var url = $"/Api/FormManage/{action}";
+
+            using var resp = await _http.PostAsJsonAsync(url, projectIds?.ToArray() ?? [], ct);
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                var raw = await resp.Content.ReadAsStringAsync(ct);
+                throw new Exception($"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}");
+            }
+
+            var result = await resp.Content.ReadFromJsonAsync<List<InspectionProjectItemGroup>>(cancellationToken: ct);
+            return result ?? new List<InspectionProjectItemGroup>();
         }
 
         public async Task<ApiAddProjectResult> Add_新增專案名稱代碼(AddProject_Form addProject_Form, CancellationToken ct = default)

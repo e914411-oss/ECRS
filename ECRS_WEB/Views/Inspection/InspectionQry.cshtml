@@ -511,12 +511,39 @@
         <!-- 功能列 - 確定 -->
         <div class="rounded p-1 d-flex mt-3 align-items-center justify-content-center w-100">
 
-            <a class="btn btn-success flex-shrink-0 query-form-btn"
-               style="min-width:100px"
-               asp-controller="Inspection"
-               asp-action="InspectionForms">
+            <button type="button"
+                    class="btn btn-success flex-shrink-0 query-form-btn"
+                    style="min-width:100px"
+                    id="btnConfirmProjectForms">
                 確定
-            </a>
+            </button>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const confirmButton = document.getElementById('btnConfirmProjectForms');
+            if (!confirmButton) return;
+
+            confirmButton.addEventListener('click', function () {
+                const selectedProjectIds = Array.from(document.querySelectorAll('input[name="projectIds"]:checked'))
+                    .map(function (checkbox) { return checkbox.value; });
+
+                const url = new URL('@Url.Action("InspectionForms", "Inspection")', window.location.origin);
+                const companyId = '@companyId';
+
+                if (companyId) {
+                    url.searchParams.set('companyId', companyId);
+                }
+
+                selectedProjectIds.forEach(function (projectId) {
+                    url.searchParams.append('projectIds', projectId);
+                });
+
+                window.location.href = url.toString();
+            });
+        })();
+    </script>
+}
