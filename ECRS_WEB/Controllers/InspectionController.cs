@@ -15,6 +15,7 @@ using static ECRS_WEB.Services.ReadPMDSDTApiClient;
 using ECRS_WEB.DTOs.InspectionDTO.PReview;
 using ECRS_WEB.DTOs.InspectionDTO.Fquery;
 using ECRS_WEB.DTOs.InspectionDTO.InspectionQry;
+using ECRS_WEB.DTOs.FormManageDTO.FormEditer;
 
 namespace CoreWebApp.Controllers
 {
@@ -22,11 +23,13 @@ namespace CoreWebApp.Controllers
     public class InspectionController : Controller
     {
         private readonly ReadPMDSDTApiClient _api;
+        private readonly ReadECRSDTApiClient _apiECRS;
         private readonly ILogger<InspectionController> _logger;
 
-        public InspectionController(ReadPMDSDTApiClient api, ILogger<InspectionController> logger)
+        public InspectionController(ReadPMDSDTApiClient api, ReadECRSDTApiClient apiECRS, ILogger<InspectionController> logger)
         {
             _api = api;
+            _apiECRS = apiECRS;
             _logger = logger;
         }
 
@@ -42,19 +45,44 @@ namespace CoreWebApp.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> InspectionQry([FromBody] IndustryQueryOptions? _IndustryQueryOption)
+        public async Task<IActionResult> InspectionQry(string? companyId, string? formName)
         {
-            if (Request.Headers.XRequestedWith == "XMLHttpRequest"
-                && _IndustryQueryOption == null)
+            ViewBag.CompanyId = companyId ?? string.Empty;
+            ViewBag.FormName = formName ?? string.Empty;
+
+            var queryCondiction = new QueryCondiction
             {
-                return PartialView("InspectionQry");
+                CreateDepartment = string.Empty,
+                ProjectName = formName ?? string.Empty,
+                FormStatus = string.Empty,
+                ProjectDeadlineStart = string.Empty,
+                ProjectDeadlineEnd = string.Empty
+            };
+
+            List<AddProject_Result> projectNames = [];
+
+            try
+            {
+                projectNames = await Get_專案名稱代碼表(queryCondiction) ?? [];
             }
-            else if (_IndustryQueryOption != null)
+            catch (Exception ex)
             {
-                return View();
+                _logger.LogError(ex, "InspectionQry 專案名稱代碼表查詢失敗");
+                ModelState.AddModelError(string.Empty, "查詢專案名稱代碼表失敗");
             }
 
-            return View();
+            if (Request.Headers.XRequestedWith == "XMLHttpRequest")
+            {
+                return PartialView("InspectionQry", projectNames);
+            }
+
+            return View(projectNames);
+        }
+
+
+        public async Task<List<AddProject_Result>> Get_專案名稱代碼表(QueryCondiction queryCondiction)
+        {
+            return await _apiECRS.Query_專案名稱代碼表(queryCondiction);
         }
 
         public IActionResult InspectionForms(string? _IsCompleted, string? _FormName)
