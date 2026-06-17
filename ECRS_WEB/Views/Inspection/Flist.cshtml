@@ -596,25 +596,11 @@
         </div>
         
         <div class="mb-0 row">
-            <label class="col-sm-2 col-form-label text-end">醫事機構代碼：</label>
-            <div class="col-sm-4 ">
-                <span class="form-control-plaintext">
-                    @(string.IsNullOrEmpty(Model.Company.醫療機構代碼) ? "\u00A0" : Model.Company.醫療機構代碼)
-                </span>
-            </div>
-            <label class="col-sm-2 col-form-label text-end">藥事機構代碼：</label>
-            <div class="col-sm-4 ">
-                <span class="form-control-plaintext">
-                    @(string.IsNullOrEmpty(Model.Company.藥事機構代碼) ? "\u00A0" : Model.Company.藥事機構代碼)
-                </span>
-            </div>
-        </div>
-
-        <div class="mb-0 row">
             <label class="col-sm-2 col-form-label text-end">營業狀態：</label>
             <div class="col-sm-4 ">
                 <span class="form-control-plaintext">
-                    @Model.Company.營業狀態
+                    @* @Model.Company.營業狀態 *@
+                    @(Model.Company.營業狀態 == "0" ? "正常" : "")
                 </span>
             </div>
             <label class="col-sm-2 col-form-label text-end">傳真號碼：</label>
