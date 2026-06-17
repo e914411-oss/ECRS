@@ -85,7 +85,7 @@ namespace CoreWebApp.Controllers
             return await _apiECRS.Query_專案名稱代碼表(queryCondiction);
         }
 
-        public async Task<IActionResult> InspectionForms(string? _IsCompleted, string? _FormName, string? companyId, int[]? projectIds)
+        public async Task<IActionResult> InspectionForms(string? _IsCompleted, string? _FormName, string? companyId, int[]? projectIds, string[]? projectNames)
         {
             if (!string.IsNullOrEmpty(_IsCompleted) || !string.IsNullOrEmpty(_FormName))
             {
@@ -126,15 +126,20 @@ namespace CoreWebApp.Controllers
 
             if (projectIds is { Length: > 0 })
             {
-                try
-                {
-                    vm.ProjectGroups = await _apiECRS.Query_專案稽查項目附表(projectIds) ?? [];
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "InspectionForms 專案稽查項目附表查詢失敗");
-                    ModelState.AddModelError(string.Empty, "查詢專案稽查項目附表失敗");
-                }
+                vm.ProjectGroups = projectIds
+                    .Select((projectId, index) => new InspectionProjectItemGroup
+                    {
+                        ProjectId = projectId,
+                        ProjectName = projectNames != null && index < projectNames.Length && !string.IsNullOrWhiteSpace(projectNames[index])
+                            ? projectNames[index]
+                            : projectId.ToString(),
+                        Items =
+                        [
+                            new InspectionItemLink { Id = 1, ItemName = "預留項目一", ItemCode = "ReservedItem1" },
+                            new InspectionItemLink { Id = 2, ItemName = "預留項目二", ItemCode = "ReservedItem2" }
+                        ]
+                    })
+                    .ToList();
             }
 
             return View(vm);

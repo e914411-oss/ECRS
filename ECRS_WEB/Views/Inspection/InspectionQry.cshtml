@@ -494,6 +494,7 @@
                                type="checkbox"
                                name="projectIds"
                                value="@projectForm.專案主鍵"
+                               data-project-name="@projectForm.專案名稱"
                                id="@checkboxId">
                         <label class="form-check-label" for="@checkboxId">
                             @projectForm.專案名稱
@@ -528,8 +529,12 @@
             if (!confirmButton) return;
 
             confirmButton.addEventListener('click', function () {
-                const selectedProjectIds = Array.from(document.querySelectorAll('input[name="projectIds"]:checked'))
-                    .map(function (checkbox) { return checkbox.value; });
+                const selectedProjectForms = Array.from(document.querySelectorAll('input[name="projectIds"]:checked'));
+
+                if (selectedProjectForms.length === 0) {
+                    alert('必須至少勾選一個項目');
+                    return;
+                }
 
                 const url = new URL('@Url.Action("InspectionForms", "Inspection")', window.location.origin);
                 const companyId = '@companyId';
@@ -538,8 +543,9 @@
                     url.searchParams.set('companyId', companyId);
                 }
 
-                selectedProjectIds.forEach(function (projectId) {
-                    url.searchParams.append('projectIds', projectId);
+                selectedProjectForms.forEach(function (projectForm) {
+                    url.searchParams.append('projectIds', projectForm.value);
+                    url.searchParams.append('projectNames', projectForm.dataset.projectName || projectForm.value);
                 });
 
                 window.location.href = url.toString();
