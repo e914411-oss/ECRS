@@ -1145,7 +1145,7 @@
                                     <ul class="inspection-form-list">
                                         @foreach (var item in project.Items)
                                         {
-                                            <li><a href="#" class="inspection-form-link">@item.ItemName</a></li>
+                                            <li><a asp-action="InspectionFormContent" asp-route-InspectionId="@item.ItemCode" class="inspection-form-link">@item.ItemName</a></li>
                                         }
                                     </ul>
                                 }

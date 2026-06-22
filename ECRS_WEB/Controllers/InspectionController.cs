@@ -127,23 +127,76 @@ namespace CoreWebApp.Controllers
 
             if (projectIds is { Length: > 0 })
             {
-                vm.ProjectGroups = projectIds
+                var selectedProjects = projectIds
                     .Select((projectId, index) => new InspectionProjectItemGroup
                     {
                         ProjectId = projectId,
                         ProjectName = projectNames != null && index < projectNames.Length && !string.IsNullOrWhiteSpace(projectNames[index])
                             ? projectNames[index]
-                            : projectId.ToString(),
-                        Items =
-                        [
-                            new InspectionItemLink { Id = 1, ItemName = "預留項目一", ItemCode = "ReservedItem1" },
-                            new InspectionItemLink { Id = 2, ItemName = "預留項目二", ItemCode = "ReservedItem2" }
-                        ]
+                            : projectId.ToString()
                     })
                     .ToList();
+
+                try
+                {
+                    var itemGroups = await _apiECRS.Query_專案稽查項目附表(projectIds);
+                    var itemGroupMap = itemGroups.ToDictionary(group => group.ProjectId);
+
+                    vm.ProjectGroups = selectedProjects
+                        .Select(project =>
+                        {
+                            if (itemGroupMap.TryGetValue(project.ProjectId, out var itemGroup))
+                            {
+                                project.ProjectName = !string.IsNullOrWhiteSpace(itemGroup.ProjectName)
+                                    ? itemGroup.ProjectName
+                                    : project.ProjectName;
+                                project.Items = SplitInspectionItemLinks(itemGroup.Items);
+                            }
+
+                            return project;
+                        })
+                        .ToList();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "InspectionForms 專案稽查項目附表查詢失敗，projectIds={ProjectIds}", string.Join(',', projectIds));
+                    ModelState.AddModelError(string.Empty, "查詢稽查項目失敗");
+                    vm.ProjectGroups = selectedProjects;
+                }
             }
 
             return View(vm);
+        }
+
+        private static List<InspectionItemLink> SplitInspectionItemLinks(IEnumerable<InspectionItemLink>? sourceItems)
+        {
+            var links = new List<InspectionItemLink>();
+
+            foreach (var sourceItem in sourceItems ?? [])
+            {
+                var itemNames = SplitCommaSeparatedText(sourceItem.ItemName);
+                var itemCodes = SplitCommaSeparatedText(sourceItem.ItemCode);
+
+                for (var index = 0; index < itemNames.Count; index++)
+                {
+                    links.Add(new InspectionItemLink
+                    {
+                        Id = sourceItem.Id,
+                        ItemName = itemNames[index],
+                        ItemCode = index < itemCodes.Count ? itemCodes[index] : string.Empty
+                    });
+                }
+            }
+
+            return links;
+        }
+
+        private static List<string> SplitCommaSeparatedText(string? value)
+        {
+            return (value ?? string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
         }
 
         public IActionResult InspectionFormContent()
