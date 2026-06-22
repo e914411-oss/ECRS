@@ -85,24 +85,25 @@ namespace CoreWebApp.Controllers
             return await _apiECRS.Query_專案名稱代碼表(queryCondiction);
         }
 
-        public async Task<IActionResult> InspectionForms(string? _IsCompleted, string? _FormName, string? companyId, int[]? projectIds, string[]? projectNames)
+        //public async Task<IActionResult> InspectionForms(string? _IsCompleted, string? _FormName, string? companyId, int[]? projectIds, string[]? projectNames)
+        public async Task<IActionResult> InspectionForms(string? companyId, int[]? projectIds, string[]? projectNames)
         {
-            if (!string.IsNullOrEmpty(_IsCompleted) || !string.IsNullOrEmpty(_FormName))
-            {
-                TempData["IsCompleted"] = (_IsCompleted == "1");
-                TempData["FormName"] = _FormName;
+            //if (!string.IsNullOrEmpty(_IsCompleted) || !string.IsNullOrEmpty(_FormName))
+            //{
+            //    TempData["IsCompleted"] = (_IsCompleted == "1");
+            //    TempData["FormName"] = _FormName;
 
-                return RedirectToAction(nameof(InspectionForms));
-            }
+            //    return RedirectToAction(nameof(InspectionForms));
+            //}
 
-            bool isCompleted = false;
-            if (TempData["IsCompleted"] != null)
-            {
-                isCompleted = Convert.ToBoolean(TempData["IsCompleted"]);
-            }
+            //bool isCompleted = false;
+            //if (TempData["IsCompleted"] != null)
+            //{
+            //    isCompleted = Convert.ToBoolean(TempData["IsCompleted"]);
+            //}
 
-            ViewBag.IsCompletedForm = isCompleted;
-            ViewBag.FormName = TempData["FormName"]?.ToString();
+            //ViewBag.IsCompletedForm = isCompleted;
+            //ViewBag.FormName = TempData["FormName"]?.ToString();
 
             var vm = new InspectionFormsViewModel
             {
