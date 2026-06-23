@@ -6,6 +6,7 @@ using System.Text.Json;
 using ECRS_WEB.DTOs.FormManageDTO.FormEditer;
 using ECRS_WEB.DTOs.FormManageDTO.FormQryByPJ;
 using ECRS_WEB.DTOs.InspectionDTO.Fquery;
+using ECRS_WEB.DTOs.InspectionDTO.InspectionForms;
 using ECRS_WEB.DTOs.InspectionDTO.InspectionQry;
 using ECRS_WEB.DTOs.InspectionDTO.PReview;
 using ECRS_WEB.Models;
@@ -41,6 +42,7 @@ namespace ECRS_WEB.Services
 
             return token;
         }
+
         public async Task<List<AddProject_Result>> Query_專案名稱代碼表(QueryCondiction _queryCondiction, CancellationToken ct = default)
         {
             var token = GetTokenOrThrow();
@@ -86,7 +88,6 @@ namespace ECRS_WEB.Services
             var result = await resp.Content.ReadFromJsonAsync<List<AddProject_Result>>(cancellationToken: ct);
             return result ?? new List<AddProject_Result>();
         }
-
 
         public async Task<List<InspectionProjectItemGroup>> Query_專案稽查項目附表(IEnumerable<int> projectIds, CancellationToken ct = default)
         {
@@ -201,6 +202,7 @@ namespace ECRS_WEB.Services
                 Message = apiResult.Message
             };
         }
+
         public async Task<ApiAddProjectResult> Save_PMDS專案名稱代碼(ProjectCopy projectCopy, CancellationToken ct = default)
         {
             var token = GetTokenOrThrow();
@@ -248,6 +250,41 @@ namespace ECRS_WEB.Services
                 Id = apiResult.Id,
                 Message = apiResult.Message
             };
+        }
+
+        public async Task<AddInspectionEventResponse> Add_新增稽查事件(稽查事件_主表 _新增資料, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+
+            var action = Uri.EscapeDataString("新增稽查事件");
+            var url = $"/Api/Inspection/{action}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = JsonContent.Create(_新增資料);
+
+            using var resp = await _http.SendAsync(req, ct);
+
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                throw new Exception($"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}");
+            }
+
+            var result = JsonSerializer.Deserialize<AddInspectionEventResponse>(
+                raw,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+            if (result == null || !result.Success)
+            {
+                throw new Exception($"新增稽查事件失敗：{raw}");
+            }
+
+            return result;
         }
     }
 }

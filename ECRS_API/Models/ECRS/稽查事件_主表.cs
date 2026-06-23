@@ -1,10 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ECRS_API.Models.ECRS;
 
 public partial class 稽查事件_主表
 {
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int 稽查事件編號 { get; set; }
 
     public string? FMS介接編號 { get; set; }

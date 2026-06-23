@@ -28560,9 +28560,9 @@ public partial class ECRSDbContext : DbContext
 
         modelBuilder.Entity<稽查事件_主表>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("稽查事件_主表");
+            entity.HasKey(e => e.稽查事件編號).HasName("PK_稽查事件_主表");
+
+            entity.ToTable("稽查事件_主表");
 
             entity.Property(e => e.FMS介接業者編號)
                 .HasMaxLength(10)

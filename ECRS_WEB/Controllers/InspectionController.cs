@@ -85,87 +85,116 @@ namespace CoreWebApp.Controllers
             return await _apiECRS.Query_專案名稱代碼表(queryCondiction);
         }
 
-        //public async Task<IActionResult> InspectionForms(string? _IsCompleted, string? _FormName, string? companyId, int[]? projectIds, string[]? projectNames)
         public async Task<IActionResult> InspectionForms(string? companyId, int[]? projectIds, string[]? projectNames)
         {
-            //if (!string.IsNullOrEmpty(_IsCompleted) || !string.IsNullOrEmpty(_FormName))
-            //{
-            //    TempData["IsCompleted"] = (_IsCompleted == "1");
-            //    TempData["FormName"] = _FormName;
-
-            //    return RedirectToAction(nameof(InspectionForms));
-            //}
-
-            //bool isCompleted = false;
-            //if (TempData["IsCompleted"] != null)
-            //{
-            //    isCompleted = Convert.ToBoolean(TempData["IsCompleted"]);
-            //}
-
-            //ViewBag.IsCompletedForm = isCompleted;
-            //ViewBag.FormName = TempData["FormName"]?.ToString();
-
-            var vm = new InspectionFormsViewModel
+            if (companyId != null && projectIds is { Length: > 0 })
             {
-                CompanyId = companyId ?? string.Empty,
-                InspectionDate = DateTime.Now.ToString("yyyy/MM/dd")
-            };
-
-            if (!string.IsNullOrWhiteSpace(companyId))
-            {
-                try
+                #region 稽查事件入庫，取得稽查事件編號
+                
+                // 先生成一筆稽查事件入庫，取得稽查事件編號
+                DateTime Now = DateTime.Now;
+                var 稽查事件_主表新增資料 = new ECRS_WEB.Models.ECRS.稽查事件_主表
                 {
-                    var supplier = new Supplier { 業者編號 = companyId };
-                    vm.Company = await Get_Company(supplier) ?? new 業者資料表();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "InspectionForms 業者資料查詢失敗，companyId={CompanyId}", companyId);
-                    ModelState.AddModelError(string.Empty, "查詢業者資料失敗");
-                }
-            }
+                    稽查縣市編號 = HttpContext.Session.GetString("InspectionLocation"),
+                    業者編號 = int.Parse(companyId),
+                    專案名稱編號 = projectIds != null && projectIds.Length > 0 ? projectIds[0].ToString() : string.Empty,
+                    專案名稱 = projectNames != null && projectNames.Length > 0 ? projectNames[0] : string.Empty,
+                    稽查日期 = Now,
+                    國曆稽查日期 = $"{Now.Year - 1911}{Now:MMdd}",
+                    為複查案件 = "N",
+                    結案狀態 = "N",
+                    稽查人員編號 = HttpContext.Session.GetString("InspectionId"),
+                    稽查人員姓名 = HttpContext.Session.GetString("DisplayName"),
+                    建立時間 = Now,
+                    異動時間 = Now
+                };
 
-            if (projectIds is { Length: > 0 })
-            {
-                var selectedProjects = projectIds
-                    .Select((projectId, index) => new InspectionProjectItemGroup
+                var result = await _apiECRS.Add_新增稽查事件(稽查事件_主表新增資料);
+                int inspectionEventId = 0;
+                if (!result.Success)
+                {
+                    _logger.LogError("InspectionForms 新增稽查事件失敗，companyId={CompanyId}, projectIds={ProjectIds}", companyId, string.Join(',', projectIds ?? new int[] { 0 }));
+                    ModelState.AddModelError(string.Empty, "新增稽查事件失敗");
+                    return RedirectToAction("Fquery", "Inspection");
+                }
+                else
+                {
+                    inspectionEventId = result.EventId;
+                }
+
+                #endregion
+
+                #region 查詢資料出來做顯示
+                var vm = new InspectionFormsViewModel
+                {
+                    CompanyId = companyId ?? string.Empty,
+                    InspectionDate = DateTime.Now.ToString("yyyy/MM/dd")
+                };
+
+                if (!string.IsNullOrWhiteSpace(companyId))
+                {
+                    try
                     {
-                        ProjectId = projectId,
-                        ProjectName = projectNames != null && index < projectNames.Length && !string.IsNullOrWhiteSpace(projectNames[index])
-                            ? projectNames[index]
-                            : projectId.ToString()
-                    })
-                    .ToList();
+                        var supplier = new Supplier { 業者編號 = companyId };
+                        vm.Company = await Get_Company(supplier) ?? new 業者資料表();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "InspectionForms 業者資料查詢失敗，companyId={CompanyId}", companyId);
+                        ModelState.AddModelError(string.Empty, "查詢業者資料失敗");
+                    }
+                }
 
-                try
+                if (projectIds is { Length: > 0 })
                 {
-                    var itemGroups = await _apiECRS.Query_專案稽查項目附表(projectIds);
-                    var itemGroupMap = itemGroups.ToDictionary(group => group.ProjectId);
-
-                    vm.ProjectGroups = selectedProjects
-                        .Select(project =>
+                    var selectedProjects = projectIds
+                        .Select((projectId, index) => new InspectionProjectItemGroup
                         {
-                            if (itemGroupMap.TryGetValue(project.ProjectId, out var itemGroup))
-                            {
-                                project.ProjectName = !string.IsNullOrWhiteSpace(itemGroup.ProjectName)
-                                    ? itemGroup.ProjectName
-                                    : project.ProjectName;
-                                project.Items = SplitInspectionItemLinks(itemGroup.Items);
-                            }
-
-                            return project;
+                            ProjectId = projectId,
+                            ProjectName = projectNames != null && index < projectNames.Length && !string.IsNullOrWhiteSpace(projectNames[index])
+                                ? projectNames[index]
+                                : projectId.ToString()
                         })
                         .ToList();
+
+                    try
+                    {
+                        var itemGroups = await _apiECRS.Query_專案稽查項目附表(projectIds);
+                        var itemGroupMap = itemGroups.ToDictionary(group => group.ProjectId);
+
+                        vm.ProjectGroups = selectedProjects
+                            .Select(project =>
+                            {
+                                if (itemGroupMap.TryGetValue(project.ProjectId, out var itemGroup))
+                                {
+                                    project.ProjectName = !string.IsNullOrWhiteSpace(itemGroup.ProjectName)
+                                        ? itemGroup.ProjectName
+                                        : project.ProjectName;
+                                    project.Items = SplitInspectionItemLinks(itemGroup.Items);  //Items = InspectionItemLink
+                                                                                                // 這裡的 SplitInspectionItemLinks 是一個方法，用來將原本的稽查項目資料轉換成 InspectionItemLink 的列表，用在第二層的顯示
+                                }
+
+                                return project;
+                            })
+                            .ToList();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "InspectionForms 專案稽查項目附表查詢失敗，projectIds={ProjectIds}", string.Join(',', projectIds));
+                        ModelState.AddModelError(string.Empty, "查詢稽查項目失敗");
+                        vm.ProjectGroups = selectedProjects;
+                    }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "InspectionForms 專案稽查項目附表查詢失敗，projectIds={ProjectIds}", string.Join(',', projectIds));
-                    ModelState.AddModelError(string.Empty, "查詢稽查項目失敗");
-                    vm.ProjectGroups = selectedProjects;
-                }
+                return View(vm);
+
+                #endregion
+            }
+            else
+            {
+                //如果是沒帶參數companyId進來，就導回業者稽查查詢
+                return RedirectToAction("Fquery", "Inspection");
             }
 
-            return View(vm);
         }
 
         private static List<InspectionItemLink> SplitInspectionItemLinks(IEnumerable<InspectionItemLink>? sourceItems)

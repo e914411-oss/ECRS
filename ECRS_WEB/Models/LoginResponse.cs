@@ -1,4 +1,4 @@
-﻿namespace ECRS_WEB.Models
+namespace ECRS_WEB.Models
 {
     public class LoginResponse
     {
@@ -11,9 +11,14 @@
 
         public class UserInfo
         {
-            public string Id { get; set; } = default;
+            public string Id { get; set; } = default!;
+            public string InspectionId
+            {
+                get; set;
+            } = default!;
             public string UserName { get; set; } = default!;
             public string DisplayName { get; set; } = default!;
+            public string InspectionLocation { get; set; } = default!;
         }
     }
 

@@ -525,11 +525,28 @@
 @section Scripts {
     <script>
         (function () {
+            const projectCheckboxes = Array.from(document.querySelectorAll('input[name="projectIds"]'));
             const confirmButton = document.getElementById('btnConfirmProjectForms');
+
+            // 勾選一個後，其他選項不能再勾
+            function updateProjectCheckboxState() {
+                const checkedBox = projectCheckboxes.find(x => x.checked);
+
+                projectCheckboxes.forEach(function (checkbox) {
+                    checkbox.disabled = checkedBox && checkbox !== checkedBox;
+                });
+            }
+
+            projectCheckboxes.forEach(function (checkbox) {
+                checkbox.addEventListener('change', updateProjectCheckboxState);
+            });
+
+            updateProjectCheckboxState();
+
             if (!confirmButton) return;
 
             confirmButton.addEventListener('click', function () {
-                const selectedProjectForms = Array.from(document.querySelectorAll('input[name="projectIds"]:checked'));
+                const selectedProjectForms = projectCheckboxes.filter(x => x.checked);
 
                 if (selectedProjectForms.length === 0) {
                     alert('必須至少勾選一個項目');

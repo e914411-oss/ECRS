@@ -1,4 +1,4 @@
-﻿using ECRS_WEB.Models;
+using ECRS_WEB.Models;
 using ECRS_WEB.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -19,6 +19,11 @@ namespace ECRS_WEB.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// 從主畫面導到Login（輸入帳號/密碼的頁面）
+        /// </summary>
+        /// <param name="returnUrl"></param>
+        /// <returns></returns>
         [HttpGet]
         public IActionResult Login(string? returnUrl = null)
         {
@@ -72,6 +77,8 @@ namespace ECRS_WEB.Controllers
                 HttpContext.Session.SetString("AuthToken", apiResp.Token);
                 var displayName = apiResp.User?.DisplayName ?? apiResp.User?.UserName ?? vm.UserName;
                 HttpContext.Session.SetString("DisplayName", displayName);
+                HttpContext.Session.SetString("InspectionId", apiResp.User?.InspectionId ?? string.Empty);
+                HttpContext.Session.SetString("InspectionLocation", apiResp.User?.InspectionLocation ?? string.Empty);
 
                 var claims = new List<Claim>
                 {

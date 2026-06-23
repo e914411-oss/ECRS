@@ -14,7 +14,12 @@ namespace ECRS_API.DTOs
     public class UserProfile
     {
         public required string Id { get; set; }
+        public string InspectionId
+        {
+            get; set;
+        } = default!;
         public string Username { get; set; } = default!;
         public string DisplayName { get; set; } = default!;
+        public string InspectionLocation { get; set; } = default!;
     }
 }

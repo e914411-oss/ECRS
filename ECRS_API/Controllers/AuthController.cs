@@ -87,9 +87,11 @@ namespace CoreAPI.Controllers
                 var APUser = new AppUser
                 {
                     Id = string.IsNullOrEmpty(user.使用者帳號) ? req.UserId : user.使用者帳號.ToString(),
+                    InspectionId = user.使用者編號,
                     UserName = user.姓名,
                     DisplayName = user.姓名,
                     PasswordHash = user.密碼,
+                    InspectionLocation = user.所屬單位縣市編號,
                     LastLoginAtUtc = DateTime.UtcNow
                 };
 
@@ -111,8 +113,10 @@ namespace CoreAPI.Controllers
                     User = new UserProfile
                     {
                         Id = APUser.Id,
+                        InspectionId = APUser.InspectionId,
                         Username = APUser.UserName,
-                        DisplayName = APUser.DisplayName
+                        DisplayName = APUser.DisplayName,
+                        InspectionLocation = APUser.InspectionLocation
                     }
                 };
                 _logger.LogInformation("Token created. Elapsed={Elapsed}ms", sw.ElapsedMilliseconds);

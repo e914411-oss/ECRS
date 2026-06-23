@@ -3,9 +3,10 @@ using ECRS_API.Data;
 using ECRS_API.DTOs;
 using ECRS_API.DTOs.InspectionDTO.Fquery;
 using ECRS_API.DTOs.InspectionDTO.PReview;
+using ECRS_API.DTOs.InspectionDTO.InspectionForms;
 using ECRS_API.DTOs.Security;
 using ECRS_API.Models;
-using ECRS_API.Models.PMDS;
+using ECRS_API.Models.ECRS;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,15 +19,16 @@ namespace ECRS_API.Controllers
     [Authorize]
     public class InspectionController : Controller
     {
-        //private readonly ECRSDbContext _db;
-        private readonly PMDSDbContext _db;
+        private readonly ECRSDbContext _ECRSdb;
+        private readonly PMDSDbContext _PMDSdb;
         private readonly JwtTokenService _jwt;
         private readonly IConfiguration _config;
         private readonly ILogger<AuthController> _logger;
 
-        public InspectionController(PMDSDbContext db, JwtTokenService jwt, IConfiguration config, ILogger<AuthController> logger)
+        public InspectionController(ECRSDbContext ECRSdb, PMDSDbContext PMDSdb, JwtTokenService jwt, IConfiguration config, ILogger<AuthController> logger)
         {
-            _db = db;
+            _ECRSdb = ECRSdb;
+            _PMDSdb = PMDSdb;
             _jwt = jwt;
             _config = config;
             _logger = logger;
@@ -51,11 +53,11 @@ namespace ECRS_API.Controllers
             supplierQ.業者編號 ??= "";
             supplierQ.營業狀況 ??= "";
 
-            var categoryQuery = from a1 in _db.業者業別對應表s
-                                join b1 in _db.業別主分類表s
+            var categoryQuery = from a1 in _PMDSdb.業者業別對應表s
+                                join b1 in _PMDSdb.業別主分類表s
                                     on a1.業別主分類主鍵 equals b1.主鍵 into b1g
                                 from b1 in b1g.DefaultIfEmpty()
-                                join c1 in _db.業別次分類表s
+                                join c1 in _PMDSdb.業別次分類表s
                                     on new
                                     {
                                         次分類主鍵 = a1.業別次分類主鍵,
@@ -77,8 +79,8 @@ namespace ECRS_API.Controllers
                                     業別次分類名稱 = c1 != null ? c1.業別次分類名稱 : null
                                 };
 
-            var query = (from n in _db.業者資料表s
-                         join d in _db.PMDS_機構_縣市匹配s
+            var query = (from n in _PMDSdb.業者資料表s
+                         join d in _PMDSdb.PMDS_機構_縣市匹配s
                              on new
                              {
                                  鄉鎮區 = n.營業地址_鄉鎮區主鍵,
@@ -175,19 +177,19 @@ namespace ECRS_API.Controllers
 
         [HttpPost("業者資料表")]
         [AllowAnonymous]
-        public async Task<ActionResult<業者資料表>> 業者資料表([FromBody] Supplier supplierQ)
+        public async Task<ActionResult<ECRS_API.Models.PMDS.業者資料表>> 業者資料表([FromBody] Supplier supplierQ)
         {
-            IQueryable<業者資料表> result = from n in _db.業者資料表s
-                                       where n.商業登記名稱 != "0"
-                                       select n;
+            IQueryable<ECRS_API.Models.PMDS.業者資料表> result = from n in _PMDSdb.業者資料表s
+                                                            where n.商業登記名稱 != "0"
+                                                            select n;
 
             if (!string.IsNullOrEmpty(supplierQ.業者編號))
             {
                 result = result.Where(n => n.主鍵 == int.Parse(supplierQ.業者編號));
             }
 
-            List<業者資料表> datas = await result.ToListAsync();
-            業者資料表? data = datas.FirstOrDefault();
+            List<ECRS_API.Models.PMDS.業者資料表> datas = await result.ToListAsync();
+            ECRS_API.Models.PMDS.業者資料表? data = datas.FirstOrDefault();
 
             return Ok(data);
         }
@@ -201,7 +203,7 @@ namespace ECRS_API.Controllers
         public async Task<ActionResult<IEnumerable<業別主分類表>>> 業別主分類表([FromBody] string _key)
         {
             //ECRS_API.Services.GetCommonService 必須要連同Name Space一起輸入，不然會有兩個物件發生模擬兩可的情況
-            var data = await new ECRS_API.Services.GetCommonService(_db, _config, _logger).業別主分類表(_key);
+            var data = await new ECRS_API.Services.GetCommonService(_PMDSdb, _config, _logger).業別主分類表(_key);
             return Ok(data);
         }
 
@@ -214,8 +216,53 @@ namespace ECRS_API.Controllers
         public async Task<ActionResult<IEnumerable<業別次分類表>>> 業別次分類表([FromBody] string _key)
         {
             //ECRS_API.Services.GetCommonService 必須要連同Name Space一起輸入，不然會有兩個物件發生模擬兩可的情況
-            var data = await new ECRS_API.Services.GetCommonService(_db, _config, _logger).業別次分類表(_key);
+            var data = await new ECRS_API.Services.GetCommonService(_PMDSdb, _config, _logger).業別次分類表(_key);
             return Ok(data);
+        }
+
+        [HttpPost("新增稽查事件")]
+        public async Task<ActionResult<AddInspectionEventResponse>> 新增稽查事件([FromBody] 稽查事件_主表 _InsertValues)
+        {
+            var 稽查事件_主表新增资料 = new 稽查事件_主表
+            {
+                稽查縣市編號 = _InsertValues.稽查縣市編號,
+                業者編號 = _InsertValues.業者編號,
+                專案名稱編號 = _InsertValues.專案名稱編號,
+                專案名稱 = _InsertValues.專案名稱,
+                稽查日期 = _InsertValues.稽查日期,
+                國曆稽查日期 = _InsertValues.國曆稽查日期,
+                為複查案件 = _InsertValues.為複查案件,
+                結案狀態 = _InsertValues.結案狀態,
+                稽查人員編號 = _InsertValues.稽查人員編號,
+                稽查人員姓名 = _InsertValues.稽查人員姓名,
+                建立時間 = _InsertValues.建立時間,
+                異動時間 = _InsertValues.異動時間
+            };
+
+            await using var tx = await _ECRSdb.Database.BeginTransactionAsync();
+
+            try
+            {
+                _ECRSdb.稽查事件_主表s.Add(稽查事件_主表新增资料);
+                int a = await _ECRSdb.SaveChangesAsync();
+                await tx.CommitAsync();
+                return Ok(new AddInspectionEventResponse
+                {
+                    Success = true,
+                    EventId = 稽查事件_主表新增资料.稽查事件編號
+                });
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "新增稽查事件失敗",
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message ?? string.Empty
+                });
+            }
         }
 
         [HttpPost("稽查資料")]
@@ -223,8 +270,8 @@ namespace ECRS_API.Controllers
         public async Task<ActionResult<IEnumerable<CheckRec>>> 稽查資料([FromBody] string companyId)
         {
             int CompanyId = int.Parse(companyId);
-            IQueryable<CheckRecD> result = from a in _db.物品稽查明細表s
-                                           join d in _db.稽查事件_主表s
+            IQueryable<CheckRecD> result = from a in _PMDSdb.物品稽查明細表s
+                                           join d in _PMDSdb.稽查事件_主表s
                                                on a.稽查主檔編號 equals d.稽查事件編號
                                            where d.稽查事件編號 == CompanyId
                                            select new CheckRecD()
@@ -250,12 +297,12 @@ namespace ECRS_API.Controllers
         {
             //int CompanyId = int.Parse(companyId);
             //inner join 物品稽查明細表 s on s.稽查主檔編號 = d.稽查事件編號
-            //join s in _db.物品稽查明細表s
+            //join s in _PMDSdb.物品稽查明細表s
             //on s.稽查主檔編號 equals d.稽查事件編號
-            IQueryable<CheckRecM> result = (from a in _db.業者資料表s
-                                            join d in _db.稽查事件_主表s
+            IQueryable<CheckRecM> result = (from a in _PMDSdb.業者資料表s
+                                            join d in _PMDSdb.稽查事件_主表s
                                                 on a.主鍵 equals d.業者編號
-                                            join s in _db.物品稽查明細表s on d.稽查事件編號 equals s.稽查主檔編號
+                                            join s in _PMDSdb.物品稽查明細表s on d.稽查事件編號 equals s.稽查主檔編號
                                             where d.審查人員編號 == null //&& d.業者編號 == CompanyId
                                             && d.建立時間 >= DateTime.Now.AddDays(-1)
                                             select new CheckRecM()
@@ -284,11 +331,11 @@ namespace ECRS_API.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> Upd待審核資料M1([FromBody] BackNote eventI)
         {
-            IQueryable<稽查事件_主表> result = from d in _db.稽查事件_主表s
-                                         where d.稽查事件編號 == eventI.eventId
-                                         select d;
+            IQueryable<ECRS_API.Models.PMDS.稽查事件_主表> result = from d in _PMDSdb.稽查事件_主表s
+                                                              where d.稽查事件編號 == eventI.eventId
+                                                              select d;
 
-            稽查事件_主表? data = (await result.ToListAsync()).FirstOrDefault();
+            ECRS_API.Models.PMDS.稽查事件_主表? data = (await result.ToListAsync()).FirstOrDefault();
             if (data != null)
             {
                 data.稽查事件備註 = eventI.note;
@@ -296,12 +343,12 @@ namespace ECRS_API.Controllers
                 //var st = entry.State;
                 //var a = _db.SaveChanges();
 
-                var res = _db.稽查事件_主表s
+                var res = _PMDSdb.稽查事件_主表s
                        .Where(x => x.稽查事件編號 == eventI.eventId)
                        .ExecuteUpdate(s => s.SetProperty(x => x.稽查事件備註, eventI.note));
                 if (res > 0)
                 {
-                    紀錄_系統紀錄檔 entity = new 紀錄_系統紀錄檔
+                    ECRS_API.Models.PMDS.紀錄_系統紀錄檔 entity = new ECRS_API.Models.PMDS.紀錄_系統紀錄檔
                     {
                         系統名稱 = "待審核案件-審核作業",
                         系統登入者 = "SYSTEM",
@@ -311,8 +358,8 @@ namespace ECRS_API.Controllers
                         建立日期 = DateTime.Now
                     };
 
-                    Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<紀錄_系統紀錄檔> d = _db.紀錄_系統紀錄檔s.Add(entity);
-                    int a = _db.SaveChanges();
+                    Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<ECRS_API.Models.PMDS.紀錄_系統紀錄檔> d = _PMDSdb.紀錄_系統紀錄檔s.Add(entity);
+                    int a = _PMDSdb.SaveChanges();
                     return Ok(new
                     {
                         success = true
@@ -331,8 +378,8 @@ namespace ECRS_API.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<CheckRecM>> 待審核資料M1([FromBody] int eventId)
         {
-            IQueryable<CheckRecM> result = from a in _db.業者資料表s
-                                           join d in _db.稽查事件_主表s
+            IQueryable<CheckRecM> result = from a in _PMDSdb.業者資料表s
+                                           join d in _PMDSdb.稽查事件_主表s
                                                on a.主鍵 equals d.業者編號
                                            where d.稽查事件編號 == eventId
                                            select new CheckRecM()
@@ -361,8 +408,8 @@ namespace ECRS_API.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<CheckRecD>>> 待審核資料D([FromBody] int eventId)
         {
-            IQueryable<CheckRecD> result = from a in _db.物品稽查明細表s
-                                           join d in _db.稽查事件_主表s
+            IQueryable<CheckRecD> result = from a in _PMDSdb.物品稽查明細表s
+                                           join d in _PMDSdb.稽查事件_主表s
                                                on a.稽查主檔編號 equals d.稽查事件編號
                                            where d.稽查事件編號 == eventId
                                            select new CheckRecD()
