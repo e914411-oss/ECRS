@@ -1456,6 +1456,7 @@
                         //alert("儲存成功，新增主鍵為：" + response.id);
                         $("#newFormId").val(response.id);   //把新增的專案ID暫存
                         var newId = response.id;
+                        alert("專案已生成");
                         console.log("新增資料主鍵：", newId);
                     } else {
                         alert(response.message || "儲存失敗");

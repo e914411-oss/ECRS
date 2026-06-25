@@ -131,22 +131,30 @@ namespace ECRS_WEB.Controllers
             }
 
             List<ECRS_WEB.Models.PMDS.系統_部門表> _departments = await Get_系統_部門表("") ?? [];
-            List<AddProject_Result> _projectNames = await Get_專案名稱代碼表(queryCondiction) ?? [];
-
             ViewBag.Departments = _departments;
 
-
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            if (!string.IsNullOrEmpty(queryCondiction.CreateDepartment) ||
+                !string.IsNullOrEmpty(queryCondiction.ProjectName))
             {
-                if (_projectNames.Count == 0)
+                List<AddProject_Result> _projectNames = await Get_專案名稱代碼表(queryCondiction) ?? [];
+
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
-                    return PartialView("_FormEditerPartial");
+                    if (_projectNames.Count == 0)
+                    {
+                        return PartialView("_FormEditerPartial");
+                    }
+
+                    return PartialView("_FormEditerPartial", _projectNames);
                 }
 
-                return PartialView("_FormEditerPartial", _projectNames);
+                return View("FormEditer");
             }
-
-            return View("FormEditer");
+            else
+            {
+                return View("FormEditer");
+            }
+            
         }
 
         public IActionResult FormPreview(int _projectId)
