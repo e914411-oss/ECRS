@@ -133,28 +133,21 @@ namespace ECRS_WEB.Controllers
             List<ECRS_WEB.Models.PMDS.系統_部門表> _departments = await Get_系統_部門表("") ?? [];
             ViewBag.Departments = _departments;
 
-            if (!string.IsNullOrEmpty(queryCondiction.CreateDepartment) ||
-                !string.IsNullOrEmpty(queryCondiction.ProjectName))
+
+            List<AddProject_Result> _projectNames = await Get_專案名稱代碼表(queryCondiction) ?? [];
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
-                List<AddProject_Result> _projectNames = await Get_專案名稱代碼表(queryCondiction) ?? [];
-
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                if (_projectNames.Count == 0)
                 {
-                    if (_projectNames.Count == 0)
-                    {
-                        return PartialView("_FormEditerPartial");
-                    }
-
-                    return PartialView("_FormEditerPartial", _projectNames);
+                    return PartialView("_FormEditerPartial");
                 }
 
-                return View("FormEditer");
+                return PartialView("_FormEditerPartial", _projectNames);
             }
-            else
-            {
-                return View("FormEditer");
-            }
-            
+
+            return View("FormEditer");
+
         }
 
         public IActionResult FormPreview(int _projectId)
@@ -166,8 +159,26 @@ namespace ECRS_WEB.Controllers
             return View();
         }
 
-        public IActionResult FormUpdate(int _projectId)
+        public async Task<IActionResult> FormUpdate(int projectId)
         {
+            if (projectId > 0)
+            {
+                var queryCondiction = new QueryCondiction
+                {
+                    ProjectId = projectId.ToString()
+                };
+
+                List<AddProject_Result> projectNames = await Get_專案名稱代碼表(queryCondiction) ?? [];
+                AddProject_Result? project = projectNames.FirstOrDefault();
+
+                if (project is not null)
+                {
+                    ViewData["newInspectionIDs"] = project.專案主鍵.ToString();
+                    ViewData["FormName"] = project.專案名稱 ?? string.Empty;
+                    ViewData["ProjectDeadline"] = FormatRocDate(project.專案截止日期);
+                    ViewData["SelectedInspectionItemValues"] = SplitInspectionItems(project.稽查項目);
+                }
+            }
 
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
@@ -193,6 +204,28 @@ namespace ECRS_WEB.Controllers
             }
 
             return Task.FromResult<IActionResult>(View());
+        }
+
+        private static string FormatRocDate(string? rocDate)
+        {
+            if (string.IsNullOrWhiteSpace(rocDate))
+            {
+                return string.Empty;
+            }
+
+            string digits = rocDate.Trim().Replace("/", string.Empty);
+            if (digits.Length != 7)
+            {
+                return rocDate.Trim();
+            }
+
+            return $"{digits[..3]}/{digits.Substring(3, 2)}/{digits.Substring(5, 2)}";
+        }
+
+        private static string[] SplitInspectionItems(string? inspectionItems)
+        {
+            return (inspectionItems ?? string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         }
 
         [HttpPost]

@@ -3,6 +3,8 @@
     string? formName = ViewData["FormName"] as string;
     string strFormName = string.IsNullOrEmpty(formName) ? string.Empty : formName;
     string newFormId = ViewData["newInspectionIDs"] as string ?? string.Empty;
+    string projectDeadline = ViewData["ProjectDeadline"] as string ?? string.Empty;
+    string[] selectedInspectionItemValues = ViewData["SelectedInspectionItemValues"] as string[] ?? [];
 
     @Html.AntiForgeryToken()
     ;
@@ -904,7 +906,7 @@
             <div class="form-editer-col">
                 <div class="query-row">
                     <label class="query-label"><span style="color: Red">＊</span>表單名稱：</label>
-                    <input name="FormName" id="FormName" class="form-control" type="text" value=@strFormName>
+                    <input name="FormName" id="FormName" class="form-control" type="text" value="@strFormName">
                 </div>
             </div>
             <div class="form-editer-col">
@@ -915,7 +917,8 @@
                                type="text"
                                class="form-control roc-date-text"
                                placeholder="例：115/04/01"
-                               autocomplete="off">
+                               autocomplete="off"
+                               value="@projectDeadline">
                         <input id="ProjectDeadlineAd"
                                name="ProjectDeadlineAd"
                                type="date"
@@ -1282,10 +1285,28 @@
     </div>
 </div>
 
-<input type="hidden" id="newFormId" />
+<input type="hidden" id="newFormId" value="@newFormId" />
 
 @section Scripts {
     <script>
+        const selectedInspectionItemValues = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(selectedInspectionItemValues));
+
+        document.addEventListener("DOMContentLoaded", function () {
+            selectedInspectionItemValues.forEach(function (item) {
+                const normalizedItem = String(item || "").trim();
+                if (!normalizedItem) {
+                    return;
+                }
+
+                document.querySelectorAll(".check-row input[type='checkbox']").forEach(function (checkbox) {
+                    const labelText = checkbox.closest("label")?.querySelector("span")?.textContent.trim() || "";
+                    if (checkbox.value === normalizedItem || labelText === normalizedItem) {
+                        checkbox.checked = true;
+                    }
+                });
+            });
+        });
+
         $(function(){
             $("#save").on("click", function (e) {
                 e.preventDefault();

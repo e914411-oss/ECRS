@@ -767,13 +767,43 @@
 
 @section Scripts {
     <script>
+        const formEditerQueryStorageKey = "FormManage.FormEditer.QueryCondition";
+        const formEditerReturnSearchKey = "FormManage.FormEditer.ReturnSearch";
+
+        function getFormEditerQueryCondition() {
+            return {
+                CreateDepartment: $("#CreateDepartment").val() || "",
+                ProjectName: $("#ProjectName").val() || "",
+                FormStatus: $("input[name='FormStatus']:checked").val() || "",
+                ProjectDeadlineStart: $("#ProjectDeadlineStart").val() || "",
+                ProjectDeadlineEnd: $("#ProjectDeadlineEnd").val() || ""
+            };
+        }
+
+        function saveFormEditerQueryCondition(queryCondition) {
+            localStorage.setItem(formEditerQueryStorageKey, JSON.stringify(queryCondition));
+        }
+
+        function restoreFormEditerQueryCondition(queryCondition) {
+            $("#CreateDepartment").val(queryCondition.CreateDepartment || "");
+            $("#ProjectName").val(queryCondition.ProjectName || "");
+            $("input[name='FormStatus'][value='" + (queryCondition.FormStatus || "") + "']").prop("checked", true);
+            $("#ProjectDeadlineStart").val(queryCondition.ProjectDeadlineStart || "");
+            $("#ProjectDeadlineEnd").val(queryCondition.ProjectDeadlineEnd || "");
+        }
+
+        function hasFormEditerQueryCondition(queryCondition) {
+            return !!(queryCondition.CreateDepartment ||
+                queryCondition.ProjectName ||
+                queryCondition.FormStatus ||
+                queryCondition.ProjectDeadlineStart ||
+                queryCondition.ProjectDeadlineEnd);
+        }
 
         function querydata() {
-            var _CreateDepartment = $("#CreateDepartment").val();
-            var _ProjectName = $("#ProjectName").val();
-            var _FormStatus = $("input[name='FormStatus']:checked").val();
-            var _ProjectDeadlineStart = $("#ProjectDeadlineStart").val();
-            var _ProjectDeadlineEnd = $("#ProjectDeadlineEnd").val();
+            var QueryCondiction = getFormEditerQueryCondition();
+            var _ProjectDeadlineStart = QueryCondiction.ProjectDeadlineStart;
+            var _ProjectDeadlineEnd = QueryCondiction.ProjectDeadlineEnd;
 
             // var _ProjectDeadlineStart = rocDateToAdDate(startRoc);
             // var _ProjectDeadlineEnd = rocDateToAdDate(endRoc);
@@ -789,13 +819,7 @@
                 return;
             }
 
-            var QueryCondiction = {
-                CreateDepartment: _CreateDepartment,
-                ProjectName: _ProjectName,
-                FormStatus: _FormStatus,
-                ProjectDeadlineStart: _ProjectDeadlineStart,
-                ProjectDeadlineEnd: _ProjectDeadlineEnd
-            };
+            saveFormEditerQueryCondition(QueryCondiction);
 
              // 顯示 loading
             document.getElementById("loadingBlock").classList.remove("d-none");
@@ -863,6 +887,36 @@
                 }
             });
         }
+
+        $(document).on("click", ".action-cell a[href*='FormUpdate']", function () {
+            saveFormEditerQueryCondition(getFormEditerQueryCondition());
+            localStorage.setItem(formEditerReturnSearchKey, "Y");
+        });
+
+        window.addEventListener("pageshow", function () {
+            if (localStorage.getItem(formEditerReturnSearchKey) !== "Y") {
+                return;
+            }
+
+            var rawQueryCondition = localStorage.getItem(formEditerQueryStorageKey);
+            if (!rawQueryCondition) {
+                localStorage.removeItem(formEditerReturnSearchKey);
+                return;
+            }
+
+            try {
+                var queryCondition = JSON.parse(rawQueryCondition);
+                restoreFormEditerQueryCondition(queryCondition);
+                localStorage.removeItem(formEditerReturnSearchKey);
+
+                if (hasFormEditerQueryCondition(queryCondition)) {
+                    querydata();
+                }
+            } catch (e) {
+                localStorage.removeItem(formEditerReturnSearchKey);
+                console.error("Restore FormEditer query condition failed:", e);
+            }
+        });
 
 
         function pad2(n) {

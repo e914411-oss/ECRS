@@ -6,23 +6,27 @@ namespace ECRS_WEB.DTOs.FormManageDTO.FormEditer
         {
             get; set;
         }
-        public string 專案名稱
+        public string? 專案名稱
         {
             get; set;
         }
-        public string 稽查項目
+        public string? 專案截止日期
         {
             get; set;
         }
-        public string 修改日期
+        public string? 稽查項目
         {
             get; set;
         }
-        public string 異動人員
+        public string? 修改日期
         {
             get; set;
         }
-        public string 狀態
+        public string? 異動人員
+        {
+            get; set;
+        }
+        public string? 狀態
         {
             get; set;
         }
