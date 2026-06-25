@@ -1,14 +1,8 @@
-using System.Net.Http;
-using System.Threading.Tasks;
 using ECRS_WEB.DTOs.FormManageDTO.FormEditer;
 using ECRS_WEB.DTOs.FormManageDTO.FormQryByPJ;
-using ECRS_WEB.Models;
-//using ECRS_WEB.Models.ECRS;
 using ECRS_WEB.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using static System.Net.WebRequestMethods;
 
 namespace ECRS_WEB.Controllers
 {
@@ -80,7 +74,7 @@ namespace ECRS_WEB.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> FormQryByPJSave([FromBody] ProjectCopy projectCopy, CancellationToken ct)
+        public async Task<IActionResult> FormQryByPJSave([FromBody] ProjectCopy projectCopy, CancellationToken cancellationToken)
         {
             if (projectCopy is null || projectCopy.ProjectIds.Count == 0)
             {
@@ -91,7 +85,7 @@ namespace ECRS_WEB.Controllers
                 });
             }
 
-            ApiAddProjectResult apiResult = await _apiECRS.Save_PMDS專案名稱代碼(projectCopy, ct);
+            var apiResult = await _apiECRS.Save_PMDS專案名稱代碼(projectCopy, cancellationToken);
 
             if (!apiResult.Success)
             {
@@ -130,27 +124,27 @@ namespace ECRS_WEB.Controllers
                 queryCondiction.ProjectDeadlineEnd = queryCondiction.ProjectDeadlineEnd.Replace(@"/", "");
             }
 
-            List<ECRS_WEB.Models.PMDS.系統_部門表> _departments = await Get_系統_部門表("") ?? [];
-            ViewBag.Departments = _departments;
+            var departments = await Get_系統_部門表("") ?? [];
+            ViewBag.Departments = departments;
 
 
-            List<AddProject_Result> _projectNames = await Get_專案名稱代碼表(queryCondiction) ?? [];
+            var projectNames = await Get_專案名稱代碼表(queryCondiction) ?? [];
 
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
-                if (_projectNames.Count == 0)
+                if (projectNames.Count == 0)
                 {
                     return PartialView("_FormEditerPartial");
                 }
 
-                return PartialView("_FormEditerPartial", _projectNames);
+                return PartialView("_FormEditerPartial", projectNames);
             }
 
             return View("FormEditer");
 
         }
 
-        public IActionResult FormPreview(int _projectId)
+        public IActionResult FormPreview(int projectId)
         {
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
@@ -168,8 +162,8 @@ namespace ECRS_WEB.Controllers
                     ProjectId = projectId.ToString()
                 };
 
-                List<AddProject_Result> projectNames = await Get_專案名稱代碼表(queryCondiction) ?? [];
-                AddProject_Result? project = projectNames.FirstOrDefault();
+                var projectNames = await Get_專案名稱代碼表(queryCondiction) ?? [];
+                var project = projectNames.FirstOrDefault();
 
                 if (project is not null)
                 {
@@ -187,7 +181,7 @@ namespace ECRS_WEB.Controllers
             return View();
         }
 
-        public IActionResult FormDelete(int _projectId)
+        public IActionResult FormDelete(int projectId)
         {
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
@@ -213,7 +207,7 @@ namespace ECRS_WEB.Controllers
                 return string.Empty;
             }
 
-            string digits = rocDate.Trim().Replace("/", string.Empty);
+            var digits = rocDate.Trim().Replace("/", string.Empty);
             if (digits.Length != 7)
             {
                 return rocDate.Trim();
@@ -229,9 +223,9 @@ namespace ECRS_WEB.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> FormAdd([FromForm] AddProject_Form addProject_Form, CancellationToken ct)
+        public async Task<IActionResult> FormAdd([FromForm] AddProject_Form addProjectForm, CancellationToken cancellationToken)
         {
-            if (addProject_Form is null)
+            if (addProjectForm is null)
             {
                 return BadRequest(new
                 {
@@ -257,7 +251,7 @@ namespace ECRS_WEB.Controllers
                 });
             }
 
-            ApiAddProjectResult apiResult = await _apiECRS.Add_新增專案名稱代碼(addProject_Form, ct);
+            var apiResult = await _apiECRS.Add_新增專案名稱代碼(addProjectForm, cancellationToken);
 
             if (!apiResult.Success)
             {
@@ -277,9 +271,9 @@ namespace ECRS_WEB.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> FormAddFloatColumn([FromForm] AddProject_FloatColumn _FloatColumn, CancellationToken ct)
+        public async Task<IActionResult> FormAddFloatColumn([FromForm] AddProject_FloatColumn floatColumn, CancellationToken cancellationToken)
         {
-            if (_FloatColumn is null)
+            if (floatColumn is null)
             {
                 return BadRequest(new
                 {
@@ -302,7 +296,7 @@ namespace ECRS_WEB.Controllers
                     errors
                 });
             }
-            ApiAddProject_FloatColumn apiResult = await _apiECRS.Add_專案浮動欄位設定表(_FloatColumn, ct);
+            var apiResult = await _apiECRS.Add_專案浮動欄位設定表(floatColumn, cancellationToken);
             if (!apiResult.Success)
             {
                 return BadRequest(new
@@ -326,40 +320,17 @@ namespace ECRS_WEB.Controllers
 
         public async Task<List<ECRS_WEB.Models.PMDS.系統_部門表>> Get_系統_部門表(string cities = "")
         {
-            try
-            {
-                return await _apiPMDS.Query_系統_部門表(cities);
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            return await _apiPMDS.Query_系統_部門表(cities);
         }
 
         public async Task<List<AddProject_Result>> Get_專案名稱代碼表(QueryCondiction queryCondiction)
         {
-            try
-            {
-                return await _apiECRS.Query_專案名稱代碼表(queryCondiction);
-
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            return await _apiECRS.Query_專案名稱代碼表(queryCondiction);
         }
 
         public async Task<List<AddProject_Result>> Get_專案名稱代碼表_PMDS(QueryCondiction queryCondiction)
         {
-            try
-            {
-                return await _apiECRS.Query_專案名稱代碼表_PMDS(queryCondiction);
-
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            return await _apiECRS.Query_專案名稱代碼表_PMDS(queryCondiction);
         }
 
         #endregion
