@@ -1277,15 +1277,16 @@
 
     <div class="text-center">
         <div class="spinner-border text-primary"></div>
-        <div class="mt-3">
+        <div id="loadingMessage" class="mt-3">
             <i class="bi bi-hourglass-split me-2"></i>
-            處理中，請稍候...
+            儲存中
         </div>
 
     </div>
 </div>
 
 <input type="hidden" id="newFormId" value="@newFormId" />
+<input type="hidden" id="originalProjectDeadline" value="@projectDeadline" />
 
 @section Scripts {
     <script>
@@ -1407,9 +1408,27 @@
             return year + "-" + pad2(month) + "-" + pad2(day);
         }
 
-        function getFormAddInputValues() {
+        function setLoadingBlock(isActive) {
+            var loadingBlock = document.getElementById("loadingBlock");
+            var loadingMessage = document.getElementById("loadingMessage");
+
+            if (loadingMessage) {
+                loadingMessage.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>儲存中';
+            }
+
+            loadingBlock.classList.toggle("d-none", !isActive);
+        }
+
+        function getFormUpdateInputValues() {
+            var projectId = $.trim($("#newFormId").val());
             var formName = $.trim($("#FormName").val());
             var projectDeadline = $.trim($("#ProjectDeadline").val());
+            var originalProjectDeadline = $.trim($("#originalProjectDeadline").val());
+
+            if (projectDeadline === "") {
+                projectDeadline = originalProjectDeadline;
+                $("#ProjectDeadline").val(projectDeadline);
+            }
 
             var inspectionItems = $(".check-row input[type='checkbox']:checked").map(function () {
                 return $(this).closest("label").find("span").first().text().trim();
@@ -1419,49 +1438,47 @@
                 return $(this).val();
             }).get().join(",");
 
-            var SetStatus = $("input[name='IsSetStatus']:checked").val();
+            var setStatus = $("input[name='IsSetStatus']:checked").val();
 
-            var condictionValidate = true;
-            if(formName == "")
-            {
-                condictionValidate = false;
-            }
-            if(inspectionItems == "" || inspectionItemsvalue == "")
-            {
-                condictionValidate = false;
+            var isValid = true;
+            if (projectId === "" || formName === "" || projectDeadline === "") {
+                isValid = false;
             }
 
-            if(!condictionValidate)
-            {
+            if (inspectionItems === "" || inspectionItemsvalue === "") {
+                isValid = false;
+            }
+
+            if (!isValid) {
                 return null;
             }
 
             return {
+                projectId: projectId,
                 formName: formName,
                 projectDeadline: projectDeadline,
-                status: SetStatus,
+                status: setStatus,
                 inspectionItems: inspectionItems,
                 inspectionItemsvalue: inspectionItemsvalue
             };
         }
 
         function CheckData() {
-             // 顯示 loading
-            document.getElementById("loadingBlock").classList.remove("d-none");
+            setLoadingBlock(true);
 
-            var formData = getFormAddInputValues();
-            if(formData == null)
-            {
+            var formData = getFormUpdateInputValues();
+            if (formData == null) {
                 alert("請填寫必填項目");
-                document.getElementById("loadingBlock").classList.add("d-none");
+                setLoadingBlock(false);
                 return false;
             }
 
             $.ajax({
-                url: "@Url.Content("~/FormManage/FormAdd")",
+                url: "@Url.Content("~/FormManage/FormUpdate")",
                 type: "POST",
                 dataType: "json",
                 data: {
+                    ProjectId: formData.projectId,
                     FormName: formData.formName,
                     ProjectDeadline: formData.projectDeadline,
                     Status: formData.status,
@@ -1469,24 +1486,18 @@
                     InspectionItemsValue: formData.inspectionItemsvalue
                 },
                 success: function (response) {
-                    document.getElementById("loadingBlock").classList.add("d-none");
-
-                    console.log("FormAdd API 回傳：", response);
+                    console.log("FormUpdate API 回傳：", response);
 
                     if (response && response.success === true) {
-                        //alert("儲存成功，新增主鍵為：" + response.id);
-                        $("#newFormId").val(response.id);   //把新增的專案ID暫存
-                        var newId = response.id;
-                        alert("專案已生成");
-                        console.log("新增資料主鍵：", newId);
+                        window.location.href = "@Url.Action("FormEditer", "FormManage")";
                     } else {
+                        setLoadingBlock(false);
                         alert(response.message || "儲存失敗");
                     }
                 },
                 error: function (xhr, status, error) {
-                    document.getElementById("loadingBlock").classList.add("d-none");
-
-                    console.log("FormAdd error xhr：", xhr);
+                    setLoadingBlock(false);
+                    console.log("FormUpdate error xhr：", xhr);
 
                     var msg = "儲存失敗";
 

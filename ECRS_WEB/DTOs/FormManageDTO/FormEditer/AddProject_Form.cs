@@ -24,6 +24,14 @@ namespace ECRS_WEB.DTOs.FormManageDTO.FormEditer
         }
     }
 
+    public class UpdateProject_Form : AddProject_Form
+    {
+        public required int ProjectId
+        {
+            get; set;
+        }
+    }
+
     public class ApiAddProjectResult
     {
         public bool Success

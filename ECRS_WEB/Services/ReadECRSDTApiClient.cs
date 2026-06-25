@@ -155,6 +155,51 @@ namespace ECRS_WEB.Services
             };
         }
 
+        public async Task<ApiAddProjectResult> Update_專案名稱代碼(UpdateProject_Form updateProjectForm, CancellationToken cancellationToken = default)
+        {
+            var token = GetTokenOrThrow();
+            var action = Uri.EscapeDataString("修改專案名稱代碼");
+            var url = $"/Api/FormManage/{action}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = JsonContent.Create(updateProjectForm);
+
+            using var resp = await _http.SendAsync(req, cancellationToken);
+            return await ReadApiAddProjectResult(resp, cancellationToken);
+        }
+
+        private static async Task<ApiAddProjectResult> ReadApiAddProjectResult(HttpResponseMessage resp, CancellationToken cancellationToken)
+        {
+            var raw = await resp.Content.ReadAsStringAsync(cancellationToken);
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                return new ApiAddProjectResult
+                {
+                    Success = false,
+                    Id = 0,
+                    Message = $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                };
+            }
+
+            return DeserializeApiAddProjectResult(raw);
+        }
+
+        private static ApiAddProjectResult DeserializeApiAddProjectResult(string raw)
+        {
+            var apiResult = JsonSerializer.Deserialize<ApiAddProjectResult>(
+                raw,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            return apiResult ?? new ApiAddProjectResult
+            {
+                Success = false,
+                Id = 0,
+                Message = "API 回傳資料格式錯誤"
+            };
+        }
+
         public async Task<ApiAddProject_FloatColumn> Add_專案浮動欄位設定表(AddProject_FloatColumn _FloatColumn, CancellationToken ct = default)
         {
             var token = GetTokenOrThrow();

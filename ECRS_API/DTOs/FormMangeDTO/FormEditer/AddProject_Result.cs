@@ -6,6 +6,10 @@ namespace ECRS_API.DTOs.FormMangeDTO.FormEditer
         {
             get; set;
         }
+        public int? 專案主鍵_PMDS
+        {
+            get; set;
+        }
         public string? 專案名稱
         {
             get; set;

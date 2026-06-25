@@ -271,6 +271,56 @@ namespace ECRS_WEB.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> FormUpdate([FromForm] UpdateProject_Form updateProjectForm, CancellationToken cancellationToken)
+        {
+            if (updateProjectForm is null || updateProjectForm.ProjectId <= 0)
+            {
+                return BadRequest(new { success = false, message = "未收到修改資料" });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "表單資料驗證失敗",
+                    errors = GetModelErrors()
+                });
+            }
+
+            var apiResult = await _apiECRS.Update_專案名稱代碼(updateProjectForm, cancellationToken);
+            return apiResult.Success ? Ok(ToSuccessResponse(apiResult)) : BadRequest(ToFailResponse(apiResult));
+        }
+
+        private Dictionary<string, List<string>> GetModelErrors()
+        {
+            return ModelState
+                .Where(x => x.Value?.Errors.Count > 0)
+                .ToDictionary(
+                    x => x.Key,
+                    x => x.Value!.Errors.Select(e => e.ErrorMessage).ToList());
+        }
+
+        private static object ToSuccessResponse(ApiAddProjectResult apiResult)
+        {
+            return new
+            {
+                success = true,
+                id = apiResult.Id,
+                message = apiResult.Message ?? "儲存成功"
+            };
+        }
+
+        private static object ToFailResponse(ApiAddProjectResult apiResult)
+        {
+            return new
+            {
+                success = false,
+                message = apiResult.Message ?? "API 修改失敗"
+            };
+        }
+
+        [HttpPost]
         public async Task<IActionResult> FormAddFloatColumn([FromForm] AddProject_FloatColumn floatColumn, CancellationToken cancellationToken)
         {
             if (floatColumn is null)

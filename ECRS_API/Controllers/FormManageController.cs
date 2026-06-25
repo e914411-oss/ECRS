@@ -134,6 +134,7 @@ namespace CoreAPI.Controllers
                                                    select new AddProject_Result
                                                    {
                                                        專案主鍵 = n.專案名稱代碼表主鍵,
+                                                       專案主鍵_PMDS = n.專案名稱代碼表主鍵_PMDS,
                                                        專案名稱 = n.專案名稱 ?? string.Empty,
                                                        專案截止日期 = n.專案截止日期 ?? string.Empty,
                                                        稽查項目 = gj.Select(x => x.稽查項目).FirstOrDefault() ?? string.Empty,
@@ -143,7 +144,34 @@ namespace CoreAPI.Controllers
                                                    };
 
             List<AddProject_Result> data = await result.ToListAsync();
+            await FillProjectDeadlineFromPMDS(data);
             return Ok(data);
+        }
+
+        private async Task FillProjectDeadlineFromPMDS(List<AddProject_Result> projects)
+        {
+            var pmdsProjectIds = projects
+                .Where(project => string.IsNullOrWhiteSpace(project.專案截止日期) && project.專案主鍵_PMDS.HasValue)
+                .Select(project => project.專案主鍵_PMDS!.Value)
+                .Distinct()
+                .ToList();
+
+            if (pmdsProjectIds.Count == 0)
+            {
+                return;
+            }
+
+            var deadlineMap = await _PMDSdb.專案名稱代碼表s
+                .Where(project => pmdsProjectIds.Contains(project.專案名稱代碼表主鍵))
+                .ToDictionaryAsync(project => project.專案名稱代碼表主鍵, project => project.專案截止日期 ?? string.Empty);
+
+            foreach (var project in projects.Where(project => string.IsNullOrWhiteSpace(project.專案截止日期)))
+            {
+                if (project.專案主鍵_PMDS.HasValue && deadlineMap.TryGetValue(project.專案主鍵_PMDS.Value, out var deadline))
+                {
+                    project.專案截止日期 = deadline;
+                }
+            }
         }
 
 
@@ -201,7 +229,9 @@ namespace CoreAPI.Controllers
                                                    select new AddProject_Result
                                                    {
                                                        專案主鍵 = n.專案名稱代碼表主鍵,
+                                                       專案主鍵_PMDS = n.專案名稱代碼表主鍵,
                                                        專案名稱 = n.專案名稱 ?? string.Empty,
+                                                       專案截止日期 = n.專案截止日期 ?? string.Empty,
                                                        稽查項目 = string.Empty,
                                                        修改日期 = n.異動時間 ?? default,
                                                        異動人員 = n.異動人員主鍵 ?? string.Empty,
@@ -509,6 +539,142 @@ namespace CoreAPI.Controllers
                 });
             }
 
+        }
+
+        [HttpPost("修改專案名稱代碼")]
+        [AllowAnonymous]
+        public async Task<ActionResult> 修改專案名稱代碼([FromBody] UpdateProject_Form updateProjectForm)
+        {
+            if (updateProjectForm is null || updateProjectForm.ProjectId <= 0)
+            {
+                return BadRequest(new { success = false, message = "未收到修改資料" });
+            }
+
+            NormalizeProjectForm(updateProjectForm);
+            await using var tx = await _ECRSdb.Database.BeginTransactionAsync();
+
+            try
+            {
+                var project = await _ECRSdb.專案名稱代碼表s.FindAsync(updateProjectForm.ProjectId);
+                if (project is null)
+                {
+                    return NotFound(new { success = false, message = "查無專案資料" });
+                }
+
+                await UpdateProjectData(project, updateProjectForm);
+                await tx.CommitAsync();
+                return Ok(new { success = true, id = updateProjectForm.ProjectId, message = "儲存成功" });
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                return BadRequest(ToProjectSaveError("修改專案名稱代碼失敗", ex));
+            }
+        }
+
+        private static void NormalizeProjectForm(AddProject_Form projectForm)
+        {
+            projectForm.FormName ??= string.Empty;
+            projectForm.ProjectDeadline ??= string.Empty;
+            projectForm.Status ??= string.Empty;
+            projectForm.InspectionItems ??= string.Empty;
+            projectForm.InspectionItemsValue ??= string.Empty;
+        }
+
+        private async Task UpdateProjectData(ECRS_API.Models.ECRS.專案名稱代碼表 project, UpdateProject_Form updateProjectForm)
+        {
+            project.專案名稱 = updateProjectForm.FormName;
+            project.專案截止日期 = updateProjectForm.ProjectDeadline.Replace(@"/", "");
+            project.是否啟用 = updateProjectForm.Status;
+            project.異動時間 = DateTime.Now;
+
+            await UpsertInspectionItems(updateProjectForm);
+            ApplyInspectionItemColumns(project, updateProjectForm.InspectionItemsValue);
+            await _ECRSdb.SaveChangesAsync();
+        }
+
+        private async Task UpsertInspectionItems(UpdateProject_Form updateProjectForm)
+        {
+            var inspectionItem = await _ECRSdb.專案名稱_稽查項目附表s
+                .FirstOrDefaultAsync(x => x.專案名稱代碼主鍵 == updateProjectForm.ProjectId);
+
+            if (inspectionItem is null)
+            {
+                AddInspectionItem(updateProjectForm);
+                return;
+            }
+
+            inspectionItem.稽查項目 = updateProjectForm.InspectionItems;
+            inspectionItem.稽查項目代碼 = updateProjectForm.InspectionItemsValue;
+        }
+
+        private void AddInspectionItem(UpdateProject_Form updateProjectForm)
+        {
+            _ECRSdb.專案名稱_稽查項目附表s.Add(new ECRS_API.Models.ECRS.專案名稱_稽查項目附表
+            {
+                專案名稱代碼主鍵 = updateProjectForm.ProjectId,
+                稽查項目 = updateProjectForm.InspectionItems,
+                稽查項目代碼 = updateProjectForm.InspectionItemsValue
+            });
+        }
+
+        private void ApplyInspectionItemColumns(ECRS_API.Models.ECRS.專案名稱代碼表 project, string inspectionItemsValue)
+        {
+            var inspectionItemCodes = GetInspectionItemCodes(inspectionItemsValue);
+            var selectedColumnNames = GetInspectionColumnNames(inspectionItemCodes);
+            var allColumnNames = GetInspectionColumnNames(null);
+
+            SetProjectColumns(project, allColumnNames, "N");
+            SetProjectColumns(project, selectedColumnNames, "Y");
+        }
+
+        private static List<int> GetInspectionItemCodes(string inspectionItemsValue)
+        {
+            return inspectionItemsValue
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .Where(x => int.TryParse(x, out _))
+                .Select(int.Parse)
+                .ToList();
+        }
+
+        private List<string> GetInspectionColumnNames(List<int>? inspectionItemCodes)
+        {
+            var query = _ECRSdb.專案名稱_稽查項目代碼表s.AsQueryable();
+
+            if (inspectionItemCodes is not null)
+            {
+                query = query.Where(x => inspectionItemCodes.Contains(x.稽查項目代碼));
+            }
+
+            return query.Select(x => x.專案名稱代碼表_稽查欄位名稱)
+                .Where(x => !string.IsNullOrEmpty(x))
+                .Select(x => x!)
+                .Distinct()
+                .ToList();
+        }
+
+        private static void SetProjectColumns(ECRS_API.Models.ECRS.專案名稱代碼表 project, List<string> columnNames, string value)
+        {
+            foreach (var columnName in columnNames)
+            {
+                var prop = project.GetType().GetProperty(columnName);
+                if (prop != null && prop.CanWrite)
+                {
+                    prop.SetValue(project, value);
+                }
+            }
+        }
+
+        private static object ToProjectSaveError(string message, Exception ex)
+        {
+            return new
+            {
+                success = false,
+                message,
+                error = ex.Message,
+                innerError = ex.InnerException?.Message
+            };
         }
 
         [HttpPost("新增專案名稱浮動欄位")]
