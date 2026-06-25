@@ -116,6 +116,7 @@ namespace CoreAPI.Controllers
             ECRS_ECRS_API.DTOs.FormManageDTO.FormEditer.QueryCondiction queryCondiction)
 
         {
+            queryCondiction.ProjectId ??= string.Empty;
             queryCondiction.CreateDepartment ??= string.Empty;
             queryCondiction.ProjectName ??= string.Empty;
             queryCondiction.FormStatus ??= string.Empty;
@@ -124,7 +125,8 @@ namespace CoreAPI.Controllers
 
             IQueryable<AddProject_Result> result = from n in _ECRSdb.專案名稱代碼表s
                                                    join d in _ECRSdb.專案名稱_稽查項目附表s on n.專案名稱代碼表主鍵 equals d.專案名稱代碼主鍵 into gj
-                                                   where (queryCondiction.CreateDepartment == "" || n.建立部門 == queryCondiction.CreateDepartment)
+                                                   where (queryCondiction.ProjectId == "" || n.專案名稱代碼表主鍵 == int.Parse(queryCondiction.ProjectId))
+                                                   && (queryCondiction.CreateDepartment == "" || n.建立部門 == queryCondiction.CreateDepartment)
                                                    && (queryCondiction.ProjectName == "" || (n.專案名稱 ?? string.Empty).Contains(queryCondiction.ProjectName))
                                                    && (queryCondiction.ProjectDeadlineStart == "" || (n.專案截止日期 != null && n.專案截止日期.Length == 7 && string.Compare(n.專案截止日期, queryCondiction.ProjectDeadlineStart) >= 0))
                                                    && (queryCondiction.ProjectDeadlineEnd == "" || (n.專案截止日期 != null && n.專案截止日期.Length == 7 && string.Compare(n.專案截止日期, queryCondiction.ProjectDeadlineEnd) <= 0))
