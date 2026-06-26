@@ -706,6 +706,131 @@
 </div>
 @section Scripts {
     <script>
+        var fqueryStorageKey = "Inspection.Fquery.LastSearch";
+
+        function getFqueryFormValues() {
+            return {
+                company: $("#txtCompany_Name").val(),
+                signboard: $("#txtSignboard_Name").val(),
+                responsible: $("#txtResponsible_Name").val(),
+                telephone: $("#txtTelephone").val(),
+                companyTaxId: $("#txtCompany_Tax_ID").val(),
+                regNo: $("#txt食品登錄字號").val(),
+                industryClass: $("#industryClass").val(),
+                industrySecondClass: $("#industrySecondClass").val(),
+                industryState: $("#cboIndustryState").val(),
+                city: $("#citySelect").val(),
+                area: $("#areaSelect").val(),
+                address: $("#txtAddress").val(),
+                companyId: $("#Company_id").val()
+            };
+        }
+
+        function restoreFqueryFormValues(formValues) {
+            if (!formValues) {
+                return;
+            }
+
+            $("#txtCompany_Name").val(formValues.company || "");
+            $("#txtSignboard_Name").val(formValues.signboard || "");
+            $("#txtResponsible_Name").val(formValues.responsible || "");
+            $("#txtTelephone").val(formValues.telephone || "");
+            $("#txtCompany_Tax_ID").val(formValues.companyTaxId || "");
+            $("#txt食品登錄字號").val(formValues.regNo || "");
+            $("#industryClass").val(formValues.industryClass || "");
+            $("#industrySecondClass").val(formValues.industrySecondClass || "");
+            $("#cboIndustryState").val(formValues.industryState || "0");
+            $("#citySelect").val(formValues.city || "");
+            $("#areaSelect").val(formValues.area || "");
+            $("#txtAddress").val(formValues.address || "");
+            $("#Company_id").val(formValues.companyId || "");
+        }
+
+        function saveFquerySearch(query) {
+            try {
+                sessionStorage.setItem(fqueryStorageKey, JSON.stringify({
+                    query: query,
+                    formValues: getFqueryFormValues()
+                }));
+            } catch (error) {
+                console.error("Fquery save search error:", error);
+            }
+        }
+
+        function getSavedFquerySearch() {
+            var savedSearch = sessionStorage.getItem(fqueryStorageKey);
+            if (!savedSearch) {
+                return null;
+            }
+
+            try {
+                return JSON.parse(savedSearch);
+            } catch (error) {
+                sessionStorage.removeItem(fqueryStorageKey);
+                return null;
+            }
+        }
+
+        function renderFqueryResult(result) {
+            if (result != '') {
+                if ($.fn.DataTable.isDataTable('#supplierTable')) {
+                    $('#supplierTable').DataTable().destroy();
+                }
+
+                $("#resultDiv").html(result);
+
+                $('#supplierTable').DataTable({
+                    pageLength: 10,
+                    dom: '<"d-flex justify-content-between"l f>rt<"d-flex justify-content-between align-items-center"i p>',
+                    initComplete: function () {
+                        $('.dataTables_paginate ul.pagination')
+                            .addClass('w-100 d-flex justify-content-between');
+                    }
+                });
+            }
+        }
+
+        function searchSavedFquery(savedSearch) {
+            if (!savedSearch || !savedSearch.query) {
+                return;
+            }
+
+            restoreFqueryFormValues(savedSearch.formValues);
+            document.getElementById("loadingBlock").classList.remove("d-none");
+
+            $.ajax({
+                url: '/Inspection/Fquery',
+                type: 'GET',
+                cache: false,
+                data: savedSearch.query,
+                success: function (result) {
+                    renderFqueryResult(result);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Fquery restore ajax error:", status, error, xhr.responseText);
+                },
+                complete: function () {
+                    $("#loadingBlock").addClass("d-none");
+                }
+            });
+        }
+
+        function restoreAndSearchFquery() {
+            searchSavedFquery(getSavedFquerySearch());
+        }
+
+        function shouldRestoreFqueryOnLoad() {
+            var navigationEntries = performance.getEntriesByType
+                ? performance.getEntriesByType("navigation")
+                : [];
+            var navigationType = navigationEntries.length > 0
+                ? navigationEntries[0].type
+                : "";
+
+            return navigationType === "back_forward"
+                || document.referrer.indexOf("/Inspection/Flist") !== -1;
+        }
+
         function preSearch() {
             var Company = $("#txtCompany_Name").val();
             var Signboard = $("#txtSignboard_Name").val();
@@ -742,6 +867,8 @@
                 統一編號: Company_Tax_ID,
                 食品登錄字號: Reg_No
             };
+
+            saveFquerySearch(supplier1);
 
             //window.location.href = '/Inspection/Fquery?' + $.param(supplier1);
             // 顯示 loading
@@ -812,6 +939,7 @@
         }
 
         function clearSearchF() {
+            sessionStorage.removeItem(fqueryStorageKey);
             var Company = $("#txtCompany_Name").val();
             //alert(Company);
             var supplier1 = {
@@ -905,6 +1033,16 @@
 
                 });
 
+                if (shouldRestoreFqueryOnLoad()) {
+                    restoreAndSearchFquery();
+                }
+
+            });
+
+            window.addEventListener("pageshow", function (event) {
+                if (event.persisted) {
+                    restoreAndSearchFquery();
+                }
             });
     </script>
 }
