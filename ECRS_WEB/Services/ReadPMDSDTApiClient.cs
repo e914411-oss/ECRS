@@ -190,26 +190,6 @@ namespace ECRS_WEB.Services
 
         }
 
-        public async Task<List<CheckRec>> Query_稽查資料(string companyId, CancellationToken ct = default)
-        {
-            var action = Uri.EscapeDataString("稽查資料");
-            var url = $"/Api/Inspection/{action}";
-
-            var resp = await _http.PostAsJsonAsync(url, companyId, ct);
-
-            if (!resp.IsSuccessStatusCode)
-            {
-                var raw = await resp.Content.ReadAsStringAsync(ct);
-                throw new Exception(
-                    $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
-                );
-            }
-
-            var body = await resp.Content.ReadFromJsonAsync<List<CheckRec>>(cancellationToken: ct);
-            return body ?? new List<CheckRec>();
-
-        }
-
         public async Task<List<CheckRecM>> Query_待審核資料(string companyId, CancellationToken ct = default)
         {
             var action = Uri.EscapeDataString("待審核資料");

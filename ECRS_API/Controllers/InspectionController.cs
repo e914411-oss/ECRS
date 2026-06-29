@@ -267,28 +267,33 @@ namespace ECRS_API.Controllers
 
         [HttpPost("稽查資料")]
         [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<CheckRec>>> 稽查資料([FromBody] string companyId)
+        public async Task<ActionResult<IEnumerable<稽查事件_主表>>> 稽查資料([FromBody] string companyId)
         {
-            int CompanyId = int.Parse(companyId);
-            IQueryable<CheckRecD> result = from a in _PMDSdb.物品稽查明細表s
-                                           join d in _PMDSdb.稽查事件_主表s
-                                               on a.稽查主檔編號 equals d.稽查事件編號
-                                           where d.稽查事件編號 == CompanyId
-                                           select new CheckRecD()
-                                           {
-                                               稽查單號 = a.物品稽查編號,
-                                               稽查表單 = a.專案名稱,
-                                               稽查人員 = d.稽查人員姓名,
-                                               稽查日期 = d.稽查日期,
-                                               限改日期 = null,
-                                               稽查結果 = "",
-                                               執行狀態 = d.稽查事件備註
-                                           };
+            if (int.TryParse(companyId, out int CompanyId))
+            {
+                IQueryable<稽查事件_主表> result = from a in _ECRSdb.稽查事件_主表s
+                                                   where a.業者編號 == CompanyId
+                                                   select a;
+                //select new CheckRecD()
+                //{
+                //    稽查單號 = a.物品稽查編號,
+                //    稽查表單 = a.專案名稱,
+                //    稽查人員 = d.稽查人員姓名,
+                //    稽查日期 = d.稽查日期,
+                //    限改日期 = null,
+                //    稽查結果 = "",
+                //    執行狀態 = d.稽查事件備註
+                //};
 
-            List<CheckRecD> res = await result.ToListAsync();
-            List<CheckRecD> data = res;
+                List<稽查事件_主表> res = await result.ToListAsync();
+                List<稽查事件_主表> data = res;
 
-            return Ok(data);
+                return Ok(data);
+            }
+            else
+            {
+                return BadRequest("Invalid companyId");
+            }
         }
 
         [HttpPost("待審核資料")]
@@ -428,6 +433,36 @@ namespace ECRS_API.Controllers
             var data = res;
 
             return Ok(data);
+        }
+
+        [HttpGet("InspectionItemNames")]
+        public async Task<ActionResult<IEnumerable<string>>> InspectionItemNames([FromQuery] string? inspectionId)
+        {
+            if (string.IsNullOrWhiteSpace(inspectionId))
+            {
+                return Ok(Array.Empty<string>());
+            }
+
+            var inspectionIds = inspectionId
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(x => int.TryParse(x, out _))
+                .Select(int.Parse)
+                .Distinct()
+                .ToList();
+
+            if (inspectionIds.Count == 0)
+            {
+                return BadRequest("InspectionId 格式錯誤");
+            }
+
+            var itemNames = await _ECRSdb.專案名稱_稽查項目代碼表s
+                .Where(x => inspectionIds.Contains(x.稽查項目代碼))
+                .Select(x => x.稽查項目)
+                .Where(x => x != null && x != string.Empty)
+                .Distinct()
+                .ToListAsync();
+
+            return Ok(itemNames);
         }
 
     }
