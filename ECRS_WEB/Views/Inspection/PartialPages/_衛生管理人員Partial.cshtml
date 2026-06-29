@@ -3,9 +3,6 @@
         9. 衛生管理人員
     </div>
     <div class="inspection-question-body">
-        <div class="rule-text">
-            現場是否查獲逾有效日期食品?(倘查獲逾有效日期食品，請記錄該等違規產品名稱、包裝型態、有效日期、數量及逾有效日期後是否有作成產品等事項)
-        </div>
 
         <div class="pmds-radio-group inspection-group">
             <div class="inspection-row">
@@ -19,7 +16,7 @@
         <div class="pmds-radio-group inspection-group">
             <div class="inspection-row">
                 <label class="radio-inline-item" for="chk3_1">
-                    <input id="chk3_1" type="checkbox" value="Y">
+                    <input id="chk3_1" type="checkbox" value="N">
                     <span>不符合</span>
                 </label>
             </div>
@@ -27,7 +24,32 @@
 
         <div class="pmds-radio-group inspection-group">
             <div class="inspection-row">
-                <span>不適用，原因</span><input id="txtReason2" type="text" class="form-control" style="width:270px;" />
+                <label class="radio-inline-item" for="chk3_1">
+                    <input id="chk3_1" type="checkbox" value="I">
+                    <span>不適用，原因</span>
+                </label>
+
+                <div style="flex-basis: 100%; margin-left: 2em; display: flex; flex-direction: column; gap: 6px;">
+                    <label class="radio-inline-item" for="chk3_2">
+                        <input id="chk3_2" type="checkbox" value="無工廠登記" />
+                        <span>無工廠登記</span>
+                    </label>
+
+                    <label class="radio-inline-item" for="chk3_2">
+                        <input id="chk3_2" type="checkbox" value="其他食品製造業資本額未達3千萬且食品從業人員未達5人" />
+                        <span>其他食品製造業資本額未達3千萬且食品從業人員未達5人</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="pmds-radio-group inspection-group">
+            <div class="inspection-row">
+                <label class="radio-inline-item">
+                    <span>現場稽查說明:</span><input id="" type="text" class="form-control" /><span>
+                        (非必填，並帶入PMDS之衛生管理人員查核-現場稽查描述)
+                    </span>
+                </label>
             </div>
         </div>
 
