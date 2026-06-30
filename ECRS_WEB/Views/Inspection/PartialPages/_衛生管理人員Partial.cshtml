@@ -1,73 +1,199 @@
-<div class="inspection-question-card">
-    <div class="inspection-question-title">
-        9. 衛生管理人員
+<div class="expired-food-page">
+    <h2 class="expired-food-title">衛生管理人員查核</h2>
+
+    <div class="expired-food-query-panel">
+        <div class="expired-food-query-row">
+            <label class="expired-food-label" for="txtHealthManagerPreviousInspectionInfo">前次稽查資訊：</label>
+            <input id="txtHealthManagerPreviousInspectionInfo" type="text" class="form-control" />
+            <div></div>
+        </div>
+
+        <div class="expired-food-query-row">
+            <label class="expired-food-label" for="txtHealthManagerProjectName">專案名稱：</label>
+            <textarea id="txtHealthManagerProjectName" class="form-control expired-food-project"></textarea>
+            <div class="expired-food-query-actions">
+                <button type="button" class="btn btn-sm" id="btnHealthManagerSearch">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    查詢
+                </button>
+                <button type="button" class="btn btn-sm" id="btnHealthManagerRemove">移除</button>
+            </div>
+        </div>
     </div>
-    <div class="inspection-question-body">
 
-        <div class="pmds-radio-group inspection-group">
-            <div class="inspection-row">
-                <label class="radio-inline-item" for="chk3_1">
-                    <input id="chk3_1" type="checkbox" value="Y">
-                    <span>符合</span>
-                </label>
+    <div class="expired-food-tabs" role="tablist" aria-label="衛生管理人員查核頁籤">
+        <div class="expired-food-tab active" role="tab" aria-selected="true">稽查內容</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">專案欄位</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">稽查結果</div>
+    </div>
+
+    <fieldset class="expired-food-section">
+        <legend>稽查情形</legend>
+
+        <div class="expired-food-inspection-panel">
+            <div class="expired-food-question">
+                <span class="required">*</span>是否有衛生管理人員：
             </div>
-        </div>
 
-        <div class="pmds-radio-group inspection-group">
-            <div class="inspection-row">
-                <label class="radio-inline-item" for="chk3_1">
-                    <input id="chk3_1" type="checkbox" value="N">
-                    <span>不符合</span>
-                </label>
-            </div>
-        </div>
+            <div class="health-manager-toggle-area">
+                <div class="expired-food-radio-group" role="radiogroup" aria-label="是否有衛生管理人員">
+                    <label class="expired-food-radio" for="healthManagerYes">
+                        <input id="healthManagerYes" name="healthManagerExists" type="radio" value="Y" />
+                        <span>是</span>
+                    </label>
+                    <label class="expired-food-radio" for="healthManagerNo">
+                        <input id="healthManagerNo" name="healthManagerExists" type="radio" value="N" />
+                        <span>否</span>
+                    </label>
+                    <label class="expired-food-radio" for="healthManagerNotApplicable">
+                        <input id="healthManagerNotApplicable" name="healthManagerExists" type="radio" value="NA" />
+                        <span>不適用</span>
+                    </label>
+                </div>
 
-        <div class="pmds-radio-group inspection-group">
-            <div class="inspection-row">
-                <label class="radio-inline-item" for="chk3_1">
-                    <input id="chk3_1" type="checkbox" value="I">
-                    <span>不適用，原因</span>
-                </label>
+                <div id="healthManagerApprovalPanel" class="health-manager-approval-panel">
+                    <label class="health-manager-approval-label" for="txtHealthManagerApprovalNo">核備字號：</label>
+                    <input id="txtHealthManagerApprovalNo" type="text" class="form-control health-manager-approval-input" />
+                    <label class="health-manager-approval-check" for="chkHealthManagerNoApprovalNo">
+                        <input id="chkHealthManagerNoApprovalNo" type="checkbox" value="Y" />
+                        <span>核備中尚無字號</span>
+                    </label>
+                </div>
 
-                <div style="flex-basis: 100%; margin-left: 2em; display: flex; flex-direction: column; gap: 6px;">
-                    <label class="radio-inline-item" for="chk3_2">
-                        <input id="chk3_2" type="checkbox" value="無工廠登記" />
+                <div id="healthManagerNotApplicableReasonPanel" class="health-manager-na-reason-panel">
+                    <div class="health-manager-na-reason-title">不適用原因(可複選)：</div>
+                    <label class="health-manager-na-reason-check" for="chkHealthManagerNoFactoryRegistration">
+                        <input id="chkHealthManagerNoFactoryRegistration" type="checkbox" value="無工廠登記" />
                         <span>無工廠登記</span>
                     </label>
-
-                    <label class="radio-inline-item" for="chk3_2">
-                        <input id="chk3_2" type="checkbox" value="其他食品製造業資本額未達3千萬且食品從業人員未達5人" />
-                        <span>其他食品製造業資本額未達3千萬且食品從業人員未達5人</span>
+                    <label class="health-manager-na-reason-check" for="chkHealthManagerSmallScaleManufacturer">
+                        <input id="chkHealthManagerSmallScaleManufacturer" type="checkbox" value="其他食品製造業食品從業人員未滿5人且資本額未達3千萬" />
+                        <span>其他食品製造業食品從業人員未滿5人且資本額未達3千萬</span>
                     </label>
                 </div>
             </div>
-        </div>
 
-        <div class="pmds-radio-group inspection-group">
-            <div class="inspection-row">
-                <label class="radio-inline-item">
-                    <span>現場稽查說明:</span><input id="" type="text" class="form-control" /><span>
-                        (非必填，並帶入PMDS之衛生管理人員查核-現場稽查描述)
-                    </span>
-                </label>
+            <div class="expired-food-description-row">
+                <div>
+                    <label class="expired-food-description-label" for="txtHealthManagerInspectionDescription">現場稽查描述：</label>
+                    <div class="expired-food-template">
+                        <button type="button" class="btn btn-sm" id="btnHealthManagerTemplate">個人範本</button>
+                    </div>
+                </div>
+                <textarea id="txtHealthManagerInspectionDescription" class="form-control expired-food-description"></textarea>
             </div>
         </div>
+    </fieldset>
 
-        <div class="pmds-radio-group inspection-group">
-            <label for="chk1_4" class="check-item">
-                <input id="chk1_4" type="checkbox" value="Y" />
-                <span>資料待補，說明</span><input id="txtExplan1" type="text" class="form-control note-input" />
-                <span>備註：</span><input id="txtNote1" type="text" class="form-control note-input" /><span>(可讓現場稽查人員依需求填寫)</span>
-            </label>
-
-            <label class="check-item">
-                <span>●查核提醒事項:</span><input id="txtNote1" type="text" class="form-control note-input" /><span>(表單設計者依需求填寫填寫，倘無則不顯示)</span>
-            </label>
-        </div>
-    </div>
-
-    <div class="inspection-action-row">
-        <button type="button" class="btn btn-form" id="btnSaveHealthManager">儲存</button>
-        <button type="button" class="btn btn-form" id="btnCancelHealthManager" onclick="window.history.go(-1);">取消</button>
+    <div class="expired-food-actions">
+        <button type="button" class="btn btn-success" id="btnCancelHealthManager" onclick="window.history.go(-1);">取消並返回</button>
+        <button type="button" class="btn btn-success" id="btnSaveHealthManager">儲存並離開</button>
     </div>
 </div>
+
+<style>
+    .health-manager-toggle-area .health-manager-approval-panel,
+    .health-manager-toggle-area .health-manager-na-reason-panel {
+        display: none;
+    }
+
+    .health-manager-toggle-area:has(#healthManagerYes:checked) .health-manager-approval-panel,
+    .health-manager-toggle-area .health-manager-approval-panel.is-visible {
+        display: flex;
+    }
+
+    .health-manager-toggle-area:has(#healthManagerNotApplicable:checked) .health-manager-na-reason-panel,
+    .health-manager-toggle-area .health-manager-na-reason-panel.is-visible {
+        display: flex;
+    }
+
+    .health-manager-approval-panel {
+        align-items: center;
+        gap: 10px;
+        width: fit-content;
+        max-width: 100%;
+        margin: -4px 0 18px;
+        padding: 10px 12px;
+        flex-wrap: wrap;
+    }
+
+    .health-manager-approval-label {
+        margin: 0;
+        font-weight: normal;
+        white-space: nowrap;
+    }
+
+    .health-manager-approval-input {
+        width: 220px;
+    }
+
+    .health-manager-approval-check {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        font-weight: normal;
+        white-space: nowrap;
+    }
+
+    .health-manager-approval-check input {
+        margin: 0;
+    }
+
+    .health-manager-na-reason-panel {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        width: fit-content;
+        max-width: 100%;
+        margin: -4px 0 18px;
+        padding: 6px 0;
+    }
+
+    .health-manager-na-reason-title {
+        color: #444;
+    }
+
+    .health-manager-na-reason-check {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        font-weight: normal;
+        white-space: normal;
+    }
+
+    .health-manager-na-reason-check input {
+        margin: 0;
+    }
+</style>
+
+<script>
+    (function () {
+        function updateHealthManagerConditionalPanels() {
+            var yesRadio = document.getElementById('healthManagerYes');
+            var notApplicableRadio = document.getElementById('healthManagerNotApplicable');
+            var approvalPanel = document.getElementById('healthManagerApprovalPanel');
+            var notApplicablePanel = document.getElementById('healthManagerNotApplicableReasonPanel');
+
+            if (!yesRadio || !notApplicableRadio || !approvalPanel || !notApplicablePanel) {
+                return;
+            }
+
+            approvalPanel.classList.toggle('is-visible', yesRadio.checked);
+            notApplicablePanel.classList.toggle('is-visible', notApplicableRadio.checked);
+        }
+
+        document.addEventListener('change', function (event) {
+            if (event.target && event.target.name === 'healthManagerExists') {
+                updateHealthManagerConditionalPanels();
+            }
+        });
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', updateHealthManagerConditionalPanels);
+        } else {
+            updateHealthManagerConditionalPanels();
+        }
+    })();
+</script>
