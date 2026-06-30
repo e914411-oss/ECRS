@@ -40,7 +40,6 @@
 
 	<ItemGroup>
 	  <Folder Include="DTOs\InspectionDTO\FormQuery\" />
-	  <Folder Include="Views\Inspection\PartialPages\" />
 	  <Folder Include="Views\MobileHome\ViewsOfMobile\" />
 	</ItemGroup>
 

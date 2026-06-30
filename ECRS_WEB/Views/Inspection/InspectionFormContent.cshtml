@@ -1,5 +1,8 @@
 @{
-    ViewData["Title"] = "稽查管理-稽查作業-表單：餐飲業 食品良好衛生規範準則 稽查記錄表";
+    var inspectionItemName = ViewBag.InspectionItemName as string ?? string.Empty;
+    ViewData["Title"] = string.IsNullOrWhiteSpace(inspectionItemName)
+        ? "稽查管理-稽查作業-表單：餐飲業 食品良好衛生規範準則 稽查記錄表"
+        : $"稽查管理-稽查作業-表單：{inspectionItemName}";
     var partialViewNames = ViewBag.PartialViewNames as IEnumerable<string> ?? Enumerable.Empty<string>();
     var hasInspectionId = ViewBag.HasInspectionId as bool? ?? false;
     var shouldAlertNoInspectionItem = !hasInspectionId;
@@ -228,6 +231,264 @@
                 border-color: #54a763;
                 background-color: #f7fff8;
             }
+
+        .expired-food-page {
+            width: 100%;
+            color: #444;
+        }
+
+        .expired-food-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 18px;
+            color: #222;
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+            .expired-food-title::before {
+                content: "";
+                width: 5px;
+                height: 26px;
+                border-radius: 3px;
+                background: #1f9d45;
+                flex: 0 0 auto;
+            }
+
+        .expired-food-query-panel,
+        .expired-food-inspection-panel {
+            border: 2px solid #7ecb8a;
+            border-radius: 6px;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(126, 203, 138, .16);
+        }
+
+        .expired-food-query-panel {
+            padding: 26px 22px;
+        }
+
+        .expired-food-query-row {
+            display: grid;
+            grid-template-columns: 130px minmax(0, 1fr) auto;
+            gap: 10px 16px;
+            align-items: start;
+            max-width: 1100px;
+        }
+
+            .expired-food-query-row + .expired-food-query-row {
+                margin-top: 14px;
+            }
+
+        .expired-food-label {
+            padding-top: 7px;
+            text-align: right;
+            font-weight: normal;
+            white-space: nowrap;
+        }
+
+        .expired-food-query-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 80px;
+        }
+
+            .expired-food-query-actions .btn,
+            .expired-food-template .btn {
+                min-width: 72px;
+                border: 1px solid #7ecb8a;
+                background: #fff;
+                color: #2aa84a;
+            }
+
+                .expired-food-query-actions .btn:hover,
+                .expired-food-template .btn:hover {
+                    border-color: #2f9e44;
+                    background: #f3fff6;
+                    color: #20883a;
+                }
+
+        .expired-food-project {
+            min-height: 86px;
+            resize: vertical;
+        }
+
+        .expired-food-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            align-items: end;
+            margin: 28px 0 22px;
+            border: 1px solid #dde5e1;
+            border-radius: 8px;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .expired-food-tab {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            color: #777;
+            font-weight: 700;
+        }
+
+            .expired-food-tab.active {
+                color: #1f9d45;
+            }
+
+                .expired-food-tab.active::after {
+                    content: "";
+                    position: absolute;
+                    right: 0;
+                    bottom: 0;
+                    left: 0;
+                    width: 96px;
+                    height: 2px;
+                    margin: auto;
+                    background: #7ecb8a;
+                }
+
+        .expired-food-section {
+            margin-top: 4px;
+            border: 0;
+            border-top: 1px solid #d9e5dc;
+            padding: 0;
+        }
+
+            .expired-food-section legend {
+                display: inline-flex;
+                align-items: center;
+                width: auto;
+                min-height: 34px;
+                margin: 0 0 14px;
+                padding: 4px 18px 4px 12px;
+                border: 1px solid #d9e5dc;
+                border-radius: 18px;
+                background: #fff;
+                color: #444;
+                font-size: 16px;
+                font-weight: 700;
+                line-height: 1.3;
+            }
+
+                .expired-food-section legend::before {
+                    content: "\2296";
+                    margin-right: 6px;
+                    color: #2aa84a;
+                    font-size: 16px;
+                    line-height: 1;
+                }
+
+        .expired-food-inspection-panel {
+            padding: 24px 22px 22px;
+        }
+
+        .expired-food-question {
+            margin-bottom: 16px;
+            font-size: 15px;
+        }
+
+            .expired-food-question .required {
+                color: #d93025;
+                margin-right: 4px;
+            }
+
+        .expired-food-radio-group {
+            display: flex;
+            align-items: center;
+            gap: 26px;
+            margin-bottom: 16px;
+        }
+
+        .expired-food-radio {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+            font-weight: normal;
+        }
+
+            .expired-food-radio input[type="radio"] {
+                margin: 0;
+            }
+
+        .expired-food-description-row {
+            display: grid;
+            grid-template-columns: 130px minmax(0, 1fr);
+            gap: 10px 16px;
+            align-items: start;
+        }
+
+        .expired-food-description-label {
+            padding-top: 9px;
+            text-align: right;
+            font-weight: normal;
+            white-space: nowrap;
+        }
+
+        .expired-food-template {
+            margin-top: 6px;
+            text-align: right;
+        }
+
+        .expired-food-description {
+            min-height: 92px;
+            resize: vertical;
+        }
+
+        .expired-food-actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 28px;
+            margin-top: 24px;
+        }
+
+            .expired-food-actions .btn {
+                min-width: 92px;
+                border-color: #1f9d45;
+                background: #1f9d45;
+                color: #fff;
+            }
+
+                .expired-food-actions .btn:hover {
+                    border-color: #178a39;
+                    background: #178a39;
+                    color: #fff;
+                }
+
+        @@media (max-width: 768px) {
+            .expired-food-title {
+                font-size: 20px;
+            }
+
+            .expired-food-query-row,
+            .expired-food-description-row {
+                grid-template-columns: 1fr;
+            }
+
+            .expired-food-label,
+            .expired-food-description-label,
+            .expired-food-template {
+                text-align: left;
+            }
+
+            .expired-food-query-actions {
+                flex-direction: row;
+            }
+
+            .expired-food-tabs {
+                grid-template-columns: 1fr;
+            }
+
+            .expired-food-tab.active::after {
+                width: 100%;
+            }
+        }
     </style>
 }
 

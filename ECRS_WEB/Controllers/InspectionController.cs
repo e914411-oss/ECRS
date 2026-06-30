@@ -282,9 +282,10 @@ namespace CoreWebApp.Controllers
                 .ToList();
         }
 
-        public async Task<IActionResult> InspectionFormContent(string? InspectionId)
+        public async Task<IActionResult> InspectionFormContent(string? InspectionId, string? inspectionItemName)
         {
             var hasInspectionId = !string.IsNullOrWhiteSpace(InspectionId);
+            ViewBag.InspectionItemName = inspectionItemName?.Trim() ?? string.Empty;
             ViewBag.HasInspectionId = hasInspectionId;
             ViewBag.PartialViewNames = new List<string>();
 
