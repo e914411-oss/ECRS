@@ -1,0 +1,50 @@
+﻿<div class="inspection-question-card">
+        <div class="inspection-question-title">
+            14.	查驗登記工廠
+        </div>
+        <div class="inspection-question-body">
+            <div class="pmds-radio-group inspection-group">
+                <div class="inspection-row">
+                    <span>▷  業者類型：</span>
+                    <input id="txtProductName" type="text" class="form-control note-input" />
+                    <span>(依PMDS所列類別做成下拉式選單)</span>
+                </div>
+            </div>
+
+            <div class="pmds-radio-group inspection-group">
+                <div class="inspection-row">
+                    <span>▷ 「健康食品製造良好作業規範標準」查核結果：</span>
+                    <input id="chk1_2" type="checkbox" value="N">
+                    <span>符合</span>
+                    <input id="chk1_2" type="checkbox" value="N">
+                    <span>不適用</span>
+                    <input id="chk1_2" type="checkbox" value="N">
+                    <span>不符合，依法處辦，稽查不合格項目:</span>
+                </div>
+            </div>
+
+            <!-- 違規法條說明 -->
+            <div class="rule-text">
+                1.	違規法條【備註:說明實際違規情形】
+            </div>
+
+            <div class="pmds-radio-group inspection-group">
+                <label for="chk1_4" class="check-item">
+                    <input id="chk1_4" type="checkbox" value="Y" />
+                    <span>資料待補，說明</span><input id="txtExplan1" type="text" class="form-control note-input" />
+                    <span>備註：</span><input id="txtNote1" type="text" class="form-control note-input" /><span>(可讓現場稽查人員依需求填寫)</span>
+                </label>
+
+                <label class="check-item">
+                    <span>●查核提醒事項:</span><input id="txtNote1" type="text" class="form-control note-input" /><span>(表單設計者依需求填寫填寫，倘無則不顯示)</span>
+                </label>
+            </div>
+
+        </div>
+    
+
+    <div class="inspection-action-row">
+        <button type="button" class="btn btn-form" id="btnSave1220360720">儲存</button>
+        <button type="button" class="btn btn-form" id="btnCancel1220360720" onclick="window.history.go(-1);">取消</button>
+    </div>
+</div>

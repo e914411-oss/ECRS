@@ -11,6 +11,8 @@ using ECRS_WEB.DTOs.FormManageDTO.FormEditer;
 using ECRS_WEB.DTOs.InspectionDTO.PReview;
 using ECRS_WEB.DTOs.InspectionDTO.Fquery;
 using ECRS_WEB.DTOs.InspectionDTO.InspectionQry;
+using ECRS_WEB.DTOs.InspectionDTO.Flist;
+using Microsoft.AspNetCore.Mvc.ActionConstraints;
 
 namespace CoreWebApp.Controllers
 {
@@ -20,12 +22,14 @@ namespace CoreWebApp.Controllers
         private readonly ReadPMDSDTApiClient _apiPMDS;
         private readonly ReadECRSDTApiClient _apiECRS;
         private readonly ILogger<InspectionController> _logger;
+        private readonly IWebHostEnvironment _environment;
 
-        public InspectionController(ReadPMDSDTApiClient apiPMDS, ReadECRSDTApiClient apiECRS, ILogger<InspectionController> logger)
+        public InspectionController(ReadPMDSDTApiClient apiPMDS, ReadECRSDTApiClient apiECRS, ILogger<InspectionController> logger, IWebHostEnvironment environment)
         {
             _apiPMDS = apiPMDS;
             _apiECRS = apiECRS;
             _logger = logger;
+            _environment = environment;
         }
 
         public IActionResult Index()
@@ -80,12 +84,72 @@ namespace CoreWebApp.Controllers
             return await _apiECRS.Query_專案名稱代碼表(queryCondition);
         }
 
+        /// <summary>
+        /// 從廠商進來後點選稽查記錄總覽進來的單，
+        /// </summary>
+        /// <param name="companyId"></param>
+        /// <returns></returns>
+        [RequireQueryStringParameter("projectId")]
+        public async Task<IActionResult> InspectionForms(string? companyId, int projectId)
+        {
+            if (string.IsNullOrWhiteSpace(companyId) || projectId <= 0)
+            {
+                return RedirectToAction("Fquery", "Inspection");
+            }
+
+            var vm = new InspectionFormsViewModel
+            {
+                CompanyId = companyId ?? string.Empty,
+                ProjectId = projectId,
+                InspectionDate = DateTime.Now.ToString("yyyy/MM/dd")
+            };
+
+            try
+            {
+                var supplier = new Supplier { 業者編號 = companyId };
+                vm.Company = await Get_Company(supplier) ?? new 業者資料表();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "InspectionForms 業者資料查詢失敗，companyId={CompanyId}", companyId);
+                ModelState.AddModelError(string.Empty, "查詢業者資料失敗");
+            }
+
+            var selectedProject = new InspectionProjectItemGroup
+            {
+                ProjectId = projectId,
+                ProjectName = projectId.ToString()
+            };
+
+            try
+            {
+                var itemGroups = await _apiECRS.Query_專案稽查項目附表(new[] { projectId });
+                var itemGroup = itemGroups.FirstOrDefault(group => group.ProjectId == projectId);
+
+                if (itemGroup != null)
+                {
+                    selectedProject.ProjectName = !string.IsNullOrWhiteSpace(itemGroup.ProjectName)
+                        ? itemGroup.ProjectName
+                        : selectedProject.ProjectName;
+                    selectedProject.Items = SplitInspectionItemLinks(itemGroup.Items);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "InspectionForms 專案稽查項目附表查詢失敗，projectId={ProjectId}", projectId);
+                ModelState.AddModelError(string.Empty, "查詢稽查項目失敗");
+            }
+
+            vm.ProjectGroups = new List<InspectionProjectItemGroup> { selectedProject };
+            return View(vm);
+        }
+
         public async Task<IActionResult> InspectionForms(string? companyId, int[]? projectIds, string[]? projectNames)
         {
             if (companyId != null && projectIds is { Length: > 0 })
             {
                 #region 稽查事件入庫，取得稽查事件編號
-                
+
                 // 先生成一筆稽查事件入庫，取得稽查事件編號
                 var now = DateTime.Now;
                 var 稽查事件_主表新增資料 = new ECRS_WEB.Models.ECRS.稽查事件_主表
@@ -218,14 +282,61 @@ namespace CoreWebApp.Controllers
                 .ToList();
         }
 
-        public IActionResult InspectionFormContent()
+        public async Task<IActionResult> InspectionFormContent(string? InspectionId, string? inspectionItemName)
         {
+            var hasInspectionId = !string.IsNullOrWhiteSpace(InspectionId);
+            ViewBag.InspectionItemName = inspectionItemName?.Trim() ?? string.Empty;
+            ViewBag.HasInspectionId = hasInspectionId;
+            ViewBag.PartialViewNames = new List<string>();
+
+            if (hasInspectionId)
+            {
+                try
+                {
+                    var itemNames = await _apiECRS.Query_InspectionItemNames(InspectionId!);
+                    ViewBag.PartialViewNames = itemNames
+                        .Select(ToInspectionPartialViewName)
+                        .OfType<string>()
+                        .Where(InspectionPartialViewExists)
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToList();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "InspectionFormContent 查詢 Partial View 失敗，InspectionId={InspectionId}", InspectionId);
+                    ModelState.AddModelError(string.Empty, "查詢稽查項目表單失敗");
+                }
+            }
+
             if (Request.Headers.XRequestedWith == "XMLHttpRequest")
             {
                 return PartialView("InspectionFormContent");
             }
 
             return View();
+        }
+
+        private static string? ToInspectionPartialViewName(string? inspectionItemName)
+        {
+            if (string.IsNullOrWhiteSpace(inspectionItemName))
+            {
+                return null;
+            }
+
+            var fileName = $"_{inspectionItemName.Trim()}Partial.cshtml";
+            if (fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+            {
+                return null;
+            }
+
+            return $"PartialPages/{Path.GetFileNameWithoutExtension(fileName)}";
+        }
+
+        private bool InspectionPartialViewExists(string partialViewName)
+        {
+            var fileName = $"{Path.GetFileName(partialViewName)}.cshtml";
+            var path = Path.Combine(_environment.ContentRootPath, "Views", "Inspection", "PartialPages", fileName);
+            return System.IO.File.Exists(path);
         }
 
         public async Task<IActionResult> Fquery(SupplierQ supplierQ, int page = 1)
@@ -352,14 +463,15 @@ namespace CoreWebApp.Controllers
                 業者編號 = companyId
             };
 
-            var company = await Get_Company(supplierQuery);
+            var company = await _apiECRS.Query_業者資料表(supplierQuery);
+
             if (company.營業地址_鄉鎮區主鍵 != null)
             {
                 company.營業地址_鄉鎮區主鍵 = company.營業地址_鄉鎮區主鍵.Trim();
             }
 
             var checkRecords = await Get_CheckRec(companyId);
-            var vm = new CompanyPageViewModel();
+            var vm = new IndustryPageViewModel();
             vm.Company = company;
             vm.CheckRecs = checkRecords;
 
@@ -456,9 +568,9 @@ namespace CoreWebApp.Controllers
             return await _apiPMDS.Query_業者資料表(supplierQ);
         }
 
-        public async Task<List<CheckRec>> Get_CheckRec(string companyId)
+        public async Task<List<ECRS_WEB.Models.ECRS.稽查事件_主表>> Get_CheckRec(string companyId)
         {
-            return await _apiPMDS.Query_稽查資料(companyId);
+            return await _apiECRS.Query_稽查資料(companyId);
         }
 
         public async Task<List<CheckRecM>> Get_CheckRecM()
@@ -483,5 +595,23 @@ namespace CoreWebApp.Controllers
             return await _apiPMDS.Query_待審核資料D(eventId);
         }
 
+    }
+
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+    public sealed class RequireQueryStringParameterAttribute : Attribute, IActionConstraint
+    {
+        private readonly string _parameterName;
+
+        public RequireQueryStringParameterAttribute(string parameterName)
+        {
+            _parameterName = parameterName;
+        }
+
+        public int Order => 0;
+
+        public bool Accept(ActionConstraintContext context)
+        {
+            return context.RouteContext.HttpContext.Request.Query.ContainsKey(_parameterName);
+        }
     }
 }

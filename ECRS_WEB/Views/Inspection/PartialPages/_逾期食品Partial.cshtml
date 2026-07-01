@@ -1,0 +1,62 @@
+<div class="expired-food-page">
+    <h2 class="expired-food-title">逾期食品稽查</h2>
+
+    <div class="expired-food-query-panel">
+        <div class="expired-food-query-row">
+            <label class="expired-food-label" for="txtPreviousInspectionInfo">前次稽查資訊：</label>
+            <input id="txtPreviousInspectionInfo" type="text" class="form-control" />
+            <div></div>
+        </div>
+
+        <div class="expired-food-query-row">
+            <label class="expired-food-label" for="txtExpiredFoodProjectName">專案名稱：</label>
+            <textarea id="txtExpiredFoodProjectName" class="form-control expired-food-project"></textarea>
+            <div class="expired-food-query-actions">
+                <button type="button" class="btn btn-sm" id="btnExpiredFoodSearch">查詢</button>
+                <button type="button" class="btn btn-sm" id="btnExpiredFoodRemove">移除</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="expired-food-tabs" role="tablist" aria-label="逾期食品稽查頁籤">
+        <div class="expired-food-tab active" role="tab" aria-selected="true">稽查內容</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">專案欄位</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">稽查結果</div>
+    </div>
+
+    <fieldset class="expired-food-section">
+        <legend>稽查情形</legend>
+
+        <div class="expired-food-inspection-panel">
+            <div class="expired-food-question">
+                <span class="required">*</span>有無貯存逾期食品或原料
+            </div>
+
+            <div class="expired-food-radio-group" role="radiogroup" aria-label="有無貯存逾期食品或原料">
+                <label class="expired-food-radio" for="expiredFoodYes">
+                    <input id="expiredFoodYes" name="expiredFoodFound" type="radio" value="Y" />
+                    <span>有</span>
+                </label>
+                <label class="expired-food-radio" for="expiredFoodNo">
+                    <input id="expiredFoodNo" name="expiredFoodFound" type="radio" value="N" />
+                    <span>無</span>
+                </label>
+            </div>
+
+            <div class="expired-food-description-row">
+                <div>
+                    <label class="expired-food-description-label" for="txtInspectionDescription">現場稽查描述：</label>
+                    <div class="expired-food-template">
+                        <button type="button" class="btn btn-sm" id="btnExpiredFoodTemplate">個人範本</button>
+                    </div>
+                </div>
+                <textarea id="txtInspectionDescription" class="form-control expired-food-description"></textarea>
+            </div>
+        </div>
+    </fieldset>
+
+    <div class="expired-food-actions">
+        <button type="button" class="btn btn-success" id="btnCancelExpiredFood" onclick="window.history.go(-1);">取消並返回</button>
+        <button type="button" class="btn btn-success" id="btnSaveExpiredFood">儲存並離開</button>
+    </div>
+</div>

@@ -331,5 +331,65 @@ namespace ECRS_WEB.Services
 
             return result;
         }
+
+        public async Task<業者資料表> Query_業者資料表(Supplier supplierQ, CancellationToken ct = default)
+        {
+            var action = Uri.EscapeDataString("業者資料表");
+            var url = $"/Api/Inspection/{action}";
+
+            var resp = await _http.PostAsJsonAsync(url, supplierQ, ct);
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                var raw = await resp.Content.ReadAsStringAsync(ct);
+                throw new Exception(
+                    $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                );
+            }
+
+            var body = await resp.Content.ReadFromJsonAsync<業者資料表>(cancellationToken: ct);
+            return body ?? new 業者資料表();
+
+        }
+
+        public async Task<List<稽查事件_主表>> Query_稽查資料(string companyId, CancellationToken ct = default)
+        {
+            var action = Uri.EscapeDataString("稽查資料");
+            var url = $"/Api/Inspection/{action}";
+
+            var resp = await _http.PostAsJsonAsync(url, companyId, ct);
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                var raw = await resp.Content.ReadAsStringAsync(ct);
+                throw new Exception(
+                    $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                );
+            }
+
+            var body = await resp.Content.ReadFromJsonAsync<List<稽查事件_主表>>(cancellationToken: ct);
+            return body ?? new List<稽查事件_主表>();
+
+        }
+
+        public async Task<List<string>> Query_InspectionItemNames(string inspectionId, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = $"/Api/Inspection/InspectionItemNames?inspectionId={Uri.EscapeDataString(inspectionId ?? string.Empty)}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Get, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var resp = await _http.SendAsync(req, ct);
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                var raw = await resp.Content.ReadAsStringAsync(ct);
+                throw new Exception($"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}");
+            }
+
+            var body = await resp.Content.ReadFromJsonAsync<List<string>>(cancellationToken: ct);
+            return body ?? new List<string>();
+        }
     }
 }
