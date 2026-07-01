@@ -1,102 +1,402 @@
-﻿<div class="inspection-question-card">
-        <div class="inspection-question-title">
-            7.	一級品管
+<div class="expired-food-page trace-page">
+    <h2 class="expired-food-title">一級品管</h2>
+
+    <div class="expired-food-query-panel">
+        <div class="expired-food-query-row">
+            <label class="expired-food-label" for="txtQcPreviousInspectionInfo">上次稽查日期及結果：</label>
+            <input id="txtQcPreviousInspectionInfo"
+                   type="text"
+                   class="form-control"
+                   readonly />
+            <div></div>
         </div>
-        <div class="inspection-question-body">
-            <div class="pmds-radio-group inspection-group">
-                <div class="inspection-row">
-                    <span class="fw-bold rule-text">▷	是否建立食品安全監測計畫</span>
-                    <label class="radio-inline-item" for="chk2_1">
-                        <input id="chk2_1" type="checkbox" value="Y">
-                        <span>符合</span>
-                    </label>
-                    <label class="radio-inline-item" for="chk2_2">
-                        <input id="chk1_2" type="checkbox" value="N">
-                        <span>不符合</span>
-                    </label>
-                    <label class="radio-inline-item" for="chk2_2">
-                        <input id="chk1_2" type="checkbox" value="N">
-                        <span>不適用，原因：</span><input id="txtReason1" type="text" class="form-control" />
-                    </label>
-                </div>
-            </div>
 
-            <div class="pmds-radio-group inspection-group">
-                <div class="inspection-row">
-                    <span class="fw-bold rule-text">▷	是否設置實驗室</span>
-                    <label for="chk2_4" class="check-item">
-                        <input id="chk2_4" type="checkbox" value="Y" />
-                        <span>符合</span>
-                    </label>
-                    <label for="chk2_5" class="check-item">
-                        <input id="chk2_5" type="checkbox" value="N" />
-                        <span>不符合</span>
-                    </label>
-                    <label class="radio-inline-item" for="chk2_2">
-                        <input id="chk1_2" type="checkbox" value="N">
-                        <span>不適用，原因：</span><input id="txtReason1" type="text" class="form-control" />
-                    </label>
-                </div>
+        <div class="expired-food-query-row">
+            <label class="expired-food-label" for="txtQcProjectName">專案名稱：</label>
+            <textarea id="txtQcProjectName" class="form-control expired-food-project"></textarea>
+            <div class="expired-food-query-actions">
+                <button type="button" class="btn btn-sm" id="btnQcSearch">查詢</button>
+                <button type="button" class="btn btn-sm" id="btnQcRemove">移除</button>
             </div>
+        </div>
+    </div>
 
-            <div class="pmds-radio-group inspection-group">
-                <div class="inspection-row">
-                    <span class="fw-bold rule-text">▷	是否符合強制性檢驗</span>
-                    <label for="chk2_4" class="check-item">
-                        <input id="chk2_4" type="checkbox" value="Y" />
-                        <span>符合</span>
-                    </label>
-                    <label for="chk2_5" class="check-item">
-                        <input id="chk2_5" type="checkbox" value="N" />
-                        <span>不符合(</span>
-                    </label>
-                    <label class="radio-inline-item" for="chk2_2">
-                        <input id="chk1_2" type="checkbox" value="N">
-                        <span>未檢驗</span>
-                        <input id="chk1_2" type="checkbox" value="N">
-                        <span>未符合檢驗頻率</span>
-                    </label>
-                </div>
+    <div class="expired-food-tabs trace-tabs" role="tablist" aria-label="一級品管頁籤">
+        <div class="expired-food-tab active" role="tab" aria-selected="true">查驗條文</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">工作紀錄</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">專案欄位</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">稽查結果</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">稽查結果附件</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">預覽</div>
+    </div>
+
+    <div class="expired-food-inspection-panel">
+        <div class="trace-check-row">
+            <div class="expired-food-question trace-question">
+                <span class="required">*</span>業者主業別(可複選)：
             </div>
-
-            <div class="pmds-radio-group inspection-group">
-                <div class="inspection-row">
-                    <label class="radio-inline-item" for="chk2_3">
-                        <input id="chk1_2" type="checkbox" value="N">
-                        <span>不適用，原因</span><input id="txtReason2" type="text" class="form-control" style="width:270px;" />
-                    </label>
-                </div>
-            </div>
-
-            <div class="pmds-radio-group inspection-group">
-                <div class="inspection-row">
-                    <label for="chk1_3" class="check-item">
-                        <input id="chk1_3" type="checkbox" value="Y" />
-                        <span>上述不符事項，限於</span>
-                    </label>
-                    <input id="txtYear1" type="text" class="form-control date-input" />年
-                    <input id="txtMonth1" type="text" class="form-control date-input" />月
-                    <input id="txtDay1" type="text" class="form-control date-input" />日前改善完竣，稽查不合格項目：
-                </div>
-            </div>
-
-            <div class="pmds-radio-group inspection-group">
-                <label for="chk1_4" class="check-item">
-                    <input id="chk1_4" type="checkbox" value="Y" />
-                    <span>資料待補，說明</span><input id="txtExplan1" type="text" class="form-control note-input" />
-                    <span>備註：</span><input id="txtNote1" type="text" class="form-control note-input" /><span>(可讓現場稽查人員依需求填寫)</span>
+            <div class="trace-check-grid trace-check-grid-4">
+                <label class="check-item" for="qcBusinessManufacture">
+                    <input id="qcBusinessManufacture" type="checkbox" value="製造、加工、調配" />
+                    <span>製造、加工、調配</span>
                 </label>
-
-                <label class="check-item">
-                    <span>●查核提醒事項:</span><input id="txtNote1" type="text" class="form-control note-input" /><span>(表單設計者依需求填寫填寫，倘無則不顯示)</span>
+                <label class="check-item" for="qcBusinessImport">
+                    <input id="qcBusinessImport" type="checkbox" value="輸入" />
+                    <span>輸入</span>
+                </label>
+                <label class="check-item" for="qcBusinessSell">
+                    <input id="qcBusinessSell" type="checkbox" value="販賣" />
+                    <span>販賣</span>
+                </label>
+                <label class="check-item" for="qcBusinessNonRegistered">
+                    <input id="qcBusinessNonRegistered" type="checkbox" value="非百貨公司之綜合商品零售業" />
+                    <span>非百貨公司之綜合商品零售業</span>
                 </label>
             </div>
-
         </div>
-    
 
-    <div class="inspection-action-row">
-        <button type="button" class="btn btn-form" id="btnSave987689478">儲存</button>
-        <button type="button" class="btn btn-form" id="btnCancel987689478" onclick="window.history.go(-1);">取消</button>
+        <div class="trace-check-row trace-category-row">
+            <div class="expired-food-question trace-question">
+                <span class="required">*</span>本次查核產品類別(可複選)：
+            </div>
+            <div class="trace-check-grid trace-check-grid-4">
+                <label class="check-item" for="qcCategoryOil">
+                    <input id="qcCategoryOil" type="checkbox" value="食用油脂" />
+                    <span>食用油脂</span>
+                </label>
+                <label class="check-item" for="qcCategoryMeat">
+                    <input id="qcCategoryMeat" type="checkbox" value="肉品及其加工食品" />
+                    <span>肉品及其加工食品</span>
+                </label>
+                <label class="check-item" for="qcCategoryMilk">
+                    <input id="qcCategoryMilk" type="checkbox" value="乳品及其加工食品" />
+                    <span>乳品及其加工食品</span>
+                </label>
+                <label class="check-item" for="qcCategoryAquatic">
+                    <input id="qcCategoryAquatic" type="checkbox" value="水產品及其加工食品" />
+                    <span>水產品及其加工食品</span>
+                </label>
+                <label class="check-item" for="qcCategoryAdditive">
+                    <input id="qcCategoryAdditive" type="checkbox" value="食品添加物" />
+                    <span>食品添加物</span>
+                </label>
+                <label class="check-item" for="qcCategorySpecialNutrition">
+                    <input id="qcCategorySpecialNutrition" type="checkbox" value="特殊營養食品" />
+                    <span>特殊營養食品</span>
+                </label>
+                <label class="check-item" for="qcCategorySoybean">
+                    <input id="qcCategorySoybean" type="checkbox" value="黃豆" />
+                    <span>黃豆</span>
+                </label>
+                <label class="check-item" for="qcCategoryBuckwheat">
+                    <input id="qcCategoryBuckwheat" type="checkbox" value="麥類及燕麥" />
+                    <span>麥類及燕麥</span>
+                </label>
+                <label class="check-item" for="qcCategoryCorn">
+                    <input id="qcCategoryCorn" type="checkbox" value="玉米" />
+                    <span>玉米</span>
+                </label>
+                <label class="check-item" for="qcCategoryFlour">
+                    <input id="qcCategoryFlour" type="checkbox" value="麵粉" />
+                    <span>麵粉</span>
+                </label>
+                <label class="check-item" for="qcCategoryStarch">
+                    <input id="qcCategoryStarch" type="checkbox" value="澱粉" />
+                    <span>澱粉</span>
+                </label>
+                <label class="check-item" for="qcCategorySalt">
+                    <input id="qcCategorySalt" type="checkbox" value="食鹽" />
+                    <span>食鹽</span>
+                </label>
+                <label class="check-item" for="qcCategorySugar">
+                    <input id="qcCategorySugar" type="checkbox" value="糖" />
+                    <span>糖</span>
+                </label>
+                <label class="check-item" for="qcCategoryTea">
+                    <input id="qcCategoryTea" type="checkbox" value="茶葉" />
+                    <span>茶葉</span>
+                </label>
+                <label class="check-item" for="qcCategoryPackagedTea">
+                    <input id="qcCategoryPackagedTea" type="checkbox" value="包裝茶葉飲料" />
+                    <span>包裝茶葉飲料</span>
+                </label>
+                <label class="check-item" for="qcCategorySoySauce">
+                    <input id="qcCategorySoySauce" type="checkbox" value="醬油" />
+                    <span>醬油</span>
+                </label>
+                <label class="check-item qc-manufacture-category" for="qcCategoryNoodlesVermicelli">
+                    <input id="qcCategoryNoodlesVermicelli" type="checkbox" value="麵條、粉條類食品" />
+                    <span>麵條、粉條類食品</span>
+                </label>
+                <label class="check-item qc-manufacture-category" for="qcCategoryVinegar">
+                    <input id="qcCategoryVinegar" type="checkbox" value="食用醋" />
+                    <span>食用醋</span>
+                </label>
+                <label class="check-item qc-manufacture-category" for="qcCategoryEggProduct">
+                    <input id="qcCategoryEggProduct" type="checkbox" value="蛋製品" />
+                    <span>蛋製品</span>
+                </label>
+                <label class="check-item qc-manufacture-category" for="qcCategoryGrainBeanProcessed">
+                    <input id="qcCategoryGrainBeanProcessed" type="checkbox" value="非屬麵粉、澱粉之農產植物、菇蕈類及藻類磨粉製品" />
+                    <span>非屬麵粉、澱粉之農產植物、菇蕈類及藻類磨粉製品</span>
+                </label>
+                <label class="check-item qc-manufacture-category" for="qcCategorySeasoning">
+                    <input id="qcCategorySeasoning" type="checkbox" value="調味品" />
+                    <span>調味品</span>
+                </label>
+                <label class="check-item qc-manufacture-category" for="qcCategoryBakery">
+                    <input id="qcCategoryBakery" type="checkbox" value="烘焙炊蒸食品" />
+                    <span>烘焙炊蒸食品</span>
+                </label>
+                <label class="check-item qc-manufacture-category" for="qcCategorySauceSupplement">
+                    <input id="qcCategorySauceSupplement" type="checkbox" value="營養補充食品" />
+                    <span>營養補充食品</span>
+                </label>
+                <label class="check-item qc-manufacture-category" for="qcCategoryNonAlcohol">
+                    <input id="qcCategoryNonAlcohol" type="checkbox" value="非酒精飲料" />
+                    <span>非酒精飲料</span>
+                </label>
+                <label class="check-item qc-manufacture-category" for="qcCategoryChocolateNut">
+                    <input id="qcCategoryChocolateNut" type="checkbox" value="巧克力及糖果" />
+                    <span>巧克力及糖果</span>
+                </label>
+                <label class="check-item qc-manufacture-category" for="qcCategoryIce">
+                    <input id="qcCategoryIce" type="checkbox" value="食用冰製品" />
+                    <span>食用冰製品</span>
+                </label>
+                <label class="check-item qc-manufacture-category" for="qcCategoryPreparedMeal">
+                    <input id="qcCategoryPreparedMeal" type="checkbox" value="膳食及菜餚" />
+                    <span>膳食及菜餚</span>
+                </label>
+                <label class="check-item qc-manufacture-category" for="qcCategoryBoxMeal">
+                    <input id="qcCategoryBoxMeal" type="checkbox" value="餐盒食品" />
+                    <span>餐盒食品</span>
+                </label>
+                <label class="check-item qc-manufacture-category" for="qcCategoryMushroomAlgae">
+                    <input id="qcCategoryMushroomAlgae" type="checkbox" value="農產植物、菇(蕈)類及藻類製品" />
+                    <span>農產植物、菇(蕈)類及藻類製品</span>
+                </label>
+                <label class="check-item qc-manufacture-category" for="qcCategoryOtherFood">
+                    <input id="qcCategoryOtherFood" type="checkbox" value="其他食品" />
+                    <span>其他食品</span>
+                </label>
+                <label class="check-item qc-import-category" for="qcCategoryImportedPlantMushroomAlgae">
+                    <input id="qcCategoryImportedPlantMushroomAlgae" type="checkbox" value="農產植物、菇(蕈)類及藻類製品" />
+                    <span>農產植物、菇(蕈)類及藻類製品</span>
+                </label>
+                <label class="check-item qc-import-category" for="qcCategoryInfantFormula">
+                    <input id="qcCategoryInfantFormula" type="checkbox" value="嬰幼兒食品(嬰兒與較大嬰兒配方食品除外)" />
+                    <span>嬰幼兒食品(嬰兒與較大嬰兒配方食品除外)</span>
+                </label>
+                <label class="check-item qc-import-category" for="qcCategoryHoney">
+                    <input id="qcCategoryHoney" type="checkbox" value="蜂產品食品" />
+                    <span>蜂產品食品</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="trace-yesno-table qc-yesno-table">
+            <div class="trace-yesno-row">
+                <div class="trace-yesno-label"><span class="required">*</span>是否應實施強制性檢驗之類別及規模：</div>
+                <div class="trace-yesno-options">
+                    <label class="expired-food-radio" for="qcMandatoryInspectionYes">
+                        <input id="qcMandatoryInspectionYes" name="qcMandatoryInspection" type="radio" value="Y" />
+                        <span>是</span>
+                    </label>
+                    <label class="expired-food-radio" for="qcMandatoryInspectionNo">
+                        <input id="qcMandatoryInspectionNo" name="qcMandatoryInspection" type="radio" value="N" />
+                        <span>否</span>
+                    </label>
+                </div>
+            </div>
+            <div class="trace-yesno-row qc-conditional-row" id="qcMandatoryComplianceRow">
+                <div class="trace-yesno-label"><span class="required">*</span>強制檢驗是否符合：</div>
+                <div class="trace-yesno-options">
+                    <label class="expired-food-radio" for="qcMandatoryComplianceYes">
+                        <input id="qcMandatoryComplianceYes" name="qcMandatoryCompliance" type="radio" value="Y" />
+                        <span>是</span>
+                    </label>
+                    <label class="expired-food-radio" for="qcMandatoryComplianceNo">
+                        <input id="qcMandatoryComplianceNo" name="qcMandatoryCompliance" type="radio" value="N" />
+                        <span>否</span>
+                    </label>
+                </div>
+            </div>
+            <div class="trace-yesno-row qc-conditional-row" id="qcMandatoryNonComplianceRow">
+                <div class="trace-yesno-label"><span class="required">*</span>強制檢驗不符合項目：</div>
+                <div class="trace-yesno-options">
+                    <label class="expired-food-radio" for="qcMandatoryNotTested">
+                        <input id="qcMandatoryNotTested" name="qcMandatoryNonComplianceItem" type="radio" value="未執行強制檢驗項目" />
+                        <span>未執行強制檢驗項目</span>
+                    </label>
+                    <label class="expired-food-radio" for="qcMandatoryFrequencyNotMet">
+                        <input id="qcMandatoryFrequencyNotMet" name="qcMandatoryNonComplianceItem" type="radio" value="未符合檢驗週期頻率" />
+                        <span>未符合檢驗週期頻率</span>
+                    </label>
+                </div>
+            </div>
+            <div class="trace-yesno-row">
+                <div class="trace-yesno-label">最後一次強制性檢驗日期：</div>
+                <div class="trace-yesno-options"></div>
+            </div>
+            <div class="trace-yesno-row">
+                <div class="trace-yesno-label"><span class="required">*</span>是否為應訂定食品安全監測計畫之類別及規模：</div>
+                <div class="trace-yesno-options">
+                    <label class="expired-food-radio" for="qcFoodSafetyPlanYes">
+                        <input id="qcFoodSafetyPlanYes" name="qcFoodSafetyPlan" type="radio" value="Y" />
+                        <span>是</span>
+                    </label>
+                    <label class="expired-food-radio" for="qcFoodSafetyPlanNo">
+                        <input id="qcFoodSafetyPlanNo" name="qcFoodSafetyPlan" type="radio" value="N" />
+                        <span>否</span>
+                    </label>
+                </div>
+            </div>
+            <div class="trace-yesno-row">
+                <div class="trace-yesno-label"><span class="required">*</span>是否為應設置實驗室之類別及規模：</div>
+                <div class="trace-yesno-options">
+                    <label class="expired-food-radio" for="qcLaboratoryYes">
+                        <input id="qcLaboratoryYes" name="qcLaboratory" type="radio" value="Y" />
+                        <span>是</span>
+                    </label>
+                    <label class="expired-food-radio" for="qcLaboratoryNo">
+                        <input id="qcLaboratoryNo" name="qcLaboratory" type="radio" value="N" />
+                        <span>否</span>
+                    </label>
+                </div>
+            </div>
+            <div class="trace-yesno-row">
+                <div class="trace-yesno-label"></div>
+                <div class="trace-yesno-options"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="expired-food-actions">
+        <button type="button" class="btn btn-success" id="btnCancelQc" onclick="window.history.go(-1);">取消並返回</button>
+        <button type="button" class="btn btn-success" id="btnSaveQc">儲存並離開</button>
     </div>
 </div>
+
+<style>
+    .qc-yesno-table .trace-yesno-row {
+        grid-template-columns: 400px minmax(0, 1fr);
+    }
+
+    .qc-yesno-table .trace-yesno-label {
+        justify-content: flex-start;
+        padding-left: 24px;
+        padding-right: 12px;
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    .qc-manufacture-category,
+    .qc-import-category {
+        display: none;
+    }
+
+    .qc-manufacture-category.is-visible,
+    .qc-import-category.is-visible {
+        display: inline-flex;
+    }
+
+    .qc-conditional-row {
+        display: none;
+    }
+
+    .qc-conditional-row.is-visible {
+        display: grid;
+    }
+</style>
+
+<script>
+    (function () {
+        function bindConditionalCategories(triggerId, categorySelector) {
+            var trigger = document.getElementById(triggerId);
+            var categories = document.querySelectorAll(categorySelector);
+
+            if (!trigger || categories.length === 0) {
+                return;
+            }
+
+            function syncCategories() {
+                categories.forEach(function (category) {
+                    category.classList.toggle('is-visible', trigger.checked);
+
+                    if (!trigger.checked) {
+                        var input = category.querySelector('input[type="checkbox"]');
+
+                        if (input) {
+                            input.checked = false;
+                        }
+                    }
+                });
+            }
+
+            trigger.addEventListener('change', syncCategories);
+            syncCategories();
+        }
+
+        bindConditionalCategories('qcBusinessManufacture', '.qc-manufacture-category');
+        bindConditionalCategories('qcBusinessImport', '.qc-import-category');
+
+        function getCheckedRadioValue(name) {
+            var checked = document.querySelector('input[name="' + name + '"]:checked');
+            return checked ? checked.value : '';
+        }
+
+        function clearRadioRows(rows) {
+            rows.forEach(function (row) {
+                if (!row) {
+                    return;
+                }
+
+                row.querySelectorAll('input[type="radio"]').forEach(function (radio) {
+                    radio.checked = false;
+                });
+            });
+        }
+
+        function setRadioRowVisible(row, shouldShow) {
+            if (!row) {
+                return;
+            }
+
+            row.classList.toggle('is-visible', shouldShow);
+
+            if (!shouldShow) {
+                clearRadioRows([row]);
+            }
+        }
+
+        function bindRadioChange(name, sync) {
+            document.querySelectorAll('input[name="' + name + '"]').forEach(function (radio) {
+                radio.addEventListener('change', sync);
+            });
+        }
+
+        var mandatoryComplianceRow = document.getElementById('qcMandatoryComplianceRow');
+        var mandatoryNonComplianceRow = document.getElementById('qcMandatoryNonComplianceRow');
+
+        function syncMandatoryInspectionRows() {
+            var shouldShowCompliance = getCheckedRadioValue('qcMandatoryInspection') === 'Y';
+
+            setRadioRowVisible(mandatoryComplianceRow, shouldShowCompliance);
+
+            if (!shouldShowCompliance) {
+                setRadioRowVisible(mandatoryNonComplianceRow, false);
+                return;
+            }
+
+            setRadioRowVisible(
+                mandatoryNonComplianceRow,
+                getCheckedRadioValue('qcMandatoryCompliance') === 'N'
+            );
+        }
+
+        bindRadioChange('qcMandatoryInspection', syncMandatoryInspectionRows);
+        bindRadioChange('qcMandatoryCompliance', syncMandatoryInspectionRows);
+        syncMandatoryInspectionRows();
+    })();
+</script>

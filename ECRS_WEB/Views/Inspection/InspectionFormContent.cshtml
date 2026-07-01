@@ -461,6 +461,238 @@
                     color: #fff;
                 }
 
+        .trace-tabs {
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+        }
+
+        .trace-check-row {
+            display: grid;
+            grid-template-columns: 160px minmax(0, 1fr);
+            gap: 10px 18px;
+            align-items: start;
+        }
+
+            .trace-check-row + .trace-check-row {
+                margin-top: 16px;
+            }
+
+        .trace-question {
+            margin: 0;
+            text-align: right;
+            line-height: 1.7;
+        }
+
+        .trace-check-grid {
+            display: grid;
+            gap: 22px 48px;
+            align-items: center;
+        }
+
+        .trace-check-grid-3 {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .trace-check-grid-4 {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .trace-import-category,
+        .trace-manufacture-category,
+        .trace-sell-category {
+            display: none;
+            grid-column: 1 / -1;
+            max-width: 100%;
+        }
+
+        .trace-import-category.is-visible,
+            .trace-manufacture-category.is-visible,
+            .trace-sell-category.is-visible {
+                display: inline-flex;
+            }
+
+        .trace-import-category span,
+            .trace-manufacture-category span,
+            .trace-sell-category span {
+                overflow-wrap: anywhere;
+            }
+
+        .trace-category-row {
+            margin-bottom: 34px;
+        }
+
+        .trace-yesno-table {
+            border: 1px solid #d9e2dd;
+        }
+
+        .trace-yesno-row {
+            display: grid;
+            grid-template-columns: 300px minmax(0, 1fr);
+            min-height: 64px;
+            border-bottom: 1px solid #d9e2dd;
+        }
+
+            .trace-yesno-row:last-child {
+                border-bottom: 0;
+            }
+
+            .trace-yesno-row.trace-conditional-row {
+                display: none;
+            }
+
+                .trace-yesno-row.trace-conditional-row.is-visible {
+                    display: grid;
+                }
+
+        .trace-yesno-label {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 12px 24px 12px 12px;
+            background: #e7e7e7;
+            font-weight: 700;
+            line-height: 1.6;
+            text-align: right;
+        }
+
+            .trace-yesno-label .required {
+                color: #d93025;
+                margin-right: 4px;
+            }
+
+        .trace-yesno-options {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            padding: 12px 24px;
+        }
+
+            .trace-yesno-options .expired-food-radio {
+                min-width: 46px;
+                height: 30px;
+                gap: 4px;
+                margin-left: -1px;
+                padding: 0 8px;
+                border: 1px solid #d8dee2;
+                border-radius: 4px;
+                background: #fff;
+            }
+
+        .trace-detail-options {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+            .trace-detail-options .expired-food-radio {
+                width: auto;
+                min-width: 0;
+                height: 32px;
+                padding-right: 14px;
+            }
+
+        .trace-detail-input {
+            width: min(100%, 520px);
+            height: 38px;
+            border-color: #80c88f;
+            box-shadow: 0 0 8px rgba(31, 157, 69, .35);
+        }
+
+        .trace-report-panel {
+            display: none;
+            margin: 14px 8px;
+            padding: 20px 22px;
+            border: 2px solid #7ecb8a;
+            border-radius: 6px;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(126, 203, 138, .18);
+        }
+
+            .trace-report-panel.is-visible {
+                display: block;
+            }
+
+        .trace-report-row {
+            display: grid;
+            grid-template-columns: minmax(240px, 1fr) auto;
+            gap: 12px 24px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .trace-report-question {
+            line-height: 1.7;
+        }
+
+            .trace-report-question .required {
+                color: #d93025;
+                margin-right: 4px;
+            }
+
+        .trace-report-radios {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+
+            .trace-report-radios .expired-food-radio {
+                min-width: 46px;
+                height: 30px;
+                gap: 4px;
+                margin-left: -1px;
+                padding: 0 8px;
+                border: 1px solid #d8dee2;
+                border-radius: 4px;
+                background: #fff;
+            }
+
+        .trace-report-field {
+            display: grid;
+            grid-template-columns: 160px minmax(0, 1fr);
+            gap: 10px 14px;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+            .trace-report-field label {
+                margin: 0;
+                text-align: right;
+                font-weight: normal;
+                line-height: 1.5;
+            }
+
+        .trace-report-actions {
+            display: flex;
+            gap: 12px;
+            margin: 4px 0 14px 160px;
+        }
+
+            .trace-report-actions .btn {
+                min-width: 56px;
+                border: 1px solid #7ecb8a;
+                background: #fff;
+                color: #2aa84a;
+            }
+
+        .trace-report-table {
+            display: grid;
+            grid-template-columns: .8fr .8fr 2.6fr 1.4fr;
+            overflow: hidden;
+            border-radius: 4px;
+            background: #dff2e4;
+            color: #222;
+            font-weight: 700;
+            text-align: center;
+        }
+
+            .trace-report-table > div {
+                padding: 12px 10px;
+                border-right: 1px solid #cde6d4;
+            }
+
+                .trace-report-table > div:last-child {
+                    border-right: 0;
+                }
+
         @@media (max-width: 768px) {
             .expired-food-title {
                 font-size: 20px;
@@ -487,6 +719,41 @@
 
             .expired-food-tab.active::after {
                 width: 100%;
+            }
+
+            .trace-check-row,
+            .trace-yesno-row {
+                grid-template-columns: 1fr;
+            }
+
+            .trace-question,
+            .trace-yesno-label {
+                justify-content: flex-start;
+                text-align: left;
+            }
+
+            .trace-check-grid-3,
+            .trace-check-grid-4 {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .trace-yesno-options {
+                padding: 12px;
+            }
+
+            .trace-report-row,
+            .trace-report-field,
+            .trace-report-table {
+                grid-template-columns: 1fr;
+            }
+
+            .trace-report-field label {
+                text-align: left;
+            }
+
+            .trace-report-actions {
+                margin-left: 0;
             }
         }
     </style>
