@@ -140,12 +140,92 @@ namespace CoreAPI.Controllers
                                                        稽查項目 = gj.Select(x => x.稽查項目).FirstOrDefault() ?? string.Empty,
                                                        修改日期 = n.異動時間 ?? default,
                                                        異動人員 = n.異動人員主鍵 ?? string.Empty,
+                                                       建立人員主鍵 = n.建立人員主鍵 ?? string.Empty,
                                                        狀態 = n.是否啟用 ?? string.Empty
-                                                   };
+            };
 
             List<AddProject_Result> data = await result.ToListAsync();
+            await FillModifierNameFromECRS(data);
+            await FillInspectionEventStatus(data);
             await FillProjectDeadlineFromPMDS(data);
             return Ok(data);
+        }
+
+        private async Task FillModifierNameFromECRS(List<AddProject_Result> projects)
+        {
+            var modifierIds = projects
+                .Select(project => project.異動人員)
+                .Where(modifierId => !string.IsNullOrWhiteSpace(modifierId))
+                .Distinct()
+                .ToList();
+
+            if (modifierIds.Count == 0)
+            {
+                return;
+            }
+
+            var userNameMap = await _ECRSdb.系統_使用者資料表s
+                .Where(user => modifierIds.Contains(user.使用者編號))
+                .ToDictionaryAsync(user => user.使用者編號, user => user.姓名 ?? string.Empty);
+
+            foreach (var project in projects)
+            {
+                project.異動人員 = !string.IsNullOrWhiteSpace(project.異動人員)
+                    && userNameMap.TryGetValue(project.異動人員, out var userName)
+                        ? userName
+                        : string.Empty;
+            }
+        }
+
+        private async Task FillModifierNameFromPMDS(List<AddProject_Result> projects)
+        {
+            var modifierIds = projects
+                .Select(project => project.異動人員)
+                .Where(modifierId => !string.IsNullOrWhiteSpace(modifierId))
+                .Distinct()
+                .ToList();
+
+            if (modifierIds.Count == 0)
+            {
+                return;
+            }
+
+            var userNameMap = await _PMDSdb.系統_使用者資料表s
+                .Where(user => modifierIds.Contains(user.使用者編號))
+                .ToDictionaryAsync(user => user.使用者編號, user => user.姓名 ?? string.Empty);
+
+            foreach (var project in projects)
+            {
+                project.異動人員 = !string.IsNullOrWhiteSpace(project.異動人員)
+                    && userNameMap.TryGetValue(project.異動人員, out var userName)
+                        ? userName
+                        : string.Empty;
+            }
+        }
+
+        private async Task FillInspectionEventStatus(List<AddProject_Result> projects)
+        {
+            var projectIds = projects
+                .Select(project => project.專案主鍵.ToString())
+                .Distinct()
+                .ToList();
+
+            if (projectIds.Count == 0)
+            {
+                return;
+            }
+
+            var usedProjectIds = await _ECRSdb.稽查事件_主表s
+                .Where(inspection => inspection.專案名稱編號 != null && projectIds.Contains(inspection.專案名稱編號))
+                .Select(inspection => inspection.專案名稱編號!)
+                .Distinct()
+                .ToListAsync();
+
+            var usedProjectIdSet = usedProjectIds.ToHashSet(StringComparer.Ordinal);
+            foreach (var project in projects)
+            {
+                project.已產生稽查事件 = usedProjectIdSet.Contains(project.專案主鍵.ToString());
+            }
         }
 
         private async Task FillProjectDeadlineFromPMDS(List<AddProject_Result> projects)
@@ -239,6 +319,7 @@ namespace CoreAPI.Controllers
                                                    };
 
             List<AddProject_Result> data = await result.ToListAsync();
+            await FillModifierNameFromPMDS(data);
             return Ok(data);
         }
 
@@ -456,7 +537,9 @@ namespace CoreAPI.Controllers
                     專案名稱 = _addform.FormName,
                     專案截止日期 = _addform.ProjectDeadline.Replace(@"/", ""),
                     是否啟用 = _addform.Status,
-                    建立時間 = DateTime.Now
+                    建立時間 = DateTime.Now,
+                    建立人員主鍵 = _addform.建立人員主鍵,
+                    異動人員主鍵 = _addform.異動人員主鍵
                 };
 
                 _ECRSdb.專案名稱代碼表s.Add(專案名稱代碼_新增資料);
@@ -569,6 +652,53 @@ namespace CoreAPI.Controllers
             {
                 await tx.RollbackAsync();
                 return BadRequest(ToProjectSaveError("修改專案名稱代碼失敗", ex));
+            }
+        }
+
+        [HttpDelete("專案名稱代碼/{projectId:int}")]
+        [AllowAnonymous]
+        public async Task<ActionResult> 刪除專案名稱代碼(int projectId)
+        {
+            if (projectId <= 0)
+            {
+                return BadRequest(new { success = false, message = "未收到刪除資料" });
+            }
+
+            var projectIdText = projectId.ToString();
+            var hasInspectionEvent = await _ECRSdb.稽查事件_主表s
+                .AnyAsync(x => x.專案名稱編號 == projectIdText);
+
+            if (hasInspectionEvent)
+            {
+                return BadRequest(new { success = false, message = "此專案已產生稽查事件，不得刪除" });
+            }
+
+            await using var tx = await _ECRSdb.Database.BeginTransactionAsync();
+
+            try
+            {
+                var project = await _ECRSdb.專案名稱代碼表s.FindAsync(projectId);
+                if (project is null)
+                {
+                    return NotFound(new { success = false, message = "查無專案資料" });
+                }
+
+                var inspectionItems = await _ECRSdb.專案名稱_稽查項目附表s
+                    .Where(x => x.專案名稱代碼主鍵 == projectId)
+                    .ToListAsync();
+
+                _ECRSdb.專案名稱_稽查項目附表s.RemoveRange(inspectionItems);
+                _ECRSdb.專案名稱代碼表s.Remove(project);
+
+                await _ECRSdb.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                return Ok(new { success = true, id = projectId, message = "已刪除專案" });
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                return BadRequest(ToProjectSaveError("刪除專案名稱代碼失敗", ex));
             }
         }
 

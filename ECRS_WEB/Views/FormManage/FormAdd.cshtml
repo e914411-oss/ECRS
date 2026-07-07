@@ -1286,6 +1286,12 @@
 
 @section Scripts {
     <script>
+        const formEditerReturnSearchKey = "FormManage.FormEditer.ReturnSearch";
+
+        window.addEventListener("pagehide", function () {
+            localStorage.setItem(formEditerReturnSearchKey, "Y");
+        });
+
         $(function(){
             $("#save").on("click", function (e) {
                 e.preventDefault();

@@ -1,7 +1,9 @@
 @model IEnumerable<ECRS_WEB.DTOs.FormManageDTO.FormEditer.AddProject_Result>
+@using Microsoft.AspNetCore.Http
 
 @{
     int ii = 1;
+    var currentInspectionId = Context.Session.GetString("InspectionId") ?? string.Empty;
 }
 
 @if (Model == null)
@@ -12,6 +14,11 @@ else
 {
     @foreach (var item in Model)
     {
+        var canOperate = string.Equals(
+            currentInspectionId,
+            item.建立人員主鍵 ?? string.Empty,
+            StringComparison.Ordinal) && !item.已產生稽查事件;
+
         <tr>
             <td class="lt">@ii</td>
             <td class="lt">@item.專案名稱</td>
@@ -24,9 +31,29 @@ else
             <td class="lt">@item.狀態</td>
             <td class="lt text-nowrap action-cell">
                 <div class="d-flex flex-nowrap justify-content-center align-items-center gap-2">
-                    <a class="btn btn-move-datatable pb-1" asp-controller="FormManage" asp-action="FormPreview" asp-route-projectId="@item.專案主鍵">預覽</a>
-                    <a class="btn btn-move-datatable pb-1" asp-controller="FormManage" asp-action="FormUpdate" asp-route-projectId="@item.專案主鍵">修改</a>
-                    <a class="btn btn-move-datatable pb-1" asp-controller="FormManage" asp-action="FormDelete" asp-route-projectId="@item.專案主鍵">刪除</a>
+                    <button type="button"
+                            class="btn btn-move-datatable pb-1 js-project-action"
+                            data-action="navigate"
+                            data-project-id="@item.專案主鍵"
+                            data-url="@Url.Action("FormPreview", "FormManage", new { projectId = item.專案主鍵 })"
+                            disabled="@(!canOperate)">
+                        預覽
+                    </button>
+                    <button type="button"
+                            class="btn btn-move-datatable pb-1 js-project-action"
+                            data-action="navigate"
+                            data-project-id="@item.專案主鍵"
+                            data-url="@Url.Action("FormUpdate", "FormManage", new { projectId = item.專案主鍵 })"
+                            disabled="@(!canOperate)">
+                        修改
+                    </button>
+                    <button type="button"
+                            class="btn btn-move-datatable pb-1 js-project-action"
+                            data-action="delete"
+                            data-project-id="@item.專案主鍵"
+                            disabled="@(!canOperate)">
+                        刪除
+                    </button>
                 </div>
             </td>
         </tr>

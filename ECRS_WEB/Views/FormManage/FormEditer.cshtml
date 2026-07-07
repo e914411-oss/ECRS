@@ -722,6 +722,7 @@
         <div>
             <a asp-controller="FormManage"
                asp-action="FormAdd"
+               id="FormAddLink"
                class="btn btn-success px-4">
                 新增表單
             </a>
@@ -790,14 +791,6 @@
             $("input[name='FormStatus'][value='" + (queryCondition.FormStatus || "") + "']").prop("checked", true);
             $("#ProjectDeadlineStart").val(queryCondition.ProjectDeadlineStart || "");
             $("#ProjectDeadlineEnd").val(queryCondition.ProjectDeadlineEnd || "");
-        }
-
-        function hasFormEditerQueryCondition(queryCondition) {
-            return !!(queryCondition.CreateDepartment ||
-                queryCondition.ProjectName ||
-                queryCondition.FormStatus ||
-                queryCondition.ProjectDeadlineStart ||
-                queryCondition.ProjectDeadlineEnd);
         }
 
         function querydata() {
@@ -888,13 +881,78 @@
             });
         }
 
-        $(document).on("click", ".action-cell a[href*='FormUpdate']", function () {
+        function markFormEditerReturnSearch() {
             saveFormEditerQueryCondition(getFormEditerQueryCondition());
             localStorage.setItem(formEditerReturnSearchKey, "Y");
+        }
+
+        function getProjectActionMessage(response, defaultMessage) {
+            return response && response.message ? response.message : defaultMessage;
+        }
+
+        function setFormEditerLoading(isLoading) {
+            $("#loadingBlock").toggleClass("d-none", !isLoading);
+        }
+
+        function deleteProject(projectId) {
+            setFormEditerLoading(true);
+
+            $.ajax({
+                url: '@Url.Action("FormDelete", "FormManage")',
+                type: 'POST',
+                dataType: 'json',
+                data: { projectId: projectId },
+                success: function (response) {
+                    if (response && response.success === true) {
+                        alert(getProjectActionMessage(response, "已刪除專案"));
+                        querydata();
+                        return;
+                    }
+
+                    alert("刪除失敗");
+                },
+                error: function () {
+                    alert("刪除失敗");
+                },
+                complete: function () {
+                    setFormEditerLoading(false);
+                }
+            });
+        }
+
+        $(document).on("click", ".js-project-action", function () {
+            var $button = $(this);
+            var projectId = $button.data("project-id");
+            var action = $button.data("action");
+
+            if (action === "delete") {
+                deleteProject(projectId);
+                return;
+            }
+
+            markFormEditerReturnSearch();
+            window.location.href = $button.data("url");
         });
 
-        window.addEventListener("pageshow", function () {
-            if (localStorage.getItem(formEditerReturnSearchKey) !== "Y") {
+        $(document).on("click", "#FormAddLink", function () {
+            markFormEditerReturnSearch();
+        });
+
+        function shouldRestoreFormEditerSearch(event) {
+            if (localStorage.getItem(formEditerReturnSearchKey) === "Y") {
+                return true;
+            }
+
+            if (event && event.persisted) {
+                return true;
+            }
+
+            var navigationEntries = performance.getEntriesByType && performance.getEntriesByType("navigation");
+            return navigationEntries && navigationEntries.length > 0 && navigationEntries[0].type === "back_forward";
+        }
+
+        window.addEventListener("pageshow", function (event) {
+            if (!shouldRestoreFormEditerSearch(event)) {
                 return;
             }
 
@@ -908,10 +966,7 @@
                 var queryCondition = JSON.parse(rawQueryCondition);
                 restoreFormEditerQueryCondition(queryCondition);
                 localStorage.removeItem(formEditerReturnSearchKey);
-
-                if (hasFormEditerQueryCondition(queryCondition)) {
-                    querydata();
-                }
+                querydata();
             } catch (e) {
                 localStorage.removeItem(formEditerReturnSearchKey);
                 console.error("Restore FormEditer query condition failed:", e);

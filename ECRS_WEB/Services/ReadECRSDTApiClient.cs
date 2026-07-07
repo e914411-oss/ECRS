@@ -123,6 +123,21 @@ namespace ECRS_WEB.Services
 
             if (!resp.IsSuccessStatusCode)
             {
+                try
+                {
+                    var apiError = JsonSerializer.Deserialize<ApiAddProjectResult>(
+                        raw,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (!string.IsNullOrWhiteSpace(apiError?.Message))
+                    {
+                        return apiError;
+                    }
+                }
+                catch (JsonException)
+                {
+                }
+
                 return new ApiAddProjectResult
                 {
                     Success = false,
@@ -164,6 +179,19 @@ namespace ECRS_WEB.Services
             using var req = new HttpRequestMessage(HttpMethod.Post, url);
             req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             req.Content = JsonContent.Create(updateProjectForm);
+
+            using var resp = await _http.SendAsync(req, cancellationToken);
+            return await ReadApiAddProjectResult(resp, cancellationToken);
+        }
+
+        public async Task<ApiAddProjectResult> Delete_專案名稱代碼(int projectId, CancellationToken cancellationToken = default)
+        {
+            var token = GetTokenOrThrow();
+            var action = Uri.EscapeDataString("專案名稱代碼");
+            var url = $"/Api/FormManage/{action}/{projectId}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Delete, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             using var resp = await _http.SendAsync(req, cancellationToken);
             return await ReadApiAddProjectResult(resp, cancellationToken);

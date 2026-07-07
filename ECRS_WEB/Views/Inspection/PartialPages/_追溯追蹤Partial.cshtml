@@ -1,155 +1,517 @@
-﻿<div class="inspection-question-card">
-        <div class="inspection-question-title">
-            6.	追溯追蹤
+<div class="expired-food-page trace-page">
+    <h2 class="expired-food-title">追溯追蹤</h2>
+
+    <div class="expired-food-query-panel">
+        <div class="expired-food-query-row">
+            <label class="expired-food-label" for="txtTracePreviousInspectionInfo">上次稽查日期及結果：</label>
+            <input id="txtTracePreviousInspectionInfo" type="text" class="form-control" readonly />
+            <div></div>
         </div>
-        <div class="inspection-question-body">
-            <div class="pmds-radio-group inspection-group">
-                <div class="inspection-row">
-                    <span class="fw-bold rule-text">▷	建立食品及相關產品追溯追蹤系統：</span>
-                    <label class="radio-inline-item" for="chk2_1">
-                        <input id="chk2_1" type="checkbox" value="Y">
-                        <span>符合</span>
-                    </label>
-                </div>
+
+        <div class="expired-food-query-row">
+            <label class="expired-food-label" for="txtTraceProjectName">專案名稱：</label>
+            <textarea id="txtTraceProjectName" class="form-control expired-food-project"></textarea>
+            <div class="expired-food-query-actions">
+                <button type="button" class="btn btn-sm" id="btnTraceSearch">查詢</button>
+                <button type="button" class="btn btn-sm" id="btnTraceRemove">移除</button>
             </div>
+        </div>
+    </div>
 
-            <div class="pmds-radio-group inspection-group">
-                <div class="inspection-row">
-                    <label class="radio-inline-item" for="chk2_2">
-                        <input id="chk1_2" type="checkbox" value="N">
-                        <span>不符合</span>
-                    </label>
-                    <div class="inspection-group">
-                        <div class="inspection-row" style="margin:24px;">
-                            <label class="radio-inline-item" for="chk2_2">
-                                <input id="chk1_2" type="checkbox" value="N">
-                                <span>無法追溯</span>
-                            </label>
-                            <label class="radio-inline-item" for="chk2_2">
-                                <input id="chk1_2" type="checkbox" value="N">
-                                <span>無法追蹤</span>
-                            </label>
-                            <label class="radio-inline-item" for="chk2_2">
-                                <input id="chk1_2" type="checkbox" value="N">
-                                <span>其他，說明：</span><input id="txtExplan1" type="text" class="form-control note-input" />
-                                <span>，限於</span>
-                                <input id="txtYear1" type="text" class="form-control date-input" />年
-                                <input id="txtMonth1" type="text" class="form-control date-input" />月
-                                <input id="txtDay1" type="text" class="form-control date-input" />日前改善完竣。
-                            </label>
-                        </div>
-                    </div>
+    <div class="expired-food-tabs trace-tabs" role="tablist" aria-label="追溯追蹤頁籤">
+        <div class="expired-food-tab active" role="tab" aria-selected="true">查驗條文</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">工作紀錄</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">專案欄位</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">稽查結果</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">稽查結果附件</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">預覽</div>
+    </div>
 
-                    <div class="inspection-group">
-                        <div class="inspection-row" style="margin:24px;">
-                            <label class="radio-inline-item" for="chk2_2">
-                                <input id="chk1_2" type="checkbox" value="N">
-                                <span>建立資料不實，後續將依法處辦</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
+    <div class="expired-food-inspection-panel">
+        <div class="trace-check-row">
+            <div class="expired-food-question trace-question">
+                <span class="required">*</span>業者主業別(可複選)：
             </div>
-
-            <div class="pmds-radio-group inspection-group">
-                <div class="inspection-row">
-                    <label class="radio-inline-item" for="chk2_3">
-                        <input id="chk1_2" type="checkbox" value="N">
-                        <span>不適用，原因</span><input id="txtReason2" type="text" class="form-control" style="width:270px;" />
-                    </label>
-                </div>
-            </div>
-
-            <div class="pmds-radio-group inspection-group">
-                <div class="inspection-row">
-                    <span class="fw-bold rule-text">▷	業者依法應以電子申報非追不可，申報結果:</span>
-                    <label for="chk2_4" class="check-item">
-                        <input id="chk2_4" type="checkbox" value="Y" />
-                        <span>符合</span>
-                    </label>
-                    <label for="chk2_5" class="check-item">
-                        <input id="chk2_5" type="checkbox" value="N" />
-                        <span>不符合</span>
-                    </label>
-                    <div class="inspection-group">
-                        <div class="inspection-row" style="margin:24px;">
-                            <label class="radio-inline-item" for="chk2_2">
-                                <input id="chk1_2" type="checkbox" value="N">
-                                <span>未申報</span>
-                            </label>
-                            <label class="radio-inline-item" for="chk2_2">
-                                <input id="chk1_2" type="checkbox" value="N">
-                                <span>未更新</span>
-                            </label>
-                            <label class="radio-inline-item" for="chk2_2">
-                                <input id="chk1_2" type="checkbox" value="N">
-                                <span>其他，說明：</span><input id="txtExplan1" type="text" class="form-control note-input" />
-                                <span>，限於</span>
-                                <input id="txtYear1" type="text" class="form-control date-input" />年
-                                <input id="txtMonth1" type="text" class="form-control date-input" />月
-                                <input id="txtDay1" type="text" class="form-control date-input" />日前改善完竣。
-                            </label>
-                        </div>
-                        <div class="inspection-row" style="margin:24px;">
-                            <label class="radio-inline-item" for="chk2_2">
-                                <input id="chk1_2" type="checkbox" value="N">
-                                <span>報資料不實，後續將依法處辦</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="pmds-radio-group inspection-group">
-                <div class="inspection-row">
-                    <label class="radio-inline-item" for="chk2_3">
-                        <input id="chk1_2" type="checkbox" value="N">
-                        <span>不適用，原因</span><input id="txtReason2" type="text" class="form-control" style="width:270px;" />
-                    </label>
-                </div>
-            </div>
-
-            <div class="pmds-radio-group inspection-group">
-                <div class="inspection-row">
-                    <span class="fw-bold rule-text">▷	業者有無依法開立電子發票：</span>
-                    <label for="chk2_4" class="check-item">
-                        <input id="chk2_4" type="checkbox" value="Y" />
-                        <span>有</span>
-                    </label>
-                    <label for="chk2_5" class="check-item">
-                        <input id="chk2_5" type="checkbox" value="N" />
-                        <span>無，說明：</span><input id="txtExplan2" type="text" class="form-control note-input" />
-                    </label>
-                </div>
-            </div>
-
-            <div class="pmds-radio-group inspection-group">
-                <div class="inspection-row">
-                    <label class="radio-inline-item" for="chk2_3">
-                        <input id="chk1_2" type="checkbox" value="N">
-                        <span>不適用，原因</span><input id="txtReason2" type="text" class="form-control" style="width:270px;" />
-                    </label>
-                </div>
-            </div>
-
-            <div class="pmds-radio-group inspection-group">
-                <label for="chk1_4" class="check-item">
-                    <input id="chk1_4" type="checkbox" value="Y" />
-                    <span>資料待補，說明</span><input id="txtExplan1" type="text" class="form-control note-input" />
-                    <span>備註：</span><input id="txtNote1" type="text" class="form-control note-input" /><span>(可讓現場稽查人員依需求填寫)</span>
+            <div class="trace-check-grid trace-check-grid-3">
+                <label class="check-item" for="traceBusinessImport">
+                    <input id="traceBusinessImport" type="checkbox" value="輸入" />
+                    <span>輸入</span>
                 </label>
-
-                <label class="check-item">
-                    <span>●查核提醒事項:</span><input id="txtNote1" type="text" class="form-control note-input" /><span>(表單設計者依需求填寫填寫，倘無則不顯示)</span>
+                <label class="check-item" for="traceBusinessManufacture">
+                    <input id="traceBusinessManufacture" type="checkbox" value="製造、加工、調配" />
+                    <span>製造、加工、調配</span>
+                </label>
+                <label class="check-item" for="traceBusinessSell">
+                    <input id="traceBusinessSell" type="checkbox" value="販賣" />
+                    <span>販賣</span>
                 </label>
             </div>
-
-
         </div>
-    
 
-    <div class="inspection-action-row">
-        <button type="button" class="btn btn-form" id="btnSave2043391797">儲存</button>
-        <button type="button" class="btn btn-form" id="btnCancel2043391797" onclick="window.history.go(-1);">取消</button>
+        <div class="trace-check-row trace-category-row">
+            <div class="expired-food-question trace-question">
+                <span class="required">*</span>本次查核產品類別(可複選)：
+            </div>
+            <div class="trace-check-grid trace-check-grid-4">
+                <label class="check-item" for="traceCategoryOil">
+                    <input id="traceCategoryOil" type="checkbox" value="食用油脂" />
+                    <span>食用油脂</span>
+                </label>
+                <label class="check-item" for="traceCategoryMeat">
+                    <input id="traceCategoryMeat" type="checkbox" value="肉品及其加工食品" />
+                    <span>肉品及其加工食品</span>
+                </label>
+                <label class="check-item" for="traceCategoryMilk">
+                    <input id="traceCategoryMilk" type="checkbox" value="乳品及其加工食品" />
+                    <span>乳品及其加工食品</span>
+                </label>
+                <label class="check-item" for="traceCategoryAquatic">
+                    <input id="traceCategoryAquatic" type="checkbox" value="水產品及其加工食品" />
+                    <span>水產品及其加工食品</span>
+                </label>
+                <label class="check-item" for="traceCategoryBoxMeal">
+                    <input id="traceCategoryBoxMeal" type="checkbox" value="餐盒食品" />
+                    <span>餐盒食品</span>
+                </label>
+                <label class="check-item" for="traceCategoryAdditive">
+                    <input id="traceCategoryAdditive" type="checkbox" value="食品添加物" />
+                    <span>食品添加物</span>
+                </label>
+                <label class="check-item" for="traceCategoryGmo">
+                    <input id="traceCategoryGmo" type="checkbox" value="基因改造食品原料" />
+                    <span>基因改造食品原料</span>
+                </label>
+                <label class="check-item" for="traceCategorySoybean">
+                    <input id="traceCategorySoybean" type="checkbox" value="黃豆" />
+                    <span>黃豆</span>
+                </label>
+                <label class="check-item" for="traceCategoryTea">
+                    <input id="traceCategoryTea" type="checkbox" value="麥類及燕麥" />
+                    <span>麥類及燕麥</span>
+                </label>
+                <label class="check-item" for="traceCategoryCorn">
+                    <input id="traceCategoryCorn" type="checkbox" value="玉米" />
+                    <span>玉米</span>
+                </label>
+                <label class="check-item" for="traceCategoryNoodles">
+                    <input id="traceCategoryNoodles" type="checkbox" value="麵粉" />
+                    <span>麵粉</span>
+                </label>
+                <label class="check-item" for="traceCategoryStarch">
+                    <input id="traceCategoryStarch" type="checkbox" value="澱粉" />
+                    <span>澱粉</span>
+                </label>
+                <label class="check-item" for="traceCategorySalt">
+                    <input id="traceCategorySalt" type="checkbox" value="食鹽" />
+                    <span>食鹽</span>
+                </label>
+                <label class="check-item" for="traceCategorySugar">
+                    <input id="traceCategorySugar" type="checkbox" value="糖" />
+                    <span>糖</span>
+                </label>
+                <label class="check-item" for="traceCategoryTeaDrink">
+                    <input id="traceCategoryTeaDrink" type="checkbox" value="茶葉" />
+                    <span>茶葉</span>
+                </label>
+                <label class="check-item" for="traceCategoryPackagedTea">
+                    <input id="traceCategoryPackagedTea" type="checkbox" value="包裝茶葉飲料" />
+                    <span>包裝茶葉飲料</span>
+                </label>
+                <label class="check-item" for="traceCategorySoyProduct">
+                    <input id="traceCategorySoyProduct" type="checkbox" value="黃豆製品" />
+                    <span>黃豆製品</span>
+                </label>
+                <label class="check-item" for="traceCategoryInfantFormula">
+                    <input id="traceCategoryInfantFormula" type="checkbox" value="嬰兒及較大嬰兒配方食品" />
+                    <span>嬰兒及較大嬰兒配方食品</span>
+                </label>
+                <label class="check-item" for="traceCategoryFormula">
+                    <input id="traceCategoryFormula" type="checkbox" value="包裝乳粉及調製乳粉" />
+                    <span>包裝乳粉及調製乳粉</span>
+                </label>
+                <label class="check-item" for="traceCategoryEgg">
+                    <input id="traceCategoryEgg" type="checkbox" value="蛋製品" />
+                    <span>蛋製品</span>
+                </label>
+                <label class="check-item" for="traceCategoryVinegar">
+                    <input id="traceCategoryVinegar" type="checkbox" value="食用醋" />
+                    <span>食用醋</span>
+                </label>
+                <span></span>
+                <label class="check-item" for="traceCategoryBabyFood">
+                    <input id="traceCategoryBabyFood" type="checkbox" value="嬰幼兒食品" />
+                    <span>嬰幼兒食品</span>
+                </label>
+                <label class="check-item trace-import-category" for="traceCategoryImportedPlantProduct">
+                    <input id="traceCategoryImportedPlantProduct" type="checkbox" value="農產植物製品、菇(蕈)類及藻類之冷凍、冷藏、脫水、醃漬、凝膠及餡料製品、植物蛋白及其製品" />
+                    <span>農產植物製品、菇(蕈)類及藻類之冷凍、冷藏、脫水、醃漬、凝膠及餡料製品、植物蛋白及其製品</span>
+                </label>
+                <label class="check-item trace-manufacture-category" for="traceCategoryOtherFoodBusiness">
+                    <input id="traceCategoryOtherFoodBusiness" type="checkbox" value="其他食品業別" />
+                    <span>其他食品業別</span>
+                </label>
+                <label class="check-item trace-sell-category" for="traceCategorySellBoxMeal">
+                    <input id="traceCategorySellBoxMeal" type="checkbox" value="餐盒食品" />
+                    <span>餐盒食品</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="trace-yesno-table">
+            <div class="trace-yesno-row">
+                <div class="trace-yesno-label"><span class="required">*</span>是否應建立食品追溯追蹤系統：</div>
+                <div class="trace-yesno-options">
+                    <label class="expired-food-radio" for="traceSystemYes">
+                        <input id="traceSystemYes" name="traceSystemRequired" type="radio" value="Y" />
+                        <span>是</span>
+                    </label>
+                    <label class="expired-food-radio" for="traceSystemNo">
+                        <input id="traceSystemNo" name="traceSystemRequired" type="radio" value="N" />
+                        <span>否</span>
+                    </label>
+                </div>
+            </div>
+            <div class="trace-yesno-row trace-conditional-row" id="traceSystemComplianceRow">
+                <div class="trace-yesno-label"><span class="required">*</span>食品追溯追蹤系統是否符合：</div>
+                <div class="trace-yesno-options">
+                    <label class="expired-food-radio" for="traceSystemComplianceYes">
+                        <input id="traceSystemComplianceYes" name="traceSystemCompliance" type="radio" value="Y" />
+                        <span>是</span>
+                    </label>
+                    <label class="expired-food-radio" for="traceSystemComplianceNo">
+                        <input id="traceSystemComplianceNo" name="traceSystemCompliance" type="radio" value="N" />
+                        <span>否</span>
+                    </label>
+                </div>
+            </div>
+            <div class="trace-yesno-row trace-conditional-row" id="traceSystemNonconformingRow">
+                <div class="trace-yesno-label"><span class="required">*</span>追溯追蹤不符合項目：</div>
+                <div class="trace-yesno-options trace-detail-options">
+                    <label class="expired-food-radio" for="traceSystemNoTrace">
+                        <input id="traceSystemNoTrace" name="traceSystemNonconformingItem" type="radio" value="未建立追溯或追蹤系統" />
+                        <span>未建立追溯或追蹤系統。</span>
+                    </label>
+                    <label class="expired-food-radio" for="traceSystemUntrue">
+                        <input id="traceSystemUntrue" name="traceSystemNonconformingItem" type="radio" value="建立之資料不實" />
+                        <span>建立之資料不實。</span>
+                    </label>
+                    <label class="expired-food-radio" for="traceSystemOther">
+                        <input id="traceSystemOther" name="traceSystemNonconformingItem" type="radio" value="其他" />
+                        <span>其他：</span>
+                    </label>
+                    <input id="txtTraceSystemOther" type="text" class="form-control trace-detail-input" />
+                </div>
+            </div>
+            <div class="trace-yesno-row">
+                <div class="trace-yesno-label"><span class="required">*</span>是否應開立電子發票：</div>
+                <div class="trace-yesno-options">
+                    <label class="expired-food-radio" for="traceInvoiceYes">
+                        <input id="traceInvoiceYes" name="traceInvoiceRequired" type="radio" value="Y" />
+                        <span>是</span>
+                    </label>
+                    <label class="expired-food-radio" for="traceInvoiceNo">
+                        <input id="traceInvoiceNo" name="traceInvoiceRequired" type="radio" value="N" />
+                        <span>否</span>
+                    </label>
+                </div>
+            </div>
+            <div class="trace-yesno-row trace-conditional-row" id="traceInvoiceOpenedRow">
+                <div class="trace-yesno-label"><span class="required">*</span>是否開立電子發票：</div>
+                <div class="trace-yesno-options">
+                    <label class="expired-food-radio" for="traceInvoiceOpenedYes">
+                        <input id="traceInvoiceOpenedYes" name="traceInvoiceOpened" type="radio" value="Y" />
+                        <span>是</span>
+                    </label>
+                    <label class="expired-food-radio" for="traceInvoiceOpenedNo">
+                        <input id="traceInvoiceOpenedNo" name="traceInvoiceOpened" type="radio" value="N" />
+                        <span>否</span>
+                    </label>
+                </div>
+            </div>
+            <div class="trace-yesno-row trace-conditional-row" id="traceInvoiceNonconformingRow">
+                <div class="trace-yesno-label"><span class="required">*</span>電子發票不符合項目：</div>
+                <div class="trace-yesno-options trace-detail-options">
+                    <label class="expired-food-radio" for="traceInvoiceNotOpened">
+                        <input id="traceInvoiceNotOpened" name="traceInvoiceNonconformingItem" type="radio" value="未開立電子發票致無法為食品之追溯或追蹤" />
+                        <span>未開立電子發票致無法為食品之追溯或追蹤。</span>
+                    </label>
+                    <label class="expired-food-radio" for="traceInvoiceUntrue">
+                        <input id="traceInvoiceUntrue" name="traceInvoiceNonconformingItem" type="radio" value="開立之電子發票不實致影響食品追溯或追蹤之查核" />
+                        <span>開立之電子發票不實致影響食品追溯或追蹤之查核。</span>
+                    </label>
+                    <label class="expired-food-radio" for="traceInvoiceOther">
+                        <input id="traceInvoiceOther" name="traceInvoiceNonconformingItem" type="radio" value="其他" />
+                        <span>其他：</span>
+                    </label>
+                    <input id="txtTraceInvoiceOther" type="text" class="form-control trace-detail-input" />
+                </div>
+            </div>
+            <div class="trace-yesno-row">
+                <div class="trace-yesno-label"><span class="required">*</span>是否為「應標示基因改造食品」：</div>
+                <div class="trace-yesno-options">
+                    <label class="expired-food-radio" for="traceGmoLabelYes">
+                        <input id="traceGmoLabelYes" name="traceGmoLabelRequired" type="radio" value="Y" />
+                        <span>是</span>
+                    </label>
+                    <label class="expired-food-radio" for="traceGmoLabelNo">
+                        <input id="traceGmoLabelNo" name="traceGmoLabelRequired" type="radio" value="N" />
+                        <span>否</span>
+                    </label>
+                </div>
+            </div>
+            <div class="trace-yesno-row trace-conditional-row" id="traceGmoLabelRow">
+                <div class="trace-yesno-label"><span class="required">*</span>是否已標示基因改造食品：</div>
+                <div class="trace-yesno-options">
+                    <label class="expired-food-radio" for="traceGmoLabelDoneYes">
+                        <input id="traceGmoLabelDoneYes" name="traceGmoLabelDone" type="radio" value="Y" />
+                        <span>是</span>
+                    </label>
+                    <label class="expired-food-radio" for="traceGmoLabelDoneNo">
+                        <input id="traceGmoLabelDoneNo" name="traceGmoLabelDone" type="radio" value="N" />
+                        <span>否</span>
+                    </label>
+                </div>
+            </div>
+            <div class="trace-yesno-row">
+                <div class="trace-yesno-label"><span class="required">*</span>是否為「宣稱非基因改造食品」：</div>
+                <div class="trace-yesno-options">
+                    <label class="expired-food-radio" for="traceNonGmoClaimYes">
+                        <input id="traceNonGmoClaimYes" name="traceNonGmoClaim" type="radio" value="Y" />
+                        <span>是</span>
+                    </label>
+                    <label class="expired-food-radio" for="traceNonGmoClaimNo">
+                        <input id="traceNonGmoClaimNo" name="traceNonGmoClaim" type="radio" value="N" />
+                        <span>否</span>
+                    </label>
+                </div>
+            </div>
+            <div class="trace-yesno-row trace-conditional-row" id="traceNonGmoClaimRow">
+                <div class="trace-yesno-label"><span class="required">*</span>是否符合非基因改造食品宣稱：</div>
+                <div class="trace-yesno-options">
+                    <label class="expired-food-radio" for="traceNonGmoClaimComplianceYes">
+                        <input id="traceNonGmoClaimComplianceYes" name="traceNonGmoClaimCompliance" type="radio" value="Y" />
+                        <span>是</span>
+                    </label>
+                    <label class="expired-food-radio" for="traceNonGmoClaimComplianceNo">
+                        <input id="traceNonGmoClaimComplianceNo" name="traceNonGmoClaimCompliance" type="radio" value="N" />
+                        <span>否</span>
+                    </label>
+                </div>
+            </div>
+            <div class="trace-yesno-row">
+                <div class="trace-yesno-label"><span class="required">*</span>是否應執行電子申報：</div>
+                <div class="trace-yesno-options">
+                    <label class="expired-food-radio" for="traceElectronicReportYes">
+                        <input id="traceElectronicReportYes" name="traceElectronicReportRequired" type="radio" value="Y" />
+                        <span>是</span>
+                    </label>
+                    <label class="expired-food-radio" for="traceElectronicReportNo">
+                        <input id="traceElectronicReportNo" name="traceElectronicReportRequired" type="radio" value="N" />
+                        <span>否</span>
+                    </label>
+                </div>
+            </div>
+            <div class="trace-yesno-row trace-conditional-row" id="traceElectronicReportComplianceRow">
+                <div class="trace-yesno-label"><span class="required">*</span>電子申報是否符合：</div>
+                <div class="trace-yesno-options">
+                    <label class="expired-food-radio" for="traceElectronicReportComplianceYes">
+                        <input id="traceElectronicReportComplianceYes" name="traceElectronicReportCompliance" type="radio" value="Y" />
+                        <span>是</span>
+                    </label>
+                    <label class="expired-food-radio" for="traceElectronicReportComplianceNo">
+                        <input id="traceElectronicReportComplianceNo" name="traceElectronicReportCompliance" type="radio" value="N" />
+                        <span>否</span>
+                    </label>
+                </div>
+            </div>
+            <div class="trace-yesno-row trace-conditional-row" id="traceElectronicReportNonconformingRow">
+                <div class="trace-yesno-label"><span class="required">*</span>請勾選不符合項目：</div>
+                <div class="trace-yesno-options trace-detail-options">
+                    <label class="expired-food-radio" for="traceElectronicReportWrongMethod">
+                        <input id="traceElectronicReportWrongMethod" name="traceElectronicReportNonconformingItem" type="radio" value="未以電子方式申報或未依中央主管機關所定之方式及規格申報" />
+                        <span>未以電子方式申報或未依中央主管機關所定之方式及規格申報。</span>
+                    </label>
+                    <label class="expired-food-radio" for="traceElectronicReportUntrue">
+                        <input id="traceElectronicReportUntrue" name="traceElectronicReportNonconformingItem" type="radio" value="申報之資料不實" />
+                        <span>申報之資料不實。</span>
+                    </label>
+                    <label class="expired-food-radio" for="traceElectronicReportOther">
+                        <input id="traceElectronicReportOther" name="traceElectronicReportNonconformingItem" type="radio" value="其他" />
+                        <span>其他：</span>
+                    </label>
+                    <input id="txtTraceElectronicReportOther" type="text" class="form-control trace-detail-input" />
+                </div>
+            </div>
+            <div class="trace-report-panel" id="traceElectronicReportPanel">
+                <div class="trace-report-row">
+                    <div class="trace-report-question">
+                        <span class="required">*</span>是否於每月10日至「食品追溯追蹤管理資訊系統」上傳前一個月之資料：
+                    </div>
+                    <div class="trace-report-radios">
+                        <label class="expired-food-radio" for="traceMonthlyUploadYes">
+                            <input id="traceMonthlyUploadYes" name="traceMonthlyUpload" type="radio" value="Y" />
+                            <span>是</span>
+                        </label>
+                        <label class="expired-food-radio" for="traceMonthlyUploadNo">
+                            <input id="traceMonthlyUploadNo" name="traceMonthlyUpload" type="radio" value="N" />
+                            <span>否</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="trace-report-field">
+                    <label for="txtTraceReportSystemCode">查核產品追溯追蹤系統串接碼：</label>
+                    <input id="txtTraceReportSystemCode" type="text" class="form-control" />
+                </div>
+                <div class="trace-report-field">
+                    <label for="txtTraceReportItemWeight">申報總淨重：</label>
+                    <input id="txtTraceReportItemWeight" type="text" class="form-control" />
+                </div>
+                <div class="trace-report-actions">
+                    <button type="button" class="btn btn-sm">新增</button>
+                    <button type="button" class="btn btn-sm">清除</button>
+                </div>
+                <div class="trace-report-table" role="table" aria-label="電子申報查核結果">
+                    <div role="columnheader">動作</div>
+                    <div role="columnheader">項次</div>
+                    <div role="columnheader">查核產品追溯追蹤系統串接碼</div>
+                    <div role="columnheader">申報總淨重</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="expired-food-actions">
+        <button type="button" class="btn btn-success" id="btnCancelTrace" onclick="window.history.go(-1);">取消並返回</button>
+        <button type="button" class="btn btn-success" id="btnSaveTrace">儲存並離開</button>
     </div>
 </div>
+
+<script>
+    (function () {
+        function bindConditionalCategory(triggerId, categorySelector, categoryInputId) {
+            var trigger = document.getElementById(triggerId);
+            var category = document.querySelector(categorySelector);
+            var categoryInput = document.getElementById(categoryInputId);
+
+            if (!trigger || !category) {
+                return;
+            }
+
+            function syncCategory() {
+                var shouldShow = trigger.checked;
+                category.classList.toggle('is-visible', shouldShow);
+
+                if (!shouldShow && categoryInput) {
+                    categoryInput.checked = false;
+                }
+            }
+
+            trigger.addEventListener('change', syncCategory);
+            syncCategory();
+        }
+
+        bindConditionalCategory('traceBusinessImport', '.trace-import-category', 'traceCategoryImportedPlantProduct');
+        bindConditionalCategory('traceBusinessManufacture', '.trace-manufacture-category', 'traceCategoryOtherFoodBusiness');
+        bindConditionalCategory('traceBusinessSell', '.trace-sell-category', 'traceCategorySellBoxMeal');
+
+        function isRadioYes(name) {
+            var checkedRadio = document.querySelector('input[name="' + name + '"]:checked');
+            return checkedRadio && checkedRadio.value === 'Y';
+        }
+
+        function clearFields(container) {
+            if (!container) {
+                return;
+            }
+
+            container.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(function (input) {
+                input.checked = false;
+            });
+
+            container.querySelectorAll('input[type="text"], textarea').forEach(function (input) {
+                input.value = '';
+            });
+        }
+
+        function setRowVisible(row, shouldShow) {
+            if (!row) {
+                return;
+            }
+
+            row.classList.toggle('is-visible', shouldShow);
+
+            if (!shouldShow) {
+                clearFields(row);
+            }
+        }
+
+        function setPanelVisible(panel, shouldShow) {
+            if (!panel) {
+                return;
+            }
+
+            panel.classList.toggle('is-visible', shouldShow);
+
+            if (!shouldShow) {
+                clearFields(panel);
+            }
+        }
+
+        function bindRadioChange(name, sync) {
+            document.querySelectorAll('input[name="' + name + '"]').forEach(function (radio) {
+                radio.addEventListener('change', sync);
+            });
+        }
+
+        var systemComplianceRow = document.getElementById('traceSystemComplianceRow');
+        var systemNonconformingRow = document.getElementById('traceSystemNonconformingRow');
+        var invoiceOpenedRow = document.getElementById('traceInvoiceOpenedRow');
+        var invoiceNonconformingRow = document.getElementById('traceInvoiceNonconformingRow');
+        var gmoLabelRow = document.getElementById('traceGmoLabelRow');
+        var nonGmoClaimRow = document.getElementById('traceNonGmoClaimRow');
+        var electronicReportComplianceRow = document.getElementById('traceElectronicReportComplianceRow');
+        var electronicReportNonconformingRow = document.getElementById('traceElectronicReportNonconformingRow');
+        var electronicReportPanel = document.getElementById('traceElectronicReportPanel');
+
+        function syncTraceSystemRows() {
+            var shouldShowCompliance = isRadioYes('traceSystemRequired');
+            setRowVisible(systemComplianceRow, shouldShowCompliance);
+            setRowVisible(systemNonconformingRow, shouldShowCompliance && !isRadioYes('traceSystemCompliance') && document.querySelector('input[name="traceSystemCompliance"]:checked') !== null);
+        }
+
+        function syncInvoiceRows() {
+            var shouldShowOpened = isRadioYes('traceInvoiceRequired');
+            setRowVisible(invoiceOpenedRow, shouldShowOpened);
+            setRowVisible(invoiceNonconformingRow, shouldShowOpened && !isRadioYes('traceInvoiceOpened') && document.querySelector('input[name="traceInvoiceOpened"]:checked') !== null);
+        }
+
+        function syncElectronicReportRows() {
+            var shouldShowCompliance = isRadioYes('traceElectronicReportRequired');
+            var complianceChecked = document.querySelector('input[name="traceElectronicReportCompliance"]:checked') !== null;
+            var complianceNo = shouldShowCompliance && complianceChecked && !isRadioYes('traceElectronicReportCompliance');
+
+            setRowVisible(electronicReportComplianceRow, shouldShowCompliance);
+            setRowVisible(electronicReportNonconformingRow, complianceNo);
+            setPanelVisible(electronicReportPanel, shouldShowCompliance && complianceChecked);
+        }
+
+        bindRadioChange('traceSystemRequired', syncTraceSystemRows);
+        bindRadioChange('traceSystemCompliance', syncTraceSystemRows);
+        bindRadioChange('traceInvoiceRequired', syncInvoiceRows);
+        bindRadioChange('traceInvoiceOpened', syncInvoiceRows);
+        bindRadioChange('traceGmoLabelRequired', function () {
+            setRowVisible(gmoLabelRow, isRadioYes('traceGmoLabelRequired'));
+        });
+        bindRadioChange('traceNonGmoClaim', function () {
+            setRowVisible(nonGmoClaimRow, isRadioYes('traceNonGmoClaim'));
+        });
+        bindRadioChange('traceElectronicReportRequired', syncElectronicReportRows);
+        bindRadioChange('traceElectronicReportCompliance', syncElectronicReportRows);
+
+        syncTraceSystemRows();
+        syncInvoiceRows();
+        setRowVisible(gmoLabelRow, isRadioYes('traceGmoLabelRequired'));
+        setRowVisible(nonGmoClaimRow, isRadioYes('traceNonGmoClaim'));
+        syncElectronicReportRows();
+    })();
+</script>

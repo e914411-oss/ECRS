@@ -22,6 +22,14 @@ namespace ECRS_API.DTOs.FormMangeDTO.FormEditer
         {
             get; set;
         }
+        public string? 建立人員主鍵
+        {
+            get; set;
+        }
+        public string? 異動人員主鍵
+        {
+            get; set;
+        }
     }
 
     public class UpdateProject_Form : AddProject_Form

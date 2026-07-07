@@ -1489,6 +1489,7 @@
                     console.log("FormUpdate API 回傳：", response);
 
                     if (response && response.success === true) {
+                        localStorage.setItem("FormManage.FormEditer.ReturnSearch", "Y");
                         window.location.href = "@Url.Action("FormEditer", "FormManage")";
                     } else {
                         setLoadingBlock(false);

@@ -60,3 +60,285 @@
         <button type="button" class="btn btn-success" id="btnSaveExpiredFood">儲存並離開</button>
     </div>
 </div>
+
+<div id="expiredFoodTemplateOverlay" class="expired-food-template-overlay" hidden>
+    <div class="expired-food-template-dialog" role="dialog" aria-modal="true" aria-labelledby="expiredFoodTemplateTitle">
+        <div class="expired-food-template-header">
+            <h3 id="expiredFoodTemplateTitle">請選擇您要加入的範本</h3>
+        </div>
+        <div class="expired-food-template-body">
+            <ul class="expired-food-template-tree">
+                <li class="is-expanded">
+                    <span class="tree-label">縣市衛生局</span>
+                    <ul>
+                        <li><span class="tree-label">GHP</span></li>
+                        <li><span class="tree-label">抽驗/標示</span></li>
+                        <li class="is-expanded">
+                            <span class="tree-label">現場稽查記錄</span>
+                            <ul>
+                                <li>
+                                    <label class="tree-radio">
+                                        <input type="radio" name="expiredFoodTemplateText" value="勾兩個可以嗎?" />
+                                        <span>勾兩個可以嗎?</span>
+                                    </label>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="is-expanded">
+                            <span class="tree-label">食品中毒速報</span>
+                            <ul>
+                                <li>
+                                    <label class="tree-radio">
+                                        <input type="radio" name="expiredFoodTemplateText" value="勾兩個可以嗎?" checked />
+                                        <span>勾兩個可以嗎?</span>
+                                    </label>
+                                </li>
+                            </ul>
+                        </li>
+                        <li><span class="tree-label">其他</span></li>
+                        <li><span class="tree-label">回收後續處理結果</span></li>
+                    </ul>
+                </li>
+                <li class="is-expanded">
+                    <span class="tree-label">個人專用範本</span>
+                    <ul>
+                        <li><span class="tree-label">GHP</span></li>
+                        <li><span class="tree-label">抽驗/標示</span></li>
+                        <li><span class="tree-label">現場稽查記錄</span></li>
+                        <li><span class="tree-label">食品中毒速報</span></li>
+                        <li><span class="tree-label">其他</span></li>
+                        <li><span class="tree-label">回收後續處理結果</span></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="expired-food-template-footer">
+            <button type="button" class="btn btn-sm btn-light" id="btnExpiredFoodTemplateAdd">加入</button>
+            <button type="button" class="btn btn-sm btn-light" id="btnExpiredFoodTemplateCancel">取消</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .expired-food-template-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1050;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 0;
+        background: rgba(0, 0, 0, .62);
+    }
+
+    .expired-food-template-overlay[hidden] {
+        display: none;
+    }
+
+    .expired-food-template-dialog {
+        width: 662px;
+        max-width: calc(100vw - 28px);
+        min-height: 620px;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #9da5a0;
+        background: #fff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, .28);
+    }
+
+    .expired-food-template-header {
+        padding: 16px 16px 18px;
+        background: linear-gradient(180deg, #ffffff 0%, #eefbf1 100%);
+        border-bottom: 1px solid #e4eee7;
+    }
+
+    .expired-food-template-header h3 {
+        margin: 0;
+        color: #218544;
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    .expired-food-template-body {
+        flex: 1 1 auto;
+        padding: 42px 20px 18px;
+        overflow: auto;
+        color: #555;
+        font-size: 18px;
+        line-height: 1.35;
+    }
+
+    .expired-food-template-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 14px;
+        padding: 16px;
+        border-top: 1px solid #f0f0f0;
+        background: #fff;
+    }
+
+    .expired-food-template-footer .btn {
+        min-width: 58px;
+        height: 36px;
+        border: 1px solid #dfe4e2;
+        color: #666;
+        background: #fff;
+        font-size: 16px;
+    }
+
+    .expired-food-template-tree,
+    .expired-food-template-tree ul {
+        list-style: none;
+        margin: 0;
+        padding-left: 22px;
+    }
+
+    .expired-food-template-tree {
+        padding-left: 0;
+    }
+
+    .expired-food-template-tree li {
+        position: relative;
+        min-height: 24px;
+    }
+
+    .expired-food-template-tree ul li::before {
+        content: "";
+        position: absolute;
+        top: -5px;
+        left: -13px;
+        width: 1px;
+        height: 29px;
+        border-left: 1px dotted #9a9a9a;
+    }
+
+    .expired-food-template-tree ul li::after {
+        content: "";
+        position: absolute;
+        top: 12px;
+        left: -13px;
+        width: 11px;
+        border-top: 1px dotted #9a9a9a;
+    }
+
+    .expired-food-template-tree .is-expanded > .tree-label::before {
+        content: "-";
+        display: inline-flex;
+        width: 10px;
+        height: 10px;
+        align-items: center;
+        justify-content: center;
+        margin-right: 2px;
+        border: 1px solid #9bb7c6;
+        color: #58869b;
+        background: #f7fbfd;
+        font-size: 11px;
+        line-height: 1;
+        vertical-align: middle;
+    }
+
+    .tree-label,
+    .tree-radio {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        margin: 0;
+        font-weight: normal;
+        white-space: nowrap;
+    }
+
+    .tree-radio {
+        gap: 4px;
+        color: #555;
+    }
+
+    .tree-radio input[type="radio"] {
+        margin: 0;
+    }
+
+    @@media (max-width: 768px) {
+        .expired-food-template-overlay {
+            padding: 12px;
+            align-items: flex-start;
+        }
+
+        .expired-food-template-dialog {
+            min-height: min(620px, calc(100vh - 24px));
+        }
+
+        .expired-food-template-body {
+            padding: 28px 16px 18px;
+            font-size: 16px;
+        }
+    }
+</style>
+
+<script>
+    (function () {
+        var overlay = document.getElementById('expiredFoodTemplateOverlay');
+        var openButton = document.getElementById('btnExpiredFoodTemplate');
+        var addButton = document.getElementById('btnExpiredFoodTemplateAdd');
+        var cancelButton = document.getElementById('btnExpiredFoodTemplateCancel');
+        var description = document.getElementById('txtInspectionDescription');
+
+        function openTemplateDialog() {
+            if (!overlay) {
+                return;
+            }
+
+            overlay.hidden = false;
+            var checkedRadio = overlay.querySelector('input[name="expiredFoodTemplateText"]:checked');
+            if (checkedRadio) {
+                checkedRadio.focus();
+            }
+        }
+
+        function closeTemplateDialog() {
+            if (!overlay) {
+                return;
+            }
+
+            overlay.hidden = true;
+            if (openButton) {
+                openButton.focus();
+            }
+        }
+
+        function addTemplateText() {
+            var selected = overlay ? overlay.querySelector('input[name="expiredFoodTemplateText"]:checked') : null;
+            if (selected && description) {
+                description.value = selected.value;
+                description.focus();
+            }
+
+            closeTemplateDialog();
+        }
+
+        if (openButton) {
+            openButton.addEventListener('click', openTemplateDialog);
+        }
+
+        if (addButton) {
+            addButton.addEventListener('click', addTemplateText);
+        }
+
+        if (cancelButton) {
+            cancelButton.addEventListener('click', closeTemplateDialog);
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', function (event) {
+                if (event.target === overlay) {
+                    closeTemplateDialog();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && overlay && !overlay.hidden) {
+                closeTemplateDialog();
+            }
+        });
+    })();
+</script>
