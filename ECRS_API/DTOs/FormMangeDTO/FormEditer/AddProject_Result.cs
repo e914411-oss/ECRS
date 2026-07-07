@@ -30,6 +30,14 @@ namespace ECRS_API.DTOs.FormMangeDTO.FormEditer
         {
             get; set;
         }
+        public string? 建立人員主鍵
+        {
+            get; set;
+        }
+        public bool 已產生稽查事件
+        {
+            get; set;
+        }
         public string? 狀態
         {
             get; set;

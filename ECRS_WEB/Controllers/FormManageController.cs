@@ -190,6 +190,51 @@ namespace ECRS_WEB.Controllers
             return View();
         }
 
+        [HttpPost]
+        public async Task<IActionResult> FormDelete(int projectId, CancellationToken cancellationToken)
+        {
+            var permission = await CheckProjectOwnerPermission(projectId, cancellationToken);
+            if (!permission.Success)
+            {
+                return Ok(new
+                {
+                    success = false,
+                    message = permission.Message
+                });
+            }
+
+            var apiResult = await _apiECRS.Delete_專案名稱代碼(projectId, cancellationToken);
+            return Ok(new
+            {
+                success = apiResult.Success,
+                message = apiResult.Message ?? (apiResult.Success ? "已刪除專案" : "刪除失敗")
+            });
+        }
+
+        private async Task<(bool Success, string Message)> CheckProjectOwnerPermission(int projectId, CancellationToken cancellationToken)
+        {
+            if (projectId <= 0)
+            {
+                return (false, "查無專案資料");
+            }
+
+            var inspectionId = HttpContext.Session.GetString("InspectionId") ?? string.Empty;
+            var projectNames = await _apiECRS.Query_專案名稱代碼表(new QueryCondiction
+            {
+                ProjectId = projectId.ToString()
+            }, cancellationToken);
+
+            var project = projectNames.FirstOrDefault();
+            if (project is null)
+            {
+                return (false, "查無專案資料");
+            }
+
+            return string.Equals(inspectionId, project.建立人員主鍵 ?? string.Empty, StringComparison.Ordinal)
+                ? (true, string.Empty)
+                : (false, "非該專案建立人員沒有操作權限");
+        }
+
         public Task<IActionResult> FormAdd()
         {
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
@@ -250,6 +295,10 @@ namespace ECRS_WEB.Controllers
                     errors
                 });
             }
+
+            var inspectionId = HttpContext.Session.GetString("InspectionId");
+            addProjectForm.建立人員主鍵 = inspectionId;
+            addProjectForm.異動人員主鍵 = inspectionId;
 
             var apiResult = await _apiECRS.Add_新增專案名稱代碼(addProjectForm, cancellationToken);
 
