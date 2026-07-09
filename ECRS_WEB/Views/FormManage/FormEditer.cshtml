@@ -821,7 +821,7 @@
                 url: '/FormManage/FormEditer',
                 type: 'GET',
                 cache: false,
-                data: QueryCondiction,
+                data: ecrsEncodeData(QueryCondiction),
                 success: function (result) {
                     // 隱藏 loading
                     document.getElementById("loadingBlock").classList.add("d-none");
@@ -901,7 +901,7 @@
                 url: '@Url.Action("FormDelete", "FormManage")',
                 type: 'POST',
                 dataType: 'json',
-                data: { projectId: projectId },
+                data: ecrsEncodeData({ projectId: projectId }),
                 success: function (response) {
                     if (response && response.success === true) {
                         alert(getProjectActionMessage(response, "已刪除專案"));

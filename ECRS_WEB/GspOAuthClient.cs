@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -31,7 +31,7 @@ namespace ECRS_WEB
             if (string.IsNullOrWhiteSpace(code)) throw new ArgumentException("code is required", nameof(code));
             if (string.IsNullOrWhiteSpace(ver)) throw new ArgumentException("ver is required", nameof(ver));
 
-            var url = $"/oAuth/?code={Uri.EscapeDataString(code)}&ver={Uri.EscapeDataString(ver)}&Level={level}";
+            var url = $"/oAuth/?code={WebUtility.UrlEncode(code)}&ver={WebUtility.UrlEncode(ver)}&Level={level}";
             // ...照你原本邏輯繼續解析 redirect / body 抓 token
             // return token;
             return null;

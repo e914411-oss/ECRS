@@ -403,7 +403,7 @@ namespace ECRS_WEB.Services
         public async Task<List<string>> Query_InspectionItemNames(string inspectionId, CancellationToken ct = default)
         {
             var token = GetTokenOrThrow();
-            var url = $"/Api/Inspection/InspectionItemNames?inspectionId={Uri.EscapeDataString(inspectionId ?? string.Empty)}";
+            var url = $"/Api/Inspection/InspectionItemNames?inspectionId={WebUtility.UrlEncode(inspectionId ?? string.Empty)}";
 
             using var req = new HttpRequestMessage(HttpMethod.Get, url);
             req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);

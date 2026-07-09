@@ -711,10 +711,11 @@
                                     <ul class="inspection-form-list">
                                         @foreach (var item in project.Items)
                                         {
+                                            var encodedInspectionId = QueryStringSecurityHelper.UrlEncode(item.ItemCode);
+                                            var encodedInspectionItemName = QueryStringSecurityHelper.UrlEncode(item.ItemName);
+
                                             <li>
-                                                <a asp-action="InspectionFormContent"
-                                                   asp-route-InspectionId="@item.ItemCode"
-                                                   asp-route-inspectionItemName="@item.ItemName"
+                                                <a href="@(Url.Action("InspectionFormContent", "Inspection") + "?InspectionId=" + encodedInspectionId + "&inspectionItemName=" + encodedInspectionItemName)"
                                                    class="inspection-form-link">@item.ItemName</a>
                                             </li>
                                         }

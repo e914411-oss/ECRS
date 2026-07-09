@@ -1446,13 +1446,13 @@
                 url: "@Url.Content("~/FormManage/FormAdd")",
                 type: "POST",
                 dataType: "json",
-                data: {
+                data: ecrsEncodeData({
                     FormName: formData.formName,
                     ProjectDeadline: formData.projectDeadline,
                     Status: formData.status,
                     InspectionItems: formData.inspectionItems,
                     InspectionItemsValue: formData.inspectionItemsvalue
-                },
+                }),
                 success: function (response) {
                     document.getElementById("loadingBlock").classList.add("d-none");
 
@@ -1544,14 +1544,14 @@
                 url: "@Url.Content("~/FormManage/FormAddFloatColumn")",
                 type: "POST",
                 dataType: "json",
-                data: {
+                data: ecrsEncodeData({
                     專案名稱代碼主鍵: _columndata.newinspectionid,
                     Sort: _columndata.sort,
                     ColumnName: _columndata.title,
                     Note: _columndata.note,
                     Type: _columndata.type,
                     IsmustTobe: _columndata.ismust
-                },
+                }),
                 success: function (response) {
                     document.getElementById("loadingBlock").classList.add("d-none");
                     console.log("FormAddFloatColumn API 回傳：", response);

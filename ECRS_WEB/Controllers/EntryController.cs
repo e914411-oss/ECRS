@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
+using System.Net;
 using ECRS_WEB.Services;
 using Microsoft.Extensions.Logging;
 
@@ -101,7 +102,7 @@ namespace ECRS_WEB.Controllers
             var loginUrl = "https://www.cp.gov.tw/portal/Clogin.aspx"
                 + "?ver=Simple"
                 + "&Level=1"
-                + "&ReturnUrl=" + Uri.EscapeDataString(myCallback);
+                + "&ReturnUrl=" + WebUtility.UrlEncode(myCallback);
 
             _logger.LogInformation("啟動 E 政府登入導頁，State={State}，Callback={CallbackUrl}", state, myCallback);
 
@@ -146,7 +147,7 @@ namespace ECRS_WEB.Controllers
                 + "?code=pmds"
                 + "&ver=Simple"
                 + "&Level=1"
-                + "&ReturnUrl=" + Uri.EscapeDataString(myOauthCallback);
+                + "&ReturnUrl=" + WebUtility.UrlEncode(myOauthCallback);
 
             _logger.LogInformation("轉導到 GSP OAuth，State={State}，OAuthCallback={OAuthCallback}", state, myOauthCallback);
 
@@ -157,6 +158,11 @@ namespace ECRS_WEB.Controllers
         [AllowAnonymous]
         public IActionResult LoginBOAuthCallback(string state, string token, string access_token, string code)
         {
+            state = WebUtility.UrlDecode(state ?? string.Empty);
+            token = WebUtility.UrlDecode(token ?? string.Empty);
+            access_token = WebUtility.UrlDecode(access_token ?? string.Empty);
+            code = WebUtility.UrlDecode(code ?? string.Empty);
+
             var rawQs = HttpContext.Request.QueryString.Value;
             var fullUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}{Request.QueryString}";
             var expected = HttpContext.Session.GetString("EgovLoginBState");

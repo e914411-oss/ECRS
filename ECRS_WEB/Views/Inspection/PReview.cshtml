@@ -469,7 +469,7 @@
                                             @ii
                                         </td>
                                         <td style="white-space:nowrap;">
-                                        <a class="nav-link text-black ajax-link" asp-controller="Inspection" asp-action="ReviewPerform" asp-route-eventId="@item.稽查單號">@item.稽查單號</a>
+                                        <a class="nav-link text-black ajax-link" href="@(Url.Action("ReviewPerform", "Inspection") + "?eventId=" + QueryStringSecurityHelper.UrlEncode(item.稽查單號))">@item.稽查單號</a>
                                         </td>
                                         <td>
                                         稽查專案紀錄表

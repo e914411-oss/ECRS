@@ -35,7 +35,7 @@ else
                             class="btn btn-move-datatable pb-1 js-project-action"
                             data-action="navigate"
                             data-project-id="@item.專案主鍵"
-                            data-url="@Url.Action("FormPreview", "FormManage", new { projectId = item.專案主鍵 })"
+                            data-url="@(Url.Action("FormPreview", "FormManage") + "?projectId=" + QueryStringSecurityHelper.UrlEncode(item.專案主鍵))"
                             disabled="@(!canOperate)">
                         預覽
                     </button>
@@ -43,7 +43,7 @@ else
                             class="btn btn-move-datatable pb-1 js-project-action"
                             data-action="navigate"
                             data-project-id="@item.專案主鍵"
-                            data-url="@Url.Action("FormUpdate", "FormManage", new { projectId = item.專案主鍵 })"
+                            data-url="@(Url.Action("FormUpdate", "FormManage") + "?projectId=" + QueryStringSecurityHelper.UrlEncode(item.專案主鍵))"
                             disabled="@(!canOperate)">
                         修改
                     </button>

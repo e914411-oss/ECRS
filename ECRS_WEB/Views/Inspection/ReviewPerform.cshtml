@@ -787,13 +787,13 @@
                 url: '/Inspection/ReviewUpdate',
                 type: 'POST',
                 cache: false,
-                data: {
+                data: ecrsEncodeData({
                     eventId: noteId,
                     note: textn
-                },
+                }),
                 success: function (result) {
                     alert('案件退回');
-                    window.location.href = '/Inspection/ReviewPerform?' + $.param(eventI);
+                    window.location.href = '/Inspection/ReviewPerform?' + $.param(ecrsEncodeData(eventI));
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     //alert(jqXHR.responseText);
@@ -828,7 +828,7 @@
             $.ajax({
                 url: '/Inspection/GetCityAreaByCity',
                 type: 'GET',
-                data: { cityId: cityIdF },
+                data: ecrsEncodeData({ cityId: cityIdF }),
                 success: function (data) {
 
                     var areaSelect = $("#areaSelectF");
@@ -883,7 +883,7 @@
                     案件建立日期: null,
                 };
 
-                window.location.href = '/Inspection/ExportExcelF?' + $.param(supplier1);
+                window.location.href = '/Inspection/ExportExcelF?' + $.param(ecrsEncodeData(supplier1));
 
             });
 
@@ -893,7 +893,7 @@
                 $.ajax({
                     url: '/Inspection/GetCityAreaByCity',
                     type: 'GET',
-                    data: { cityId: cityId },
+                    data: ecrsEncodeData({ cityId: cityId }),
                     success: function (data) {
 
                         var areaSelect = $("#areaSelect");
@@ -921,7 +921,7 @@
                 $.ajax({
                     url: '/Inspection/GetSubByKind',
                     type: 'GET',
-                    data: { kindId: kindId },
+                    data: ecrsEncodeData({ kindId: kindId }),
                     success: function (data) {
 
                         var areaSelect = $("#subSelect");

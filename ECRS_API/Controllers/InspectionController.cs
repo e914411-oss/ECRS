@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Net;
 
 namespace ECRS_API.Controllers
 {
@@ -438,6 +439,8 @@ namespace ECRS_API.Controllers
         [HttpGet("InspectionItemNames")]
         public async Task<ActionResult<IEnumerable<string>>> InspectionItemNames([FromQuery] string? inspectionId)
         {
+            inspectionId = WebUtility.UrlDecode(inspectionId ?? string.Empty);
+
             if (string.IsNullOrWhiteSpace(inspectionId))
             {
                 return Ok(Array.Empty<string>());
