@@ -14,6 +14,7 @@ using ECRS_WEB.DTOs.InspectionDTO.InspectionQry;
 using ECRS_WEB.DTOs.InspectionDTO.Flist;
 using ECRS_WEB.Helpers;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
+using Microsoft.AspNetCore.Mvc.Razor;
 
 namespace CoreWebApp.Controllers
 {
@@ -23,14 +24,14 @@ namespace CoreWebApp.Controllers
         private readonly ReadPMDSDTApiClient _apiPMDS;
         private readonly ReadECRSDTApiClient _apiECRS;
         private readonly ILogger<InspectionController> _logger;
-        private readonly IWebHostEnvironment _environment;
+        private readonly IRazorViewEngine _razorViewEngine;
 
-        public InspectionController(ReadPMDSDTApiClient apiPMDS, ReadECRSDTApiClient apiECRS, ILogger<InspectionController> logger, IWebHostEnvironment environment)
+        public InspectionController(ReadPMDSDTApiClient apiPMDS, ReadECRSDTApiClient apiECRS, ILogger<InspectionController> logger, IRazorViewEngine razorViewEngine)
         {
             _apiPMDS = apiPMDS;
             _apiECRS = apiECRS;
             _logger = logger;
-            _environment = environment;
+            _razorViewEngine = razorViewEngine;
         }
 
         public IActionResult Index()
@@ -348,9 +349,14 @@ namespace CoreWebApp.Controllers
 
         private bool InspectionPartialViewExists(string partialViewName)
         {
-            var fileName = $"{Path.GetFileName(partialViewName)}.cshtml";
-            var path = Path.Combine(_environment.ContentRootPath, "Views", "Inspection", "PartialPages", fileName);
-            return System.IO.File.Exists(path);
+            var getViewResult = _razorViewEngine.GetView(null, partialViewName, isMainPage: false);
+            if (getViewResult.Success)
+            {
+                return true;
+            }
+
+            var findViewResult = _razorViewEngine.FindView(ControllerContext, partialViewName, isMainPage: false);
+            return findViewResult.Success;
         }
 
         public async Task<IActionResult> Fquery(SupplierQ supplierQ, int page = 1)
