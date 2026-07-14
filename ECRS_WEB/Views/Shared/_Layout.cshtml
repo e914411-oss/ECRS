@@ -512,6 +512,29 @@
 
 
     <script>
+        function ecrsUrlEncode(value) {
+            return encodeURIComponent(value == null ? "" : String(value));
+        }
+
+        function ecrsUrlEncodeForAddressBar(value) {
+            return encodeURIComponent(ecrsUrlEncode(value));
+        }
+
+        function ecrsEncodeData(data) {
+            if (Array.isArray(data)) {
+                return data.map(ecrsEncodeData);
+            }
+
+            if (data && typeof data === "object") {
+                return Object.keys(data).reduce(function (encoded, key) {
+                    encoded[key] = ecrsEncodeData(data[key]);
+                    return encoded;
+                }, {});
+            }
+
+            return typeof data === "string" ? ecrsUrlEncode(data) : data;
+        }
+
         const sidebar = document.getElementById("sidebar");
         const toggleBtn = document.getElementById("toggleSidebar");
         const icon = toggleBtn?.querySelector("i");

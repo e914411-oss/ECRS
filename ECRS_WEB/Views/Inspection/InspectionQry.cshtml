@@ -553,19 +553,20 @@
                     return;
                 }
 
-                const url = new URL('@Url.Action("InspectionForms", "Inspection")', window.location.origin);
+                const url = '@Url.Action("InspectionForms", "Inspection")';
+                const params = [];
                 const companyId = '@companyId';
 
                 if (companyId) {
-                    url.searchParams.set('companyId', companyId);
+                    params.push('companyId=' + ecrsUrlEncodeForAddressBar(companyId));
                 }
 
                 selectedProjectForms.forEach(function (projectForm) {
-                    url.searchParams.append('projectIds', projectForm.value);
-                    url.searchParams.append('projectNames', projectForm.dataset.projectName || projectForm.value);
+                    params.push('projectIds=' + ecrsUrlEncodeForAddressBar(projectForm.value));
+                    params.push('projectNames=' + ecrsUrlEncodeForAddressBar(projectForm.dataset.projectName || projectForm.value));
                 });
 
-                window.location.href = url.toString();
+                window.location.href = url + '?' + params.join('&');
             });
         })();
     </script>

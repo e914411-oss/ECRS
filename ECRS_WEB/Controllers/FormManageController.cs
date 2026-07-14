@@ -1,5 +1,6 @@
 using ECRS_WEB.DTOs.FormManageDTO.FormEditer;
 using ECRS_WEB.DTOs.FormManageDTO.FormQryByPJ;
+using ECRS_WEB.Helpers;
 using ECRS_WEB.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -46,6 +47,8 @@ namespace ECRS_WEB.Controllers
         [HttpGet]
         public async Task<IActionResult> FormQryByPJSearch(QueryCondiction queryCondiction)
         {
+            QueryStringSecurityHelper.UrlDecodeStringProperties(queryCondiction);
+
             queryCondiction.CreateDepartment ??= string.Empty;
             queryCondiction.ProjectName ??= string.Empty;
             queryCondiction.FormStatus ??= string.Empty;
@@ -76,6 +79,8 @@ namespace ECRS_WEB.Controllers
         [HttpPost]
         public async Task<IActionResult> FormQryByPJSave([FromBody] ProjectCopy projectCopy, CancellationToken cancellationToken)
         {
+            QueryStringSecurityHelper.UrlDecodeStringProperties(projectCopy);
+
             if (projectCopy is null || projectCopy.ProjectIds.Count == 0)
             {
                 return BadRequest(new
@@ -109,6 +114,8 @@ namespace ECRS_WEB.Controllers
 
         public async Task<IActionResult> FormEditer(QueryCondiction queryCondiction)
         {
+            QueryStringSecurityHelper.UrlDecodeStringProperties(queryCondiction);
+
             queryCondiction.CreateDepartment ??= string.Empty;
             queryCondiction.ProjectName ??= string.Empty;
             queryCondiction.FormStatus ??= string.Empty;
@@ -270,6 +277,8 @@ namespace ECRS_WEB.Controllers
         [HttpPost]
         public async Task<IActionResult> FormAdd([FromForm] AddProject_Form addProjectForm, CancellationToken cancellationToken)
         {
+            QueryStringSecurityHelper.UrlDecodeStringProperties(addProjectForm);
+
             if (addProjectForm is null)
             {
                 return BadRequest(new
@@ -322,6 +331,8 @@ namespace ECRS_WEB.Controllers
         [HttpPost]
         public async Task<IActionResult> FormUpdate([FromForm] UpdateProject_Form updateProjectForm, CancellationToken cancellationToken)
         {
+            QueryStringSecurityHelper.UrlDecodeStringProperties(updateProjectForm);
+
             if (updateProjectForm is null || updateProjectForm.ProjectId <= 0)
             {
                 return BadRequest(new { success = false, message = "未收到修改資料" });
@@ -372,6 +383,8 @@ namespace ECRS_WEB.Controllers
         [HttpPost]
         public async Task<IActionResult> FormAddFloatColumn([FromForm] AddProject_FloatColumn floatColumn, CancellationToken cancellationToken)
         {
+            QueryStringSecurityHelper.UrlDecodeStringProperties(floatColumn);
+
             if (floatColumn is null)
             {
                 return BadRequest(new

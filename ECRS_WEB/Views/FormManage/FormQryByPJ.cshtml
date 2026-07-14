@@ -362,7 +362,7 @@
                 url: '@Url.Action("FormQryByPJSave", "FormManage")',
                 type: 'POST',
                 contentType: 'application/json; charset=utf-8',
-                data: JSON.stringify({ projectIds: projectIds }),
+                data: JSON.stringify(ecrsEncodeData({ projectIds: projectIds })),
                 success: function (result) {
                     alert(result && result.message ? result.message : '儲存成功');
                 },
@@ -398,7 +398,7 @@
                 url: '@Url.Action("FormQryByPJSearch", "FormManage")',
                 type: 'GET',
                 cache: false,
-                data: buildQueryCondition(),
+                data: ecrsEncodeData(buildQueryCondition()),
                 success: function (items) {
                     if (!items || items.length === 0) {
                         $status.text('查無資料。');

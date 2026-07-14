@@ -12,7 +12,9 @@ using ECRS_WEB.DTOs.InspectionDTO.PReview;
 using ECRS_WEB.DTOs.InspectionDTO.Fquery;
 using ECRS_WEB.DTOs.InspectionDTO.InspectionQry;
 using ECRS_WEB.DTOs.InspectionDTO.Flist;
+using ECRS_WEB.Helpers;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
+using Microsoft.AspNetCore.Mvc.Razor;
 
 namespace CoreWebApp.Controllers
 {
@@ -22,14 +24,14 @@ namespace CoreWebApp.Controllers
         private readonly ReadPMDSDTApiClient _apiPMDS;
         private readonly ReadECRSDTApiClient _apiECRS;
         private readonly ILogger<InspectionController> _logger;
-        private readonly IWebHostEnvironment _environment;
+        private readonly IRazorViewEngine _razorViewEngine;
 
-        public InspectionController(ReadPMDSDTApiClient apiPMDS, ReadECRSDTApiClient apiECRS, ILogger<InspectionController> logger, IWebHostEnvironment environment)
+        public InspectionController(ReadPMDSDTApiClient apiPMDS, ReadECRSDTApiClient apiECRS, ILogger<InspectionController> logger, IRazorViewEngine razorViewEngine)
         {
             _apiPMDS = apiPMDS;
             _apiECRS = apiECRS;
             _logger = logger;
-            _environment = environment;
+            _razorViewEngine = razorViewEngine;
         }
 
         public IActionResult Index()
@@ -46,6 +48,9 @@ namespace CoreWebApp.Controllers
         [HttpGet]
         public async Task<IActionResult> InspectionQry(string? companyId, string? formName)
         {
+            companyId = QueryStringSecurityHelper.UrlDecode(companyId);
+            formName = QueryStringSecurityHelper.UrlDecode(formName);
+
             ViewBag.CompanyId = companyId ?? string.Empty;
             ViewBag.FormName = formName ?? string.Empty;
 
@@ -90,8 +95,11 @@ namespace CoreWebApp.Controllers
         /// <param name="companyId"></param>
         /// <returns></returns>
         [RequireQueryStringParameter("projectId")]
-        public async Task<IActionResult> InspectionForms(string? companyId, int projectId)
+        public async Task<IActionResult> InspectionForms(string? companyId, int projectId, string? eventId)
         {
+            companyId = QueryStringSecurityHelper.UrlDecode(companyId);
+            eventId = QueryStringSecurityHelper.UrlDecode(eventId);
+
             if (string.IsNullOrWhiteSpace(companyId) || projectId <= 0)
             {
                 return RedirectToAction("Fquery", "Inspection");
@@ -101,19 +109,8 @@ namespace CoreWebApp.Controllers
             {
                 CompanyId = companyId ?? string.Empty,
                 ProjectId = projectId,
-                InspectionDate = DateTime.Now.ToString("yyyy/MM/dd")
+                eventId = eventId ?? string.Empty
             };
-
-            try
-            {
-                var supplier = new Supplier { 業者編號 = companyId };
-                vm.Company = await Get_Company(supplier) ?? new 業者資料表();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "InspectionForms 業者資料查詢失敗，companyId={CompanyId}", companyId);
-                ModelState.AddModelError(string.Empty, "查詢業者資料失敗");
-            }
 
             var selectedProject = new InspectionProjectItemGroup
             {
@@ -146,6 +143,11 @@ namespace CoreWebApp.Controllers
 
         public async Task<IActionResult> InspectionForms(string? companyId, int[]? projectIds, string[]? projectNames)
         {
+            companyId = QueryStringSecurityHelper.UrlDecode(companyId);
+            projectNames = projectNames?
+                .Select(QueryStringSecurityHelper.UrlDecode)
+                .ToArray();
+
             if (companyId != null && projectIds is { Length: > 0 })
             {
                 #region 稽查事件入庫，取得稽查事件編號
@@ -181,23 +183,8 @@ namespace CoreWebApp.Controllers
                 #region 查詢資料出來做顯示
                 var vm = new InspectionFormsViewModel
                 {
-                    CompanyId = companyId ?? string.Empty,
-                    InspectionDate = DateTime.Now.ToString("yyyy/MM/dd")
+                    CompanyId = companyId ?? string.Empty
                 };
-
-                if (!string.IsNullOrWhiteSpace(companyId))
-                {
-                    try
-                    {
-                        var supplier = new Supplier { 業者編號 = companyId };
-                        vm.Company = await Get_Company(supplier) ?? new 業者資料表();
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "InspectionForms 業者資料查詢失敗，companyId={CompanyId}", companyId);
-                        ModelState.AddModelError(string.Empty, "查詢業者資料失敗");
-                    }
-                }
 
                 if (projectIds is { Length: > 0 })
                 {
@@ -282,8 +269,12 @@ namespace CoreWebApp.Controllers
                 .ToList();
         }
 
-        public async Task<IActionResult> InspectionFormContent(string? InspectionId, string? inspectionItemName)
+        public async Task<IActionResult> InspectionFormContent(string? InspectionId, string? inspectionItemName, string? encodedEventId)
         {
+            InspectionId = QueryStringSecurityHelper.UrlDecode(InspectionId);
+            inspectionItemName = QueryStringSecurityHelper.UrlDecode(inspectionItemName);
+            encodedEventId = QueryStringSecurityHelper.UrlDecode(encodedEventId);
+
             var hasInspectionId = !string.IsNullOrWhiteSpace(InspectionId);
             ViewBag.InspectionItemName = inspectionItemName?.Trim() ?? string.Empty;
             ViewBag.HasInspectionId = hasInspectionId;
@@ -334,13 +325,20 @@ namespace CoreWebApp.Controllers
 
         private bool InspectionPartialViewExists(string partialViewName)
         {
-            var fileName = $"{Path.GetFileName(partialViewName)}.cshtml";
-            var path = Path.Combine(_environment.ContentRootPath, "Views", "Inspection", "PartialPages", fileName);
-            return System.IO.File.Exists(path);
+            var getViewResult = _razorViewEngine.GetView(null, partialViewName, isMainPage: false);
+            if (getViewResult.Success)
+            {
+                return true;
+            }
+
+            var findViewResult = _razorViewEngine.FindView(ControllerContext, partialViewName, isMainPage: false);
+            return findViewResult.Success;
         }
 
         public async Task<IActionResult> Fquery(SupplierQ supplierQ, int page = 1)
         {
+            QueryStringSecurityHelper.UrlDecodeStringProperties(supplierQ);
+
             ViewData.Clear();
             ModelState.Clear();
 
@@ -439,7 +437,10 @@ namespace CoreWebApp.Controllers
 
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
-                return RedirectToAction("ReviewPerform", "Inspection", eventId);
+                return RedirectToAction("ReviewPerform", "Inspection", new
+                {
+                    eventId = QueryStringSecurityHelper.UrlEncode(eventId)
+                });
                 //return PartialView("ReviewPerform", vm);
             }
 
@@ -450,6 +451,8 @@ namespace CoreWebApp.Controllers
         [HttpPost]
         public async Task<IActionResult> ReviewUpdate(BackNote reviewNote)
         {
+            QueryStringSecurityHelper.UrlDecodeStringProperties(reviewNote);
+
             var updateResult = await Upd_CheckRecM1(reviewNote);
             //return RedirectToAction("ReviewPerform", "Inspection", reviewNote.eventId);
 
@@ -458,6 +461,8 @@ namespace CoreWebApp.Controllers
 
         public async Task<IActionResult> Flist(string companyId)
         {
+            companyId = QueryStringSecurityHelper.UrlDecode(companyId);
+
             var supplierQuery = new Supplier
             {
                 業者編號 = companyId
@@ -478,7 +483,10 @@ namespace CoreWebApp.Controllers
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
                 //return PartialView("Flist", vm);
-                return RedirectToAction("Flist", "Inspection", companyId); //
+                return RedirectToAction("Flist", "Inspection", new
+                {
+                    companyId = QueryStringSecurityHelper.UrlEncode(companyId)
+                }); //
             }
             return View("Flist", vm);
         }
@@ -486,6 +494,8 @@ namespace CoreWebApp.Controllers
         //ExportExcelF
         public async Task<IActionResult> ExportExcelF(SupplierQ supplierQ)
         {
+            QueryStringSecurityHelper.UrlDecodeStringProperties(supplierQ);
+
             // ❗不要用分頁條件
             var suppliers = await Get_Supplier(supplierQ);
 
@@ -525,21 +535,29 @@ namespace CoreWebApp.Controllers
 
         public async Task<List<系統_部門表>> Get_系統_部門表(string cities)
         {
+            cities = QueryStringSecurityHelper.UrlDecode(cities);
+
             return await _apiPMDS.Query_系統_部門表(cities);
         }
 
         public async Task<List<業別主分類表>> Get_業別主分類表(string keyword)
         {
+            keyword = QueryStringSecurityHelper.UrlDecode(keyword);
+
             return await _apiPMDS.Query_業別主分類表(keyword);
         }
 
         public async Task<List<業別次分類表>> Get_業別次分類表(string keyword)
         {
+            keyword = QueryStringSecurityHelper.UrlDecode(keyword);
+
             return await _apiPMDS.Query_業別次分類表(keyword);
         }
 
         public async Task<List<PMDS_機構_縣市匹配>> GetCityAreaByCity(string cityId)
         {
+            cityId = QueryStringSecurityHelper.UrlDecode(cityId);
+
             return cityId != null
                 ? await _apiPMDS.Query_PMDS_機構_縣市匹配(cityId)
                 : [];
@@ -547,6 +565,8 @@ namespace CoreWebApp.Controllers
 
         public async Task<List<鄉鎮代碼表>> GetAreaByCity(string cityId)
         {
+            cityId = QueryStringSecurityHelper.UrlDecode(cityId);
+
             return cityId != null
                 ? await _apiPMDS.Query_鄉鎮代碼表(cityId)
                 : [];
@@ -555,11 +575,15 @@ namespace CoreWebApp.Controllers
         //業者業別次類
         public async Task<List<業別次分類表>> GetSubByKind(string kindId)
         {
+            kindId = QueryStringSecurityHelper.UrlDecode(kindId);
+
             return await _apiPMDS.Query_業別次分類表(kindId);
         }
 
         public async Task<List<Supplier>> Get_Supplier(SupplierQ supplierQ)
         {
+            QueryStringSecurityHelper.UrlDecodeStringProperties(supplierQ);
+
             return await _apiPMDS.Query_Supplier(supplierQ);
         }
 
@@ -570,6 +594,8 @@ namespace CoreWebApp.Controllers
 
         public async Task<List<ECRS_WEB.Models.ECRS.稽查事件_主表>> Get_CheckRec(string companyId)
         {
+            companyId = QueryStringSecurityHelper.UrlDecode(companyId);
+
             return await _apiECRS.Query_稽查資料(companyId);
         }
 

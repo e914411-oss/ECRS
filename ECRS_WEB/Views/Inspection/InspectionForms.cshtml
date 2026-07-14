@@ -3,8 +3,6 @@
     ViewData["Title"] = "稽查管理-稽查作業-表單查詢";
 
     bool isCompleted = TempData["IsCompleted"] != null && TempData["IsCompleted"] is bool b && b;
-    var company = Model?.Company;
-    var address = string.Join("", new[] { company?.營業地址_縣市主鍵, company?.營業地址_鄉鎮區主鍵, company?.營業地址_街道 }.Where(x => !string.IsNullOrWhiteSpace(x)));
 }
 
 @section Styles {
@@ -36,68 +34,6 @@
             padding-bottom: 24px;
         }
 
-        .form-editer-card {
-            border: 2px solid #7ecb8a;
-            border-radius: 8px;
-            background: #f7fbf7;
-            padding: 28px 18px 36px 18px;
-            box-shadow: 0 0 0 4px rgba(126, 203, 138, .15);
-            position: relative;
-        }
-
-        .form-editer-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px 28px;
-        }
-
-        .form-editer-col {
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
-
-        .query-row {
-            display: grid;
-            grid-template-columns: 150px minmax(220px, 1fr);
-            align-items: center;
-            gap: 10px;
-        }
-
-        .query-label {
-            margin: 0;
-            font-size: 16px;
-            color: #333;
-            white-space: nowrap;
-        }
-
-        .query-inline {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        @@media (max-width: 992px) {
-            .form-editer-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @@media (max-width: 576px) {
-            .query-row {
-                grid-template-columns: 1fr;
-                gap: 6px;
-            }
-
-            .query-label {
-                white-space: normal;
-            }
-
-            .form-editer-card {
-                padding-bottom: 20px;
-            }
-        }
-
         /* ===== 表單列表標題列 + 按鈕列 ===== */
         .form-list-header {
             display: flex;
@@ -114,6 +50,26 @@
             align-items: center;
             gap: 10px;
             flex-wrap: wrap;
+        }
+
+        .inspection-accordion-btn,
+        .inspection-accordion-btn:not(.collapsed) {
+            background-color: #F0FFF0;
+            color: #007500;
+        }
+
+            .inspection-accordion-btn:focus {
+                box-shadow: none;
+            }
+
+            .inspection-accordion-btn::after {
+                color: #007500;
+            }
+
+        .inspection-form-link,
+        .inspection-form-link:hover,
+        .inspection-form-link:focus {
+            color: #007500;
         }
 
         .form-toolbar-btn {
@@ -515,124 +471,6 @@
 </h1>
 
 <div class="content form-editer-page" style="min-height: 561px;">
-    <!-- 廠商資訊 -->
-    <div class="form-editer-card">
-        <div class="form-editer-grid">
-            <div class="form-editer-col">
-                <div class="query-row">
-                    <label class="query-label">稽查單號</label>
-                    <div class="query-inline">
-                        <span>&nbsp;</span>
-                    </div>
-                </div>
-                <div class="query-row">
-                    <label class="query-label">複審狀態</label>
-                    <div class="query-inline">
-                        <span>&nbsp;</span>
-                    </div>
-                </div>
-            </div>
-            <div class="form-editer-col">
-                <div class="query-row">
-                    <label class="query-label">稽查日期</label>
-                    <div class="query-inline">
-                        <span id="InspectionDate">@(Model?.InspectionDate ?? string.Empty)</span>
-                    </div>
-                </div>
-                <div class="query-row">
-                    <label class="query-label">稽查員</label>
-                    <div class="query-inline">
-                        <span>&nbsp;</span>
-                    </div>
-                </div>
-            </div>
-            <div class="form-editer-col">
-                <div class="query-row">
-                    <label class="query-label">縣市</label>
-                    <div class="query-inline">
-                        <span>@(company?.營業地址_縣市主鍵 ?? string.Empty)</span>
-                    </div>
-                </div>
-                <div class="query-row">
-                    <label class="query-label">統一編號/身份證字號</label>
-                    <div class="query-inline">
-                        <span>@(company?.統一編號 ?? company?.負責人身分證字號 ?? string.Empty)</span>
-                    </div>
-                </div>
-            </div>
-            <div class="form-editer-col">
-                <div class="query-row">
-                    <label class="query-label">登錄字號</label>
-                    <div class="query-inline">
-                        <span>@(company?.食品業者登錄字號 ?? string.Empty)</span>
-                    </div>
-                </div>
-                <div class="query-row">
-                    <label class="query-label">非登業者業別</label>
-                    <div class="query-inline">
-                        <span>@(company?.非登匯入業別 ?? string.Empty)</span>
-                    </div>
-                </div>
-            </div>
-            <div class="form-editer-col">
-                <div class="query-row">
-                    <label class="query-label">業者名稱</label>
-                    <div class="query-inline">
-                        <span>@(company?.商業登記名稱 ?? company?.市招名稱 ?? string.Empty)</span>
-                    </div>
-                </div>
-                <div class="query-row">
-                    <label class="query-label">業別代碼</label>
-                    <div class="query-inline">
-                        <span>&nbsp;</span>
-                    </div>
-                </div>
-            </div>
-            <div class="form-editer-col">
-                <div class="query-row">
-                    <label class="query-label">業者電子信箱</label>
-                    <div class="query-inline">
-                        <span>@(company?.負責人電子郵件 ?? string.Empty)</span>
-                    </div>
-                </div>
-                <div class="query-row">
-                    <label class="query-label">業者電話</label>
-                    <div class="query-inline">
-                        <span>@(company?.電話 ?? string.Empty)</span>
-                    </div>
-                </div>
-            </div>
-            <div class="form-editer-col">
-                <div class="query-row">
-                    <label class="query-label">負責人</label>
-                    <div class="query-inline">
-                        <span>@(company?.負責人姓名 ?? string.Empty)</span>
-                    </div>
-                </div>
-                <div class="query-row">
-                    <label class="query-label">營業狀況</label>
-                    <div class="query-inline">
-                        <span>@(company?.營業狀態 ?? string.Empty)</span>
-                    </div>
-                </div>
-            </div>
-            <div class="form-editer-col">
-                <div class="query-row">
-                    <label class="query-label">業者地址</label>
-                    <div class="query-inline">
-                        <span>@address</span>
-                    </div>
-                </div>
-                <div class="query-row">
-                    <label class="query-label">工廠登記證號</label>
-                    <div class="query-inline">
-                        <span>@(company?.工廠登記證號 ?? string.Empty)</span>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
 
     <!-- 表單列表標題 + 功能按鈕 -->
     <div class="form-list-header">
@@ -691,18 +529,18 @@
                     var collapseId = $"collapseProject{projectIndex}";
                     <div class="accordion-item inspection-accordion-item">
                         <h2 class="accordion-header" id="@headingId">
-                            <button class="accordion-button collapsed inspection-accordion-btn"
+                            <button class="accordion-button inspection-accordion-btn"
                                     type="button"
                                     data-bs-toggle="collapse"
                                     data-bs-target="#@collapseId"
-                                    aria-expanded="false"
+                                    aria-expanded="true"
                                     aria-controls="@collapseId">
                                 <span class="inspection-title-text">@project.ProjectName</span>
                             </button>
                         </h2>
 
                         <div id="@collapseId"
-                             class="accordion-collapse collapse"
+                             class="accordion-collapse collapse show"
                              aria-labelledby="@headingId"
                              data-bs-parent="#inspectionFormsAccordion">
                             <div class="accordion-body inspection-accordion-body">
@@ -711,10 +549,12 @@
                                     <ul class="inspection-form-list">
                                         @foreach (var item in project.Items)
                                         {
+                                            var encodedInspectionId = QueryStringSecurityHelper.UrlEncode(item.ItemCode);
+                                            var encodedInspectionItemName = QueryStringSecurityHelper.UrlEncode(item.ItemName);
+                                            var encodedEventId = QueryStringSecurityHelper.UrlEncode(Model.eventId);
+
                                             <li>
-                                                <a asp-action="InspectionFormContent"
-                                                   asp-route-InspectionId="@item.ItemCode"
-                                                   asp-route-inspectionItemName="@item.ItemName"
+                                                <a href="@(Url.Action("InspectionFormContent", "Inspection") + "?InspectionId=" + encodedInspectionId + "&inspectionItemName=" + encodedInspectionItemName + "&encodedEventId=" + encodedEventId)"
                                                    class="inspection-form-link">@item.ItemName</a>
                                             </li>
                                         }

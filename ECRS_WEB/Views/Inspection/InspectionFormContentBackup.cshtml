@@ -1543,8 +1543,7 @@
 
         <a class="btn btn-primary text-nowrap"
            style="min-width:100px"
-           asp-controller="Inspection" asp-action="InspectionForms"
-           asp-route-_IsCompleted="1" asp-route-_FormName="餐飲業 食品良好衛生規範準則 稽查記錄表">
+           href="@(Url.Action("InspectionForms", "Inspection") + "?_IsCompleted=" + QueryStringSecurityHelper.UrlEncode("1") + "&_FormName=" + QueryStringSecurityHelper.UrlEncode("餐飲業 食品良好衛生規範準則 稽查記錄表"))">
             填寫完畢
         </a>
     </div>

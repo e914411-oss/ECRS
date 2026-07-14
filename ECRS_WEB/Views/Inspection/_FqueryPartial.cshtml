@@ -18,7 +18,7 @@ else
             <td class="lt">@ii</td>
             <td class="lt">@item.業者編號</td>
             <td class="lt">
-                <a class="nav-link text-black ajax-link" asp-controller="Inspection" asp-action="Flist" asp-route-companyId="@item.業者編號">@item.業者名稱</a>
+                <a class="nav-link text-black ajax-link" href="@(Url.Action("Flist", "Inspection") + "?companyId=" + QueryStringSecurityHelper.UrlEncode(item.業者編號))">@item.業者名稱</a>
 
             </td>
             <td class="lt">@item.食品登錄字號</td>

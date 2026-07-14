@@ -802,7 +802,7 @@
                 url: '/Inspection/Fquery',
                 type: 'GET',
                 cache: false,
-                data: savedSearch.query,
+                data: ecrsEncodeData(savedSearch.query),
                 success: function (result) {
                     renderFqueryResult(result);
                 },
@@ -880,7 +880,7 @@
                 url: '/Inspection/Fquery',
                 type: 'GET',
                 cache: false,
-                data: supplier1,
+                data: ecrsEncodeData(supplier1),
                 success: function (result) {
                 // 隱藏 loading
                 document.getElementById("loadingBlock").classList.add("d-none");
@@ -953,7 +953,7 @@
                 案件建立日期: null,
             };
 
-            window.location.href = '/Inspection/Fquery?' + $.param(supplier1);
+            window.location.href = '/Inspection/Fquery?' + $.param(ecrsEncodeData(supplier1));
 
 
         }
@@ -975,7 +975,7 @@
                         案件建立日期: null,
                     };
 
-                    window.location.href = '/Inspection/ExportExcelF?' + $.param(supplier1);
+                    window.location.href = '/Inspection/ExportExcelF?' + $.param(ecrsEncodeData(supplier1));
 
                 });
 
@@ -985,7 +985,7 @@
                     $.ajax({
                         url: '/Inspection/GetAreaByCity',
                         type: 'GET',
-                        data: { cityId: cityId },
+                        data: ecrsEncodeData({ cityId: cityId }),
                         success: function (data) {
 
                             var areaSelect = $("#areaSelect");
@@ -1013,7 +1013,7 @@
                     $.ajax({
                         url: '/Inspection/GetSubByKind',
                         type: 'GET',
-                        data: { kindId: kindId },
+                        data: ecrsEncodeData({ kindId: kindId }),
                         success: function (data) {
 
                             var areaSelect = $("#industrySecondClass");

@@ -682,8 +682,7 @@
     <h4 class="secend-title">
         <span>稽查紀錄</span>
         <a class="btn btn-primary rounded-pill px-4"
-           asp-controller="Inspection" asp-action="InspectionQry"
-           asp-route-companyId="@Model.Company.主鍵">
+           href="@(Url.Action("InspectionQry", "Inspection") + "?companyId=" + QueryStringSecurityHelper.UrlEncode(Model.Company.主鍵))">
             <i class="icon-plus"></i> 新增稽查表單
         </a>
     </h4>
@@ -719,10 +718,7 @@
                             {
                                 <tr>
                                     <td class="lt">
-                                        <a asp-controller="Inspection"
-                                           asp-action="InspectionForms"
-                                           asp-route-companyId="@Model.Company.主鍵"
-                                           asp-route-projectId="@item.專案名稱編號"
+                                        <a href="@(Url.Action("InspectionForms", "Inspection") + "?companyId=" + QueryStringSecurityHelper.UrlEncode(Model.Company.主鍵) + "&projectId=" + QueryStringSecurityHelper.UrlEncode(item.專案名稱編號) + "&eventId=" + QueryStringSecurityHelper.UrlEncode(item.稽查事件編號))"
                                            class="btn btn-icon view"
                                            title="檢視"><i class="bi bi-eye"></i></a>
                                     </td>
@@ -837,7 +833,7 @@
                 $.ajax({
                     url: '/Inspection/GetCityAreaByCity',
                     type: 'GET',
-                    data: { cityId: cityIdF },
+                    data: ecrsEncodeData({ cityId: cityIdF }),
                     success: function (data) {
                         //alert(areaIdF);
                         var areaSelect = $("#areaSelectF");
