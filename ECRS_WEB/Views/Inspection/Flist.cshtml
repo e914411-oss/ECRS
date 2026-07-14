@@ -718,7 +718,7 @@
                             {
                                 <tr>
                                     <td class="lt">
-                                        <a href="@(Url.Action("InspectionForms", "Inspection") + "?companyId=" + QueryStringSecurityHelper.UrlEncode(Model.Company.主鍵) + "&projectId=" + QueryStringSecurityHelper.UrlEncode(item.專案名稱編號))"
+                                        <a href="@(Url.Action("InspectionForms", "Inspection") + "?companyId=" + QueryStringSecurityHelper.UrlEncode(Model.Company.主鍵) + "&projectId=" + QueryStringSecurityHelper.UrlEncode(item.專案名稱編號) + "&eventId=" + QueryStringSecurityHelper.UrlEncode(item.稽查事件編號))"
                                            class="btn btn-icon view"
                                            title="檢視"><i class="bi bi-eye"></i></a>
                                     </td>

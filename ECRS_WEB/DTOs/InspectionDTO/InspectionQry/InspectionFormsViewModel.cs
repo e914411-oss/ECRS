@@ -1,16 +1,13 @@
-using ECRS_WEB.Models.PMDS;
-
 namespace ECRS_WEB.DTOs.InspectionDTO.InspectionQry
 {
     public class InspectionFormsViewModel
     {
         public string CompanyId { get; set; } = string.Empty;
-        public 業者資料表 Company { get; set; } = new();
         public int ProjectId
         {
             get; set;
         }
-        public string InspectionDate { get; set; } = DateTime.Now.ToString("yyyy/MM/dd");
+        public string eventId { get; set; } = string.Empty;
         public List<InspectionProjectItemGroup> ProjectGroups { get; set; } = [];
     }
 

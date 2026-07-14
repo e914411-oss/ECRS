@@ -95,9 +95,10 @@ namespace CoreWebApp.Controllers
         /// <param name="companyId"></param>
         /// <returns></returns>
         [RequireQueryStringParameter("projectId")]
-        public async Task<IActionResult> InspectionForms(string? companyId, int projectId)
+        public async Task<IActionResult> InspectionForms(string? companyId, int projectId, string? eventId)
         {
             companyId = QueryStringSecurityHelper.UrlDecode(companyId);
+            eventId = QueryStringSecurityHelper.UrlDecode(eventId);
 
             if (string.IsNullOrWhiteSpace(companyId) || projectId <= 0)
             {
@@ -108,19 +109,8 @@ namespace CoreWebApp.Controllers
             {
                 CompanyId = companyId ?? string.Empty,
                 ProjectId = projectId,
-                InspectionDate = DateTime.Now.ToString("yyyy/MM/dd")
+                eventId = eventId ?? string.Empty
             };
-
-            try
-            {
-                var supplier = new Supplier { 業者編號 = companyId };
-                vm.Company = await Get_Company(supplier) ?? new 業者資料表();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "InspectionForms 業者資料查詢失敗，companyId={CompanyId}", companyId);
-                ModelState.AddModelError(string.Empty, "查詢業者資料失敗");
-            }
 
             var selectedProject = new InspectionProjectItemGroup
             {
@@ -193,23 +183,8 @@ namespace CoreWebApp.Controllers
                 #region 查詢資料出來做顯示
                 var vm = new InspectionFormsViewModel
                 {
-                    CompanyId = companyId ?? string.Empty,
-                    InspectionDate = DateTime.Now.ToString("yyyy/MM/dd")
+                    CompanyId = companyId ?? string.Empty
                 };
-
-                if (!string.IsNullOrWhiteSpace(companyId))
-                {
-                    try
-                    {
-                        var supplier = new Supplier { 業者編號 = companyId };
-                        vm.Company = await Get_Company(supplier) ?? new 業者資料表();
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "InspectionForms 業者資料查詢失敗，companyId={CompanyId}", companyId);
-                        ModelState.AddModelError(string.Empty, "查詢業者資料失敗");
-                    }
-                }
 
                 if (projectIds is { Length: > 0 })
                 {
@@ -294,10 +269,11 @@ namespace CoreWebApp.Controllers
                 .ToList();
         }
 
-        public async Task<IActionResult> InspectionFormContent(string? InspectionId, string? inspectionItemName)
+        public async Task<IActionResult> InspectionFormContent(string? InspectionId, string? inspectionItemName, string? encodedEventId)
         {
             InspectionId = QueryStringSecurityHelper.UrlDecode(InspectionId);
             inspectionItemName = QueryStringSecurityHelper.UrlDecode(inspectionItemName);
+            encodedEventId = QueryStringSecurityHelper.UrlDecode(encodedEventId);
 
             var hasInspectionId = !string.IsNullOrWhiteSpace(InspectionId);
             ViewBag.InspectionItemName = inspectionItemName?.Trim() ?? string.Empty;
