@@ -1,61 +1,780 @@
-﻿<div class="inspection-question-card">
-        <div class="inspection-question-title">
-            1.	GHP
-            <input type="button" id="btnLoadAttachForm" class="btn btn-primary-line" value="載入附件表單" />
+<div class="ghp-partial-page">
+    <div class="ghp-tabs" role="tablist" aria-label="GHP">
+        <div class="ghp-tab" role="tab" aria-selected="false">稽查結果</div>
+        <div class="ghp-tab" role="tab" aria-selected="false">工作紀錄</div>
+        <div class="ghp-tab active" role="tab" aria-selected="true">專案欄位</div>
+        <div class="ghp-tab" role="tab" aria-selected="false">稽查結果附件</div>
+        <div class="ghp-tab" role="tab" aria-selected="false">預覽</div>
+    </div>
+
+    <div class="ghp-project-panel">
+        <div class="ghp-project-table">
+            <div class="ghp-table-row ghp-meat-source-row">
+                <div class="ghp-row-label">
+                    <span class="required">*</span>
+                    <span>肉品來源查核：</span>
+                </div>
+                <div class="ghp-row-content">
+                    <div class="ghp-meat-table" role="group" aria-label="肉品來源查核">
+                        @{
+                            var meatItems = new[]
+                            {
+                                new { Id = "Pig", Name = "豬" },
+                                new { Id = "Cattle", Name = "牛" },
+                                new { Id = "Sheep", Name = "羊" },
+                                new { Id = "Chicken", Name = "雞" },
+                                new { Id = "Duck", Name = "鴨" },
+                                new { Id = "Goose", Name = "鵝" }
+                            };
+                        }
+
+                        @foreach (var item in meatItems)
+                        {
+                            var checkboxId = $"ghpMeat{item.Id}";
+                            var resultName = $"ghpMeat{item.Id}Result";
+
+                            <div class="ghp-meat-row">
+                                <label class="ghp-checkbox-label" for="@checkboxId">
+                                    <input id="@checkboxId" name="ghpMeatItems" type="checkbox" value="@item.Name" />
+                                    <span>@item.Name</span>
+                                </label>
+
+                                <div class="ghp-result-options">
+                                    <label class="ghp-radio-label" for="@(resultName)Pass">
+                                        <input id="@(resultName)Pass" name="@resultName" type="radio" value="合格" />
+                                        <span>合格</span>
+                                    </label>
+                                    <label class="ghp-radio-label" for="@(resultName)OralImprove">
+                                        <input id="@(resultName)OralImprove" name="@resultName" type="radio" value="口頭輔導改善" />
+                                        <span>口頭輔導改善</span>
+                                    </label>
+                                    <label class="ghp-radio-label" for="@(resultName)WrittenImprove">
+                                        <input id="@(resultName)WrittenImprove" name="@resultName" type="radio" value="書面限期改善" />
+                                        <span>書面限期改善</span>
+                                    </label>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="ghp-meat-row ghp-non-target-row">
+                            <label class="ghp-checkbox-label" for="ghpMeatNonTarget">
+                                <input id="ghpMeatNonTarget" name="ghpMeatItems" type="checkbox" value="非規範對象" />
+                                <span>非規範對象</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ghp-section-title">
+                <span class="required">*</span>
+                <span>配合其他單位主管機關執行聯合稽查 (如：農政單位或零售主管機關)</span>
+            </div>
+
+            <div class="ghp-table-row ghp-joint-row">
+                <div class="ghp-row-label"></div>
+                <div class="ghp-row-content">
+                    <div class="ghp-yes-no-options" role="radiogroup" aria-label="配合其他單位主管機關執行聯合稽查">
+                        <label class="ghp-radio-label" for="ghpJointInspectionYes">
+                            <input id="ghpJointInspectionYes" name="ghpJointInspection" type="radio" value="是" />
+                            <span>是</span>
+                        </label>
+                        <label class="ghp-radio-label" for="ghpJointInspectionNo">
+                            <input id="ghpJointInspectionNo" name="ghpJointInspection" type="radio" value="否" checked />
+                            <span>否</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="inspection-question-body">
+    </div>
 
-            <div class="pmds-radio-group inspection-group">
-                <div class="inspection-row">
-                    <label class="radio-inline-item" for="chk1_1">
-                        <input id="chk1_1" type="checkbox" value="Y">
-                        <span>符合</span>
-                    </label>
+    <div class="ghp-project-panel ghp-transport-panel">
+        <div class="ghp-project-table ghp-transport-table">
+            <div class="ghp-section-title">
+                <span class="required">*</span>
+                <span>屠體、內臟及其分切物載運器具衛生查核：</span>
+            </div>
 
-                    <label class="radio-inline-item" for="chk1_2">
-                        <input id="chk1_2" type="checkbox" value="Y">
-                        <span>不適用</span>，原因：<input id="txtReason1" type="text" class="form-control" />
+            <div class="ghp-transport-row">
+                <div class="ghp-transport-label"></div>
+                <div class="ghp-transport-content">
+                    <label class="ghp-radio-label" for="ghpTransportNotApplicable">
+                        <input id="ghpTransportNotApplicable" name="ghpTransportInspectionType" type="radio" value="不適用" />
+                        <span>不適用</span>
                     </label>
                 </div>
             </div>
 
-            <!-- 限期改正 -->
-            <div class="pmds-radio-group inspection-group">
-                <div class="inspection-row">
-                    <label for="chk1_3" class="check-item">
-                        <input id="chk1_3" type="checkbox" value="Y" />
-                        <span>限期改正，不符合事項限於：</span>
+            <div class="ghp-transport-row">
+                <div class="ghp-transport-label"></div>
+                <div class="ghp-transport-content">
+                    <label class="ghp-radio-label" for="ghpTransportFoodBusiness">
+                        <input id="ghpTransportFoodBusiness" name="ghpTransportInspectionType" type="radio" value="食品業者或其委託運輸業者、職運" />
+                        <span>食品業者或其委託運輸業者、職運</span>
                     </label>
-
-                    <input id="txtYear1" type="text" class="form-control date-input" />年
-                    <input id="txtMonth1" type="text" class="form-control date-input" />月
-                    <input id="txtDay1" type="text" class="form-control date-input" />日前改善完竣，稽查不合格項目：
                 </div>
             </div>
 
-            <!-- 違規法條說明 -->
-            <div class="rule-text">
-                1. 違規法條【備註:說明實際違規情形】（以下為範例）
-                〔五（一）1〕進用食品從業人員時，經醫療機構檢查Ａ型肝炎、傷寒、出疹、膿瘡、外傷、手部皮膚病等合格後，始得聘僱；雇主每年應主動辦理食品從業人員前述檢查至少一次。【備註:未辦理食品從業人員體檢】
+            <div class="ghp-transport-row ghp-transport-detail-row">
+                <div class="ghp-transport-label"></div>
+                <div class="ghp-transport-content ghp-field-stack">
+                    <label class="ghp-checkbox-label" for="ghpTransportSelf">
+                        <input id="ghpTransportSelf" name="ghpTransportFoodBusinessType" type="checkbox" value="自行載運" />
+                        <span>自行載運：</span>
+                    </label>
+
+                    <div class="ghp-field-line">
+                        <label for="ghpSelfDriverName">司機姓名：</label>
+                        <input id="ghpSelfDriverName" name="ghpSelfDriverName" type="text" class="form-control ghp-text-input" />
+                        <span>、車牌號碼：</span>
+                        <input id="ghpSelfPlateNumber" name="ghpSelfPlateNumber" type="text" class="form-control ghp-text-input" />
+                    </div>
+
+                    <div class="ghp-field-line">
+                        <span>查核結果：</span>
+                        <div class="ghp-result-options">
+                            <label class="ghp-radio-label" for="ghpSelfResultPass">
+                                <input id="ghpSelfResultPass" name="ghpSelfInspectionResult" type="radio" value="合格" />
+                                <span>合格</span>
+                            </label>
+                            <label class="ghp-radio-label" for="ghpSelfResultOralImprove">
+                                <input id="ghpSelfResultOralImprove" name="ghpSelfInspectionResult" type="radio" value="輔導改善" />
+                                <span>輔導改善</span>
+                            </label>
+                            <label class="ghp-radio-label" for="ghpSelfResultDeadlineImprove">
+                                <input id="ghpSelfResultDeadlineImprove" name="ghpSelfInspectionResult" type="radio" value="限期改善" />
+                                <span>限期改善</span>
+                            </label>
+                            <label class="ghp-radio-label" for="ghpSelfResultFail">
+                                <input id="ghpSelfResultFail" name="ghpSelfInspectionResult" type="radio" value="不合格" />
+                                <span>不合格</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="pmds-radio-group inspection-group">
-                <label for="chk1_4" class="check-item">
-                    <input id="chk1_4" type="checkbox" value="Y" />
-                    <span>資料待補，說明</span><input id="txtExplan1" type="text" class="form-control note-input" />
-                    <span>備註：</span><input id="txtNote1" type="text" class="form-control note-input" /><span>(可讓現場稽查人員依需求填寫)</span>
-                </label>
+            <div class="ghp-transport-row ghp-transport-detail-row">
+                <div class="ghp-transport-label"></div>
+                <div class="ghp-transport-content ghp-field-stack">
+                    <label class="ghp-checkbox-label" for="ghpTransportEntrusted">
+                        <input id="ghpTransportEntrusted" name="ghpTransportFoodBusinessType" type="checkbox" value="委託載運" />
+                        <span>委託載運：</span>
+                    </label>
 
-                <label class="check-item">
-                    <span>●查核提醒事項:</span><input id="txtNote1" type="text" class="form-control note-input" /><span>(表單設計者依需求填寫填寫，倘無則不顯示)</span>
-                </label>
+                    <div class="ghp-field-line">
+                        <label for="ghpEntrustedCompanyName">委託業者名稱：</label>
+                        <input id="ghpEntrustedCompanyName" name="ghpEntrustedCompanyName" type="text" class="form-control ghp-text-input" />
+                        <span>、電話：</span>
+                        <input id="ghpEntrustedPhone" name="ghpEntrustedPhone" type="text" class="form-control ghp-text-input" />
+                    </div>
+
+                    <div class="ghp-field-line">
+                        <label for="ghpEntrustedDriverName">司機姓名：</label>
+                        <input id="ghpEntrustedDriverName" name="ghpEntrustedDriverName" type="text" class="form-control ghp-text-input" />
+                        <span>、車牌號碼：</span>
+                        <input id="ghpEntrustedPlateNumber" name="ghpEntrustedPlateNumber" type="text" class="form-control ghp-text-input" />
+                    </div>
+
+                    <div class="ghp-field-line">
+                        <label for="ghpEntrustedAddress">地址：</label>
+                        <input id="ghpEntrustedAddress" name="ghpEntrustedAddress" type="text" class="form-control ghp-address-input" />
+                    </div>
+
+                    <div class="ghp-field-line">
+                        <span>查核結果：</span>
+                        <div class="ghp-result-options">
+                            <label class="ghp-radio-label" for="ghpEntrustedResultPass">
+                                <input id="ghpEntrustedResultPass" name="ghpEntrustedInspectionResult" type="radio" value="合格" />
+                                <span>合格</span>
+                            </label>
+                            <label class="ghp-radio-label" for="ghpEntrustedResultOralImprove">
+                                <input id="ghpEntrustedResultOralImprove" name="ghpEntrustedInspectionResult" type="radio" value="輔導改善" />
+                                <span>輔導改善</span>
+                            </label>
+                            <label class="ghp-radio-label" for="ghpEntrustedResultDeadlineImprove">
+                                <input id="ghpEntrustedResultDeadlineImprove" name="ghpEntrustedInspectionResult" type="radio" value="限期改善" />
+                                <span>限期改善</span>
+                            </label>
+                            <label class="ghp-radio-label" for="ghpEntrustedResultFail">
+                                <input id="ghpEntrustedResultFail" name="ghpEntrustedInspectionResult" type="radio" value="不合格" />
+                                <span>不合格</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="ghp-note-text">
+                        說明：如委託業者經稽查員之查核結果不符規定，請移請外縣市衛生局辦理。
+                    </div>
+                </div>
             </div>
-            
+
+            <div class="ghp-transport-row">
+                <div class="ghp-transport-label"></div>
+                <div class="ghp-transport-content">
+                    <label class="ghp-radio-label" for="ghpTransportIndustryOrEntrusted">
+                        <input id="ghpTransportIndustryOrEntrusted" name="ghpTransportInspectionType" type="radio" value="屠宰業者或其委託運輸業者、職運" />
+                        <span>屠宰業者或其委託運輸業者、職運</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="ghp-transport-row ghp-transport-detail-row">
+                <div class="ghp-transport-label"></div>
+                <div class="ghp-transport-content ghp-field-stack">
+                    <div class="ghp-field-line">
+                        <label for="ghpIndustryTransporterName">屠宰業者或其委託運輸業者名稱：</label>
+                        <input id="ghpIndustryTransporterName" name="ghpIndustryTransporterName" type="text" class="form-control ghp-text-input" />
+                    </div>
+
+                    <div class="ghp-field-line">
+                        <label for="ghpIndustryAddress">地址：</label>
+                        <input id="ghpIndustryAddress" name="ghpIndustryAddress" type="text" class="form-control ghp-address-input" />
+                    </div>
+
+                    <div class="ghp-field-line">
+                        <label for="ghpIndustryPhone">電話：</label>
+                        <input id="ghpIndustryPhone" name="ghpIndustryPhone" type="text" class="form-control ghp-text-input" />
+                    </div>
+
+                    <div class="ghp-field-line">
+                        <label for="ghpIndustryDriverName">司機姓名：</label>
+                        <input id="ghpIndustryDriverName" name="ghpIndustryDriverName" type="text" class="form-control ghp-text-input" />
+                        <span>、車牌號碼：</span>
+                        <input id="ghpIndustryPlateNumber" name="ghpIndustryPlateNumber" type="text" class="form-control ghp-text-input" />
+                    </div>
+
+                    <div class="ghp-note-text">
+                        說明：如查獲不符規定者，請將相關違規情節移請行政院農業委員會動植物防疫檢疫局辦理，並副知本署。
+                    </div>
+
+                    <div class="ghp-field-line ghp-remark-line">
+                        <label for="ghpTransportRemark">備註：</label>
+                        <textarea id="ghpTransportRemark" name="ghpTransportRemark" class="form-control ghp-remark-input"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ghp-transport-footer-row">
+                <div class="ghp-transport-label"></div>
+                <div class="ghp-transport-content"></div>
+            </div>
         </div>
-    
+    </div>
 
-    <div class="inspection-action-row">
-        <button type="button" class="btn btn-form" id="btnSave480962547">儲存</button>
-        <button type="button" class="btn btn-form" id="btnCancel480962547" onclick="window.history.go(-1);">取消</button>
+    <div class="ghp-action-row">
+        <button type="button" class="ghp-action-button" id="btnCancelGhp" onclick="window.history.go(-1);">取消並返回</button>
+        <button type="button" class="ghp-action-button" id="btnSaveGhp">儲存並離開</button>
     </div>
 </div>
+
+<style>
+    .ghp-partial-page {
+        width: 100%;
+        color: #333;
+        font-size: 18px;
+    }
+
+    .ghp-tabs {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        margin-bottom: 14px;
+        border: 1px solid #d6e1dc;
+        border-radius: 8px;
+        background: #fff;
+        overflow: hidden;
+    }
+
+    .ghp-tab {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 50px;
+        color: #888;
+        font-weight: 500;
+        letter-spacing: 1px;
+    }
+
+    .ghp-tab.active {
+        color: #1f9d45;
+        font-weight: 700;
+    }
+
+    .ghp-tab.active::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 240px;
+        height: 1px;
+        margin: auto;
+        background: #1f9d45;
+    }
+
+    .ghp-project-panel {
+        padding: 28px 18px 14px;
+        border: 2px solid #7ecb8a;
+        border-radius: 6px;
+        background: #fafffc;
+        box-shadow: 0 0 0 4px rgba(126, 203, 138, .22);
+        font-size: 12pt;
+    }
+
+    .ghp-project-panel label,
+    .ghp-project-panel input,
+    .ghp-project-panel textarea,
+    .ghp-project-panel .ghp-section-title,
+    .ghp-project-panel .ghp-row-label,
+    .ghp-project-panel .ghp-row-content,
+    .ghp-project-panel .ghp-transport-content {
+        font-size: 12pt;
+    }
+
+    .ghp-transport-panel {
+        margin-top: 26px;
+        padding: 24px 18px 14px;
+    }
+
+    .ghp-project-table {
+        border: 1px solid #d9e2dd;
+        background: #fff;
+    }
+
+    .ghp-table-row {
+        display: grid;
+        grid-template-columns: 174px minmax(0, 1fr);
+        border-bottom: 1px solid #d9e2dd;
+    }
+
+    .ghp-table-row:last-child {
+        border-bottom: 0;
+    }
+
+    .ghp-row-label {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 4px;
+        padding: 14px 16px;
+        background: #e7e7e7;
+        font-weight: 700;
+        line-height: 1.5;
+        white-space: nowrap;
+    }
+
+    .ghp-row-content {
+        min-width: 0;
+        padding: 12px;
+        background: #fff;
+    }
+
+    .ghp-meat-source-row .ghp-row-content {
+        padding-top: 14px;
+        padding-bottom: 14px;
+    }
+
+    .ghp-meat-table {
+        border: 1px solid #dfe5e2;
+    }
+
+    .ghp-meat-row {
+        display: flex;
+        align-items: center;
+        min-height: 72px;
+        padding: 10px;
+        border-bottom: 1px solid #dfe5e2;
+        background: #fff;
+    }
+
+    .ghp-meat-row:last-child {
+        border-bottom: 0;
+    }
+
+    .ghp-checkbox-label,
+    .ghp-radio-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin: 0;
+        font-weight: 400;
+        line-height: 1.4;
+        white-space: nowrap;
+    }
+
+    .ghp-checkbox-label {
+        min-width: 86px;
+    }
+
+    .ghp-checkbox-label.is-disabled,
+    .ghp-radio-label.is-disabled {
+        color: #999;
+        cursor: not-allowed;
+    }
+
+    .ghp-result-options,
+    .ghp-yes-no-options {
+        display: inline-flex;
+        align-items: center;
+        gap: 0;
+    }
+
+    .ghp-result-options .ghp-radio-label,
+    .ghp-yes-no-options .ghp-radio-label {
+        min-height: 34px;
+        margin-left: -1px;
+        padding: 0 10px;
+        border: 1px solid #d9dedc;
+        background: #fff;
+    }
+
+    .ghp-non-target-row {
+        min-height: 62px;
+    }
+
+    .ghp-section-title {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        min-height: 50px;
+        padding: 9px 18px;
+        border-bottom: 1px solid #d9e2dd;
+        background: #e2ecf7;
+        color: #222;
+        font-weight: 700;
+        line-height: 1.5;
+    }
+
+    .ghp-transport-table .ghp-section-title {
+        border-bottom: 1px solid #d9e2dd;
+    }
+
+    .ghp-transport-row,
+    .ghp-transport-footer-row {
+        display: grid;
+        grid-template-columns: 174px minmax(0, 1fr);
+        min-height: 54px;
+        border-bottom: 1px solid #d9e2dd;
+    }
+
+    .ghp-transport-footer-row {
+        min-height: 22px;
+        border-bottom: 0;
+    }
+
+    .ghp-transport-detail-row {
+        min-height: 88px;
+    }
+
+    .ghp-transport-label {
+        background: #f8fbfa;
+        border-right: 1px solid #eef2f0;
+    }
+
+    .ghp-transport-content {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        padding: 12px 24px;
+        background: #fff;
+    }
+
+    .ghp-field-stack {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 13px;
+    }
+
+    .ghp-field-line {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        min-height: 34px;
+    }
+
+    .ghp-field-line label {
+        margin: 0;
+        font-weight: 400;
+    }
+
+    .ghp-text-input {
+        display: inline-block;
+        width: 238px;
+        height: 34px;
+    }
+
+    .ghp-address-input {
+        display: inline-block;
+        width: min(100%, 520px);
+        height: 34px;
+    }
+
+    .ghp-note-text {
+        color: #1a57ff;
+        font-size: 12pt;
+        line-height: 1.6;
+    }
+
+    .ghp-remark-line {
+        align-items: flex-start;
+        width: 100%;
+    }
+
+    .ghp-remark-input {
+        width: min(100%, 620px);
+        min-height: 118px;
+        resize: vertical;
+    }
+
+    .ghp-action-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 36px;
+        margin: 76px 0 26px;
+    }
+
+    .ghp-action-button {
+        min-width: 116px;
+        height: 46px;
+        padding: 0 18px;
+        border: 1px solid #159947;
+        border-radius: 4px;
+        background: #159947;
+        color: #fff;
+        font-size: 12pt;
+        line-height: 1;
+        cursor: pointer;
+    }
+
+    .ghp-action-button:hover,
+    .ghp-action-button:focus {
+        border-color: #0f7f39;
+        background: #0f7f39;
+        color: #fff;
+    }
+
+    .ghp-joint-row .ghp-row-label {
+        background: #f8fbfa;
+    }
+
+    .ghp-joint-row .ghp-row-content {
+        min-height: 74px;
+        display: flex;
+        align-items: center;
+        padding-left: 24px;
+    }
+
+    .ghp-partial-page input[type="checkbox"],
+    .ghp-partial-page input[type="radio"] {
+        width: 24px;
+        height: 24px;
+        margin: 0;
+        accent-color: #35a853;
+    }
+
+    .ghp-partial-page .required {
+        color: #d93025;
+        font-weight: 700;
+    }
+
+    @@media (max-width: 768px) {
+        .ghp-partial-page {
+            font-size: 16px;
+        }
+
+        .ghp-tabs {
+            grid-template-columns: 1fr;
+        }
+
+        .ghp-tab.active::after {
+            width: 100%;
+        }
+
+        .ghp-project-panel {
+            padding: 18px 10px 12px;
+        }
+
+        .ghp-table-row {
+            grid-template-columns: 1fr;
+        }
+
+        .ghp-row-label {
+            justify-content: flex-start;
+            white-space: normal;
+        }
+
+        .ghp-meat-row {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .ghp-result-options,
+        .ghp-yes-no-options {
+            flex-wrap: wrap;
+        }
+
+        .ghp-transport-row,
+        .ghp-transport-footer-row {
+            grid-template-columns: 1fr;
+        }
+
+        .ghp-transport-label {
+            display: none;
+        }
+
+        .ghp-transport-content {
+            padding: 12px;
+        }
+
+        .ghp-text-input,
+        .ghp-address-input,
+        .ghp-remark-input {
+            width: 100%;
+        }
+
+        .ghp-action-row {
+            gap: 14px;
+            margin-top: 36px;
+        }
+    }
+</style>
+
+<script>
+    (function () {
+        var nonTargetCheckbox = document.getElementById('ghpMeatNonTarget');
+        var meatItemCheckboxes = Array.prototype.slice.call(
+            document.querySelectorAll('input[name="ghpMeatItems"]:not(#ghpMeatNonTarget)')
+        );
+
+        if (!nonTargetCheckbox || meatItemCheckboxes.length === 0) {
+            return;
+        }
+
+        function syncMeatSourceAvailability() {
+            var shouldDisableMeatItems = nonTargetCheckbox.checked;
+
+            meatItemCheckboxes.forEach(function (checkbox) {
+                checkbox.checked = shouldDisableMeatItems ? false : checkbox.checked;
+                checkbox.disabled = shouldDisableMeatItems;
+
+                var label = checkbox.closest('label');
+                if (label) {
+                    label.classList.toggle('is-disabled', shouldDisableMeatItems);
+                }
+
+                var row = checkbox.closest('.ghp-meat-row');
+                var resultRadios = row
+                    ? Array.prototype.slice.call(row.querySelectorAll('input[type="radio"]'))
+                    : [];
+                var shouldDisableResult = shouldDisableMeatItems || !checkbox.checked;
+
+                resultRadios.forEach(function (radio) {
+                    radio.disabled = shouldDisableResult;
+
+                    if (shouldDisableResult) {
+                        radio.checked = false;
+                    }
+
+                    var radioLabel = radio.closest('label');
+                    if (radioLabel) {
+                        radioLabel.classList.toggle('is-disabled', shouldDisableResult);
+                    }
+                });
+            });
+        }
+
+        nonTargetCheckbox.addEventListener('change', syncMeatSourceAvailability);
+        meatItemCheckboxes.forEach(function (checkbox) {
+            checkbox.addEventListener('change', syncMeatSourceAvailability);
+        });
+        syncMeatSourceAvailability();
+
+        var transportNotApplicable = document.getElementById('ghpTransportNotApplicable');
+        var transportFoodBusiness = document.getElementById('ghpTransportFoodBusiness');
+        var transportIndustryOrEntrusted = document.getElementById('ghpTransportIndustryOrEntrusted');
+
+        function clearControls(controls, excludeControl) {
+            controls.forEach(function (control) {
+                if (!control || control === excludeControl) {
+                    return;
+                }
+
+                if (control.type === 'checkbox' || control.type === 'radio') {
+                    control.checked = false;
+                    return;
+                }
+
+                control.value = '';
+            });
+        }
+
+        function getControlsBetween(startRow, endRow) {
+            var controls = [];
+            var row = startRow ? startRow.nextElementSibling : null;
+
+            while (row && row !== endRow) {
+                controls = controls.concat(Array.prototype.slice.call(
+                    row.querySelectorAll('input, textarea')
+                ));
+                row = row.nextElementSibling;
+            }
+
+            return controls;
+        }
+
+        function getControlsAfter(startRow) {
+            var controls = [];
+            var row = startRow ? startRow.nextElementSibling : null;
+
+            while (row) {
+                controls = controls.concat(Array.prototype.slice.call(
+                    row.querySelectorAll('input, textarea')
+                ));
+                row = row.nextElementSibling;
+            }
+
+            return controls;
+        }
+
+        function bindTransportResetRules() {
+            if (!transportNotApplicable || !transportFoodBusiness || !transportIndustryOrEntrusted) {
+                return;
+            }
+
+            var notApplicableRow = transportNotApplicable.closest('.ghp-transport-row');
+            var foodBusinessRow = transportFoodBusiness.closest('.ghp-transport-row');
+            var industryRow = transportIndustryOrEntrusted.closest('.ghp-transport-row');
+
+            transportNotApplicable.addEventListener('change', function () {
+                if (!transportNotApplicable.checked) {
+                    return;
+                }
+
+                clearControls(getControlsAfter(notApplicableRow), transportNotApplicable);
+            });
+
+            transportFoodBusiness.addEventListener('change', function () {
+                if (!transportFoodBusiness.checked) {
+                    return;
+                }
+
+                clearControls(getControlsAfter(industryRow), transportFoodBusiness);
+            });
+
+            transportIndustryOrEntrusted.addEventListener('change', function () {
+                if (!transportIndustryOrEntrusted.checked) {
+                    return;
+                }
+
+                clearControls(getControlsBetween(notApplicableRow, industryRow), transportIndustryOrEntrusted);
+            });
+        }
+
+        bindTransportResetRules();
+    })();
+</script>

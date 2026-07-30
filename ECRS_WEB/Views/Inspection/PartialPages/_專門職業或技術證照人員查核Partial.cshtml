@@ -1,0 +1,680 @@
+<div class="expired-food-page professional-license-page">
+    <input type="hidden" id="professionalLicenseEventId" value="@((ViewBag.EventId as string) ?? string.Empty)" />
+
+    <div class="expired-food-tabs" role="tablist" aria-label="保存來源文件頁籤">
+        <div class="expired-food-tab active" role="tab" aria-selected="true">稽查內容</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">照片</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">附件</div>
+    </div>
+
+    <fieldset class="expired-food-section">
+        <legend>稽查情形</legend>
+
+        <div class="expired-food-inspection-panel">
+            <div class="expired-food-question">
+                <span class="required">*</span> 聘用食品業者專門職業或技術證照人員：
+            </div>
+
+            <div class="expired-food-radio-group professional-license-radio-group" role="radiogroup" aria-label="聘用食品業者專門職業或技術證照人員">
+                <label class="expired-food-radio" for="professionalLicenseQualified">
+                    <input id="professionalLicenseQualified" name="professionalLicenseStatus" type="radio" value="1" />
+                    <span>符合</span>
+                </label>
+                <label class="expired-food-radio" for="professionalLicenseUnqualified">
+                    <input id="professionalLicenseUnqualified" name="professionalLicenseStatus" type="radio" value="2" />
+                    <span>不符合</span>
+                </label>
+                <label class="expired-food-radio" for="professionalLicenseNotApplicable">
+                    <input id="professionalLicenseNotApplicable" name="professionalLicenseStatus" type="radio" value="3" />
+                    <span>不適用</span>
+                </label>
+            </div>
+
+            <div id="professionalLicenseTrainingPanel" class="professional-license-training-panel" hidden>
+                <div class="professional-license-training-title">登錄各該人員資料及衛生講習或訓練時數：</div>
+                <div class="expired-food-radio-group professional-license-training-radio-group" role="radiogroup" aria-label="登錄各該人員資料及衛生講習或訓練時數">
+                    <label class="expired-food-radio" for="professionalLicenseTrainingQualified">
+                        <input id="professionalLicenseTrainingQualified" name="professionalLicenseTrainingStatus" type="radio" value="Y" />
+                        <span>符合</span>
+                    </label>
+                    <label class="expired-food-radio" for="professionalLicenseTrainingUnqualified">
+                        <input id="professionalLicenseTrainingUnqualified" name="professionalLicenseTrainingStatus" type="radio" value="N" />
+                        <span>不符合</span>
+                    </label>
+                </div>
+            </div>
+
+            <div id="professionalLicenseNotApplicableReasonPanel" class="professional-license-na-reason-panel" hidden>
+                <div class="professional-license-na-reason-title">不適用原因(可複選)：</div>
+                <label class="professional-license-na-reason-check" for="chkProfessionalLicenseNoFactoryRegistration">
+                    <input id="chkProfessionalLicenseNoFactoryRegistration" name="professionalLicenseNotApplicableReason" type="checkbox" value="無工廠登記" />
+                    <span>無工廠登記</span>
+                </label>
+                <label class="professional-license-na-reason-check" for="chkProfessionalLicenseCapitalUnderThirtyMillion">
+                    <input id="chkProfessionalLicenseCapitalUnderThirtyMillion" name="professionalLicenseNotApplicableReason" type="checkbox" value="資本額未達3千萬" />
+                    <span>資本額未達3千萬</span>
+                </label>
+                <label class="professional-license-na-reason-check" for="chkProfessionalLicenseFoodWorkersUnderTwenty">
+                    <input id="chkProfessionalLicenseFoodWorkersUnderTwenty" name="professionalLicenseNotApplicableReason" type="checkbox" value="食品從業人員未滿20人" />
+                    <span>食品從業人員未滿20人</span>
+                </label>
+                <label class="professional-license-na-reason-check" for="chkProfessionalLicenseNonRegulatedBusiness">
+                    <input id="chkProfessionalLicenseNonRegulatedBusiness" name="professionalLicenseNotApplicableReason" type="checkbox" value="非規範業別" />
+                    <span>非規範業別</span>
+                </label>
+            </div>
+
+            <div class="expired-food-description-row professional-license-description-row">
+                <div>
+                    <label class="expired-food-description-label" for="txtProfessionalLicenseInspectionDescription">現場稽查描述：</label>
+                    <div class="expired-food-template">
+                        <button type="button" class="btn btn-sm" id="btnProfessionalLicenseTemplate">個人範本</button>
+                    </div>
+                </div>
+                <textarea id="txtProfessionalLicenseInspectionDescription" class="form-control expired-food-description"></textarea>
+            </div>
+        </div>
+    </fieldset>
+
+    <div class="expired-food-actions">
+        <button type="button" class="btn btn-success" id="btnCancelProfessionalLicense" onclick="window.history.go(-1);">取消並返回</button>
+        <button type="button" class="btn btn-success" id="btnSaveProfessionalLicense">儲存並離開</button>
+    </div>
+</div>
+
+<div id="professionalLicenseTemplateOverlay" class="expired-food-template-overlay" hidden>
+    <div class="expired-food-template-dialog" role="dialog" aria-modal="true" aria-labelledby="professionalLicenseTemplateTitle">
+        <div class="expired-food-template-header">
+            <h3 id="professionalLicenseTemplateTitle">請選擇您要加入的範本</h3>
+        </div>
+        <div class="expired-food-template-body">
+            <ul class="expired-food-template-tree">
+                <li class="is-expanded">
+                    <span class="tree-label">縣市衛生局</span>
+                    <ul>
+                        <li><span class="tree-label">GHP</span></li>
+                        <li><span class="tree-label">抽驗/標示</span></li>
+                        <li class="is-expanded">
+                            <span class="tree-label">現場稽查記錄</span>
+                        </li>
+                        <li class="is-expanded">
+                            <span class="tree-label">食品中毒速報</span>
+                            <ul>
+                                <li>
+                                    <label class="tree-check">
+                                        <input type="checkbox" name="professionalLicenseTemplateText" value="勾兩個可以嗎?" checked />
+                                        <span>勾兩個可以嗎?</span>
+                                    </label>
+                                </li>
+                            </ul>
+                        </li>
+                        <li><span class="tree-label">其他</span></li>
+                        <li><span class="tree-label">回收後續處理結果</span></li>
+                    </ul>
+                </li>
+                <li class="is-expanded">
+                    <span class="tree-label">個人專用範本</span>
+                    <ul>
+                        <li><span class="tree-label">GHP</span></li>
+                        <li><span class="tree-label">抽驗/標示</span></li>
+                        <li><span class="tree-label">現場稽查記錄</span></li>
+                        <li><span class="tree-label">食品中毒速報</span></li>
+                        <li><span class="tree-label">其他</span></li>
+                        <li><span class="tree-label">回收後續處理結果</span></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="expired-food-template-footer">
+            <button type="button" class="btn btn-sm btn-light" id="btnProfessionalLicenseTemplateAdd">加入</button>
+            <button type="button" class="btn btn-sm btn-light" id="btnProfessionalLicenseTemplateCancel">取消</button>
+        </div>
+    </div>
+</div>
+
+<div id="professionalLicenseSaveResultOverlay" class="expired-food-save-result-overlay" hidden>
+    <div class="expired-food-save-result-dialog" role="dialog" aria-modal="true" aria-labelledby="professionalLicenseSaveResultTitle">
+        <div class="expired-food-save-result-header">
+            <h3 id="professionalLicenseSaveResultTitle">執行結果</h3>
+        </div>
+        <div class="expired-food-save-result-body" id="professionalLicenseSaveResultMessage"></div>
+        <div class="expired-food-save-result-footer">
+            <button type="button" class="btn btn-success" id="btnProfessionalLicenseSaveResultOk">確定</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .professional-license-page .expired-food-section {
+        margin-top: 10px;
+    }
+
+    .professional-license-radio-group {
+        margin-bottom: 14px;
+    }
+
+    .professional-license-training-panel {
+        margin: -4px 0 14px;
+    }
+
+    .professional-license-training-title {
+        margin-bottom: 8px;
+        line-height: 1.5;
+    }
+
+    .professional-license-training-radio-group {
+        margin-bottom: 0;
+    }
+
+    .professional-license-na-reason-panel {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        width: fit-content;
+        max-width: 100%;
+        margin: -4px 0 14px;
+    }
+
+    .professional-license-na-reason-panel:not([hidden]) {
+        display: flex;
+    }
+
+    .professional-license-na-reason-title {
+        line-height: 1.5;
+    }
+
+    .professional-license-na-reason-check {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        font-weight: normal;
+        white-space: nowrap;
+    }
+
+    .professional-license-na-reason-check input {
+        margin: 0;
+    }
+
+    .professional-license-description-row {
+        align-items: flex-start;
+    }
+
+    .professional-license-description-row .expired-food-description {
+        min-height: 58px;
+    }
+
+    .expired-food-template-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1050;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 0;
+        background: rgba(0, 0, 0, .62);
+    }
+
+    .expired-food-template-overlay[hidden] {
+        display: none;
+    }
+
+    .expired-food-save-result-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1060;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: rgba(0, 0, 0, .45);
+    }
+
+    .expired-food-save-result-overlay[hidden] {
+        display: none;
+    }
+
+    .expired-food-save-result-dialog {
+        width: 360px;
+        max-width: calc(100vw - 32px);
+        overflow: hidden;
+        border: 1px solid #cfd8d2;
+        border-radius: 6px;
+        background: #fff;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .22);
+    }
+
+    .expired-food-save-result-header {
+        padding: 12px 16px;
+        border-bottom: 1px solid #e3ebe5;
+        background: #eef8f0;
+    }
+
+    .expired-food-save-result-header h3 {
+        margin: 0;
+        color: #218544;
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    .expired-food-save-result-body {
+        min-height: 76px;
+        padding: 24px 18px;
+        color: #333;
+        font-size: 16px;
+        line-height: 1.6;
+        text-align: center;
+        word-break: break-word;
+    }
+
+    .expired-food-save-result-footer {
+        display: flex;
+        justify-content: center;
+        padding: 14px 16px 16px;
+        border-top: 1px solid #eef2ef;
+    }
+
+    .expired-food-save-result-footer .btn {
+        min-width: 82px;
+        border-color: #1f9d45;
+        background: #1f9d45;
+        color: #fff;
+    }
+
+    .expired-food-template-dialog {
+        width: 662px;
+        max-width: calc(100vw - 28px);
+        min-height: 620px;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #9da5a0;
+        background: #fff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, .28);
+    }
+
+    .expired-food-template-header {
+        padding: 16px 16px 18px;
+        background: linear-gradient(180deg, #ffffff 0%, #eefbf1 100%);
+        border-bottom: 1px solid #e4eee7;
+    }
+
+    .expired-food-template-header h3 {
+        margin: 0;
+        color: #218544;
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    .expired-food-template-body {
+        flex: 1 1 auto;
+        padding: 42px 20px 18px;
+        overflow: auto;
+        color: #555;
+        font-size: 18px;
+        line-height: 1.35;
+    }
+
+    .expired-food-template-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 14px;
+        padding: 16px;
+        border-top: 1px solid #f0f0f0;
+        background: #fff;
+    }
+
+    .expired-food-template-footer .btn {
+        min-width: 58px;
+        height: 36px;
+        border: 1px solid #dfe4e2;
+        color: #666;
+        background: #fff;
+        font-size: 16px;
+    }
+
+    .expired-food-template-tree,
+    .expired-food-template-tree ul {
+        list-style: none;
+        margin: 0;
+        padding-left: 22px;
+    }
+
+    .expired-food-template-tree {
+        padding-left: 0;
+    }
+
+    .expired-food-template-tree li {
+        position: relative;
+        min-height: 24px;
+    }
+
+    .expired-food-template-tree ul li::before {
+        content: "";
+        position: absolute;
+        top: -5px;
+        left: -13px;
+        width: 1px;
+        height: 29px;
+        border-left: 1px dotted #9a9a9a;
+    }
+
+    .expired-food-template-tree ul li::after {
+        content: "";
+        position: absolute;
+        top: 12px;
+        left: -13px;
+        width: 11px;
+        border-top: 1px dotted #9a9a9a;
+    }
+
+    .expired-food-template-tree .is-expanded > .tree-label::before {
+        content: "-";
+        display: inline-flex;
+        width: 10px;
+        height: 10px;
+        align-items: center;
+        justify-content: center;
+        margin-right: 2px;
+        border: 1px solid #9bb7c6;
+        color: #58869b;
+        background: #f7fbfd;
+        font-size: 11px;
+        line-height: 1;
+        vertical-align: middle;
+    }
+
+    .tree-label,
+    .tree-check {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        margin: 0;
+        font-weight: normal;
+        white-space: nowrap;
+    }
+
+    .tree-check {
+        gap: 4px;
+        color: #555;
+    }
+
+    .tree-check input[type="checkbox"] {
+        margin: 0;
+    }
+
+    @@media (max-width: 768px) {
+        .expired-food-template-overlay {
+            padding: 12px;
+            align-items: flex-start;
+        }
+
+        .expired-food-template-dialog {
+            min-height: min(620px, calc(100vh - 24px));
+        }
+
+        .expired-food-template-body {
+            padding: 28px 16px 18px;
+            font-size: 16px;
+        }
+    }
+</style>
+
+<script>
+    (function () {
+        var templateOverlay = document.getElementById('professionalLicenseTemplateOverlay');
+        var templateButton = document.getElementById('btnProfessionalLicenseTemplate');
+        var templateAddButton = document.getElementById('btnProfessionalLicenseTemplateAdd');
+        var templateCancelButton = document.getElementById('btnProfessionalLicenseTemplateCancel');
+        var description = document.getElementById('txtProfessionalLicenseInspectionDescription');
+        var saveButton = document.getElementById('btnSaveProfessionalLicense');
+        var eventIdInput = document.getElementById('professionalLicenseEventId');
+        var saveResultOverlay = document.getElementById('professionalLicenseSaveResultOverlay');
+        var saveResultMessage = document.getElementById('professionalLicenseSaveResultMessage');
+        var saveResultOkButton = document.getElementById('btnProfessionalLicenseSaveResultOk');
+        var qualifiedRadio = document.getElementById('professionalLicenseQualified');
+        var notApplicableRadio = document.getElementById('professionalLicenseNotApplicable');
+        var trainingPanel = document.getElementById('professionalLicenseTrainingPanel');
+        var notApplicableReasonPanel = document.getElementById('professionalLicenseNotApplicableReasonPanel');
+        var noFactoryRegistration = document.getElementById('chkProfessionalLicenseNoFactoryRegistration');
+        var capitalUnderThirtyMillion = document.getElementById('chkProfessionalLicenseCapitalUnderThirtyMillion');
+        var foodWorkersUnderTwenty = document.getElementById('chkProfessionalLicenseFoodWorkersUnderTwenty');
+        var nonRegulatedBusiness = document.getElementById('chkProfessionalLicenseNonRegulatedBusiness');
+        var saveUrl = '@Url.Action("SaveProfessionalLicenseInspection", "Inspection")';
+        var shouldGoBackAfterSaveResult = false;
+
+        function clearTrainingStatus() {
+            if (!trainingPanel) {
+                return;
+            }
+
+            trainingPanel
+                .querySelectorAll('input[name="professionalLicenseTrainingStatus"]')
+                .forEach(function (radio) {
+                    radio.checked = false;
+                });
+        }
+
+        function clearNotApplicableReasons() {
+            if (!notApplicableReasonPanel) {
+                return;
+            }
+
+            notApplicableReasonPanel
+                .querySelectorAll('input[name="professionalLicenseNotApplicableReason"]')
+                .forEach(function (checkbox) {
+                    checkbox.checked = false;
+                });
+        }
+
+        function updateConditionalPanels() {
+            var shouldShowTraining = qualifiedRadio && qualifiedRadio.checked;
+            var shouldShowNotApplicableReasons = notApplicableRadio && notApplicableRadio.checked;
+
+            if (trainingPanel) {
+                trainingPanel.hidden = !shouldShowTraining;
+            }
+
+            if (notApplicableReasonPanel) {
+                notApplicableReasonPanel.hidden = !shouldShowNotApplicableReasons;
+            }
+
+            if (!shouldShowTraining) {
+                clearTrainingStatus();
+            }
+
+            if (!shouldShowNotApplicableReasons) {
+                clearNotApplicableReasons();
+            }
+        }
+
+        function openTemplateDialog() {
+            if (!templateOverlay) {
+                return;
+            }
+
+            templateOverlay.hidden = false;
+            var firstTemplateCheckbox = templateOverlay.querySelector('input[name="professionalLicenseTemplateText"]');
+            if (firstTemplateCheckbox) {
+                firstTemplateCheckbox.focus();
+            }
+        }
+
+        function closeTemplateDialog() {
+            if (!templateOverlay) {
+                return;
+            }
+
+            templateOverlay.hidden = true;
+            if (templateButton) {
+                templateButton.focus();
+            }
+        }
+
+        function addTemplateText() {
+            if (!templateOverlay || !description) {
+                closeTemplateDialog();
+                return;
+            }
+
+            var selectedTexts = Array.prototype.slice
+                .call(templateOverlay.querySelectorAll('input[name="professionalLicenseTemplateText"]:checked'))
+                .map(function (checkbox) {
+                    return checkbox.value;
+                });
+
+            if (selectedTexts.length > 0) {
+                var currentValue = description.value.trim();
+                var addedValue = selectedTexts.join(';');
+                description.value = currentValue ? currentValue + ';' + addedValue : addedValue;
+                description.focus();
+            }
+
+            closeTemplateDialog();
+        }
+
+        function showSaveResult(message, shouldGoBack) {
+            shouldGoBackAfterSaveResult = shouldGoBack;
+
+            if (saveResultMessage) {
+                saveResultMessage.textContent = message;
+            }
+
+            if (saveResultOverlay) {
+                saveResultOverlay.hidden = false;
+            }
+
+            if (saveResultOkButton) {
+                saveResultOkButton.focus();
+            }
+        }
+
+        function closeSaveResult() {
+            if (saveResultOverlay) {
+                saveResultOverlay.hidden = true;
+            }
+
+            if (shouldGoBackAfterSaveResult) {
+                window.history.go(-1);
+                return;
+            }
+
+            if (saveButton) {
+                saveButton.focus();
+            }
+        }
+
+        if (templateButton) {
+            templateButton.addEventListener('click', openTemplateDialog);
+        }
+
+        if (templateAddButton) {
+            templateAddButton.addEventListener('click', addTemplateText);
+        }
+
+        if (templateCancelButton) {
+            templateCancelButton.addEventListener('click', closeTemplateDialog);
+        }
+
+        if (templateOverlay) {
+            templateOverlay.addEventListener('click', function (event) {
+                if (event.target === templateOverlay) {
+                    closeTemplateDialog();
+                }
+            });
+        }
+
+        if (saveResultOkButton) {
+            saveResultOkButton.addEventListener('click', closeSaveResult);
+        }
+
+        if (saveButton) {
+            saveButton.addEventListener('click', function () {
+                var selectedStatus = document.querySelector('input[name="professionalLicenseStatus"]:checked');
+                var selectedTrainingStatus = document.querySelector('input[name="professionalLicenseTrainingStatus"]:checked');
+                var eventId = eventIdInput ? parseInt(eventIdInput.value, 10) : 0;
+
+                if (!eventId) {
+                    showSaveResult('稽查事件主鍵不可為空', false);
+                    return;
+                }
+
+                if (!selectedStatus) {
+                    showSaveResult('請選擇聘用食品業者專門職業或技術證照人員查核結果', false);
+                    return;
+                }
+
+                if (selectedStatus.value === '1' && !selectedTrainingStatus) {
+                    showSaveResult('請選擇登錄各該人員資料及衛生講習或訓練時數查核結果', false);
+                    return;
+                }
+
+                saveButton.disabled = true;
+
+                fetch(saveUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        eventId: eventId,
+                        professionalLicenseStatus: selectedStatus.value,
+                        trainingStatus: selectedStatus.value === '1' && selectedTrainingStatus ? selectedTrainingStatus.value : null,
+                        noFactoryRegistrationNotApplicable: selectedStatus.value === '3' && noFactoryRegistration ? noFactoryRegistration.checked : false,
+                        capitalUnderThirtyMillionNotApplicable: selectedStatus.value === '3' && capitalUnderThirtyMillion ? capitalUnderThirtyMillion.checked : false,
+                        foodWorkersUnderTwentyNotApplicable: selectedStatus.value === '3' && foodWorkersUnderTwenty ? foodWorkersUnderTwenty.checked : false,
+                        nonRegulatedBusinessNotApplicable: selectedStatus.value === '3' && nonRegulatedBusiness ? nonRegulatedBusiness.checked : false,
+                        inspectionDescription: description ? description.value : ''
+                    })
+                })
+                    .then(function (response) {
+                        return response.json()
+                            .catch(function () {
+                                return { message: response.ok ? '儲存成功' : '儲存失敗' };
+                            })
+                            .then(function (result) {
+                                if (!response.ok) {
+                                    throw new Error(result.message || '儲存失敗');
+                                }
+
+                                return result;
+                            });
+                    })
+                    .then(function (result) {
+                        showSaveResult(result.message || '儲存成功', true);
+                    })
+                    .catch(function (error) {
+                        showSaveResult(error.message || '儲存失敗', false);
+                        saveButton.disabled = false;
+                    });
+                return;
+
+                if (!selectedStatus) {
+                    showSaveResult('請選擇聘用食品業者專門職業或技術證照人員查核結果', false);
+                    return;
+                }
+
+                showSaveResult('儲存功能尚未串接', false);
+            });
+        }
+
+        document.addEventListener('change', function (event) {
+            if (event.target && event.target.name === 'professionalLicenseStatus') {
+                updateConditionalPanels();
+            }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && templateOverlay && !templateOverlay.hidden) {
+                closeTemplateDialog();
+            }
+        });
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', updateConditionalPanels);
+        } else {
+            updateConditionalPanels();
+        }
+    })();
+</script>

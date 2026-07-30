@@ -419,5 +419,132 @@ namespace ECRS_WEB.Services
             var body = await resp.Content.ReadFromJsonAsync<List<string>>(cancellationToken: ct);
             return body ?? new List<string>();
         }
+
+        public async Task<AddInspectionEventResponse> SaveExpiredFoodInspection(ExpiredFoodInspectionSaveRequest request, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = "/Api/Inspection/ExpiredFoodInspection";
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = JsonContent.Create(request);
+
+            using var resp = await _http.SendAsync(req, ct);
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+
+            var result = JsonSerializer.Deserialize<AddInspectionEventResponse>(
+                raw,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                return result ?? new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                };
+            }
+
+            return result ?? new AddInspectionEventResponse
+            {
+                Success = false,
+                Message = "API 回傳資料格式錯誤"
+            };
+        }
+
+        public async Task<AddInspectionEventResponse> SaveHealthManagerInspection(HealthManagerInspectionSaveRequest request, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = "/Api/Inspection/HealthManagerInspection";
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = JsonContent.Create(request);
+
+            using var resp = await _http.SendAsync(req, ct);
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+
+            var result = JsonSerializer.Deserialize<AddInspectionEventResponse>(
+                raw,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                return result ?? new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                };
+            }
+
+            return result ?? new AddInspectionEventResponse
+            {
+                Success = false,
+                Message = "API 回傳資料格式錯誤"
+            };
+        }
+        public async Task<AddInspectionEventResponse> SaveSourceDocumentInspection(SourceDocumentInspectionSaveRequest request, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = "/Api/Inspection/SourceDocumentInspection";
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = JsonContent.Create(request);
+
+            using var resp = await _http.SendAsync(req, ct);
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+
+            var result = JsonSerializer.Deserialize<AddInspectionEventResponse>(
+                raw,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                return result ?? new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                };
+            }
+
+            return result ?? new AddInspectionEventResponse
+            {
+                Success = false,
+                Message = "API 回傳資料格式錯誤"
+            };
+        }
+
+        public async Task<AddInspectionEventResponse> SaveProfessionalLicenseInspection(ProfessionalLicenseInspectionSaveRequest request, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = "/Api/Inspection/ProfessionalLicenseInspection";
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = JsonContent.Create(request);
+
+            using var resp = await _http.SendAsync(req, ct);
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+
+            var result = JsonSerializer.Deserialize<AddInspectionEventResponse>(
+                raw,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                return result ?? new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                };
+            }
+
+            return result ?? new AddInspectionEventResponse
+            {
+                Success = false,
+                Message = "API response format is invalid"
+            };
+        }
     }
 }

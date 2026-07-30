@@ -1,1 +1,622 @@
+<div class="expired-food-page">
+    <input type="hidden" id="sourceDocumentEventId" value="@((ViewBag.EventId as string) ?? string.Empty)" />
 
+    <div class="expired-food-tabs" role="tablist" aria-label="保存來源文件頁籤">
+        <div class="expired-food-tab active" role="tab" aria-selected="true">稽查內容</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">照片</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">附件</div>
+    </div>
+
+    <fieldset class="expired-food-section">
+        <legend>稽查情形</legend>
+
+        <div class="expired-food-inspection-panel">
+            <div class="expired-food-question">
+                <span class="required">*</span>1.業者是否依「食品業者應保存原材料、半成品及成品來源文件之種類及期間」公告規定，以書面或電子化方式保存來源文件：
+            </div>
+
+            <div class="expired-food-radio-group" role="radiogroup" aria-label="業者是否以書面或電子化方式保存來源文件">
+                <label class="expired-food-radio" for="sourceDocumentSavedYes">
+                    <input id="sourceDocumentSavedYes" name="sourceDocumentSaved" type="radio" value="Y" />
+                    <span>是</span>
+                </label>
+                <label class="expired-food-radio" for="sourceDocumentSavedNo">
+                    <input id="sourceDocumentSavedNo" name="sourceDocumentSaved" type="radio" value="N" />
+                    <span>否</span>
+                </label>
+            </div>
+
+            <div id="sourceDocumentDetailQuestions" class="source-document-detail-questions" hidden>
+                <div class="source-document-detail-question">
+                    <div class="source-document-detail-title">2-1.上揭文件是否載明「收貨日期或批號」：</div>
+                    <div class="expired-food-radio-group" role="radiogroup" aria-label="上揭文件是否載明收貨日期或批號">
+                        <label class="expired-food-radio" for="sourceDocumentReceiveDateYes">
+                            <input id="sourceDocumentReceiveDateYes" name="sourceDocumentReceiveDate" type="radio" value="Y" />
+                            <span>是</span>
+                        </label>
+                        <label class="expired-food-radio" for="sourceDocumentReceiveDateNo">
+                            <input id="sourceDocumentReceiveDateNo" name="sourceDocumentReceiveDate" type="radio" value="N" />
+                            <span>否</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="source-document-detail-question">
+                    <div class="source-document-detail-title">2-2.上揭文件是否載明「原材料、半成品或成品之名稱、淨重、容量或數量」：</div>
+                    <div class="expired-food-radio-group" role="radiogroup" aria-label="上揭文件是否載明原材料半成品或成品之名稱淨重容量或數量">
+                        <label class="expired-food-radio" for="sourceDocumentProductInfoYes">
+                            <input id="sourceDocumentProductInfoYes" name="sourceDocumentProductInfo" type="radio" value="Y" />
+                            <span>是</span>
+                        </label>
+                        <label class="expired-food-radio" for="sourceDocumentProductInfoNo">
+                            <input id="sourceDocumentProductInfoNo" name="sourceDocumentProductInfo" type="radio" value="N" />
+                            <span>否</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="source-document-detail-question">
+                    <div class="source-document-detail-title">2-3.上揭文件是否載明「供應商之名稱、地址及其他聯繫方式(電話或電子郵件)」：</div>
+                    <div class="expired-food-radio-group" role="radiogroup" aria-label="上揭文件是否載明供應商之名稱地址及其他聯繫方式">
+                        <label class="expired-food-radio" for="sourceDocumentSupplierInfoYes">
+                            <input id="sourceDocumentSupplierInfoYes" name="sourceDocumentSupplierInfo" type="radio" value="Y" />
+                            <span>是</span>
+                        </label>
+                        <label class="expired-food-radio" for="sourceDocumentSupplierInfoNo">
+                            <input id="sourceDocumentSupplierInfoNo" name="sourceDocumentSupplierInfo" type="radio" value="N" />
+                            <span>否</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="expired-food-description-row">
+                <div>
+                    <label class="expired-food-description-label" for="txtSourceDocumentInspectionDescription">現場稽查描述：</label>
+                    <div class="expired-food-template">
+                        <button type="button" class="btn btn-sm" id="btnSourceDocumentTemplate">個人範本</button>
+                    </div>
+                </div>
+                <textarea id="txtSourceDocumentInspectionDescription" class="form-control expired-food-description"></textarea>
+            </div>
+        </div>
+    </fieldset>
+
+    <div class="expired-food-actions">
+        <button type="button" class="btn btn-success" id="btnCancelSourceDocument" onclick="window.history.go(-1);">取消並返回</button>
+        <button type="button" class="btn btn-success" id="btnSaveSourceDocument">儲存並離開</button>
+    </div>
+</div>
+
+<div id="sourceDocumentTemplateOverlay" class="expired-food-template-overlay" hidden>
+    <div class="expired-food-template-dialog" role="dialog" aria-modal="true" aria-labelledby="sourceDocumentTemplateTitle">
+        <div class="expired-food-template-header">
+            <h3 id="sourceDocumentTemplateTitle">請選擇您要加入的範本</h3>
+        </div>
+        <div class="expired-food-template-body">
+            <ul class="expired-food-template-tree">
+                <li class="is-expanded">
+                    <span class="tree-label">縣市衛生局</span>
+                    <ul>
+                        <li><span class="tree-label">GHP</span></li>
+                        <li><span class="tree-label">抽驗/標示</span></li>
+                        <li class="is-expanded">
+                            <span class="tree-label">現場稽查記錄</span>
+                            <ul>
+                                <li>
+                                    <label class="tree-check">
+                                        <input type="checkbox" name="sourceDocumentTemplateText" value="勾兩個可以嗎?" />
+                                        <span>勾兩個可以嗎?</span>
+                                    </label>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="is-expanded">
+                            <span class="tree-label">食品中毒速報</span>
+                            <ul>
+                                <li>
+                                    <label class="tree-check">
+                                        <input type="checkbox" name="sourceDocumentTemplateText" value="勾兩個可以嗎?" />
+                                        <span>勾兩個可以嗎?</span>
+                                    </label>
+                                </li>
+                            </ul>
+                        </li>
+                        <li><span class="tree-label">其他</span></li>
+                        <li><span class="tree-label">回收後續處理結果</span></li>
+                    </ul>
+                </li>
+                <li class="is-expanded">
+                    <span class="tree-label">個人專用範本</span>
+                    <ul>
+                        <li><span class="tree-label">GHP</span></li>
+                        <li><span class="tree-label">抽驗/標示</span></li>
+                        <li><span class="tree-label">現場稽查記錄</span></li>
+                        <li><span class="tree-label">食品中毒速報</span></li>
+                        <li><span class="tree-label">其他</span></li>
+                        <li><span class="tree-label">回收後續處理結果</span></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="expired-food-template-footer">
+            <button type="button" class="btn btn-sm btn-light" id="btnSourceDocumentTemplateAdd">加入</button>
+            <button type="button" class="btn btn-sm btn-light" id="btnSourceDocumentTemplateCancel">取消</button>
+        </div>
+    </div>
+</div>
+
+<div id="sourceDocumentSaveResultOverlay" class="expired-food-save-result-overlay" hidden>
+    <div class="expired-food-save-result-dialog" role="dialog" aria-modal="true" aria-labelledby="sourceDocumentSaveResultTitle">
+        <div class="expired-food-save-result-header">
+            <h3 id="sourceDocumentSaveResultTitle">儲存結果</h3>
+        </div>
+        <div class="expired-food-save-result-body" id="sourceDocumentSaveResultMessage"></div>
+        <div class="expired-food-save-result-footer">
+            <button type="button" class="btn btn-success" id="btnSourceDocumentSaveResultOk">確定</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .expired-food-template-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1050;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 0;
+        background: rgba(0, 0, 0, .62);
+    }
+
+    .expired-food-template-overlay[hidden] {
+        display: none;
+    }
+
+    .expired-food-save-result-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1060;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: rgba(0, 0, 0, .45);
+    }
+
+    .expired-food-save-result-overlay[hidden] {
+        display: none;
+    }
+
+    .expired-food-save-result-dialog {
+        width: 360px;
+        max-width: calc(100vw - 32px);
+        overflow: hidden;
+        border: 1px solid #cfd8d2;
+        border-radius: 6px;
+        background: #fff;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .22);
+    }
+
+    .expired-food-save-result-header {
+        padding: 12px 16px;
+        border-bottom: 1px solid #e3ebe5;
+        background: #eef8f0;
+    }
+
+    .expired-food-save-result-header h3 {
+        margin: 0;
+        color: #218544;
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    .expired-food-save-result-body {
+        min-height: 76px;
+        padding: 24px 18px;
+        color: #333;
+        font-size: 16px;
+        line-height: 1.6;
+        text-align: center;
+        word-break: break-word;
+    }
+
+    .expired-food-save-result-footer {
+        display: flex;
+        justify-content: center;
+        padding: 14px 16px 16px;
+        border-top: 1px solid #eef2ef;
+    }
+
+    .expired-food-save-result-footer .btn {
+        min-width: 82px;
+        border-color: #1f9d45;
+        background: #1f9d45;
+        color: #fff;
+    }
+
+    .expired-food-template-dialog {
+        width: 662px;
+        max-width: calc(100vw - 28px);
+        min-height: 620px;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #9da5a0;
+        background: #fff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, .28);
+    }
+
+    .expired-food-template-header {
+        padding: 16px 16px 18px;
+        background: linear-gradient(180deg, #ffffff 0%, #eefbf1 100%);
+        border-bottom: 1px solid #e4eee7;
+    }
+
+    .expired-food-template-header h3 {
+        margin: 0;
+        color: #218544;
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    .expired-food-template-body {
+        flex: 1 1 auto;
+        padding: 42px 20px 18px;
+        overflow: auto;
+        color: #555;
+        font-size: 18px;
+        line-height: 1.35;
+    }
+
+    .expired-food-template-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 14px;
+        padding: 16px;
+        border-top: 1px solid #f0f0f0;
+        background: #fff;
+    }
+
+    .expired-food-template-footer .btn {
+        min-width: 58px;
+        height: 36px;
+        border: 1px solid #dfe4e2;
+        color: #666;
+        background: #fff;
+        font-size: 16px;
+    }
+
+    .expired-food-template-tree,
+    .expired-food-template-tree ul {
+        list-style: none;
+        margin: 0;
+        padding-left: 22px;
+    }
+
+    .expired-food-template-tree {
+        padding-left: 0;
+    }
+
+    .expired-food-template-tree li {
+        position: relative;
+        min-height: 24px;
+    }
+
+    .expired-food-template-tree ul li::before {
+        content: "";
+        position: absolute;
+        top: -5px;
+        left: -13px;
+        width: 1px;
+        height: 29px;
+        border-left: 1px dotted #9a9a9a;
+    }
+
+    .expired-food-template-tree ul li::after {
+        content: "";
+        position: absolute;
+        top: 12px;
+        left: -13px;
+        width: 11px;
+        border-top: 1px dotted #9a9a9a;
+    }
+
+    .expired-food-template-tree .is-expanded > .tree-label::before {
+        content: "-";
+        display: inline-flex;
+        width: 10px;
+        height: 10px;
+        align-items: center;
+        justify-content: center;
+        margin-right: 2px;
+        border: 1px solid #9bb7c6;
+        color: #58869b;
+        background: #f7fbfd;
+        font-size: 11px;
+        line-height: 1;
+        vertical-align: middle;
+    }
+
+    .tree-label,
+    .tree-check {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        margin: 0;
+        font-weight: normal;
+        white-space: nowrap;
+    }
+
+    .tree-check {
+        gap: 4px;
+        color: #555;
+    }
+
+    .tree-check input[type="checkbox"] {
+        margin: 0;
+    }
+
+    .source-document-detail-questions {
+        width: min(100%, 760px);
+        margin: -4px 0 12px;
+    }
+
+    .source-document-detail-question {
+        margin-bottom: 12px;
+    }
+
+    .source-document-detail-title {
+        margin-bottom: 8px;
+        line-height: 1.5;
+    }
+
+    .source-document-detail-question .expired-food-radio-group {
+        margin-bottom: 0;
+    }
+
+    @@media (max-width: 768px) {
+        .expired-food-template-overlay {
+            padding: 12px;
+            align-items: flex-start;
+        }
+
+        .expired-food-template-dialog {
+            min-height: min(620px, calc(100vh - 24px));
+        }
+
+        .expired-food-template-body {
+            padding: 28px 16px 18px;
+            font-size: 16px;
+        }
+    }
+</style>
+
+<script>
+    (function () {
+        var yesRadio = document.getElementById('sourceDocumentSavedYes');
+        var noRadio = document.getElementById('sourceDocumentSavedNo');
+        var detailQuestions = document.getElementById('sourceDocumentDetailQuestions');
+
+        function clearDetailAnswers() {
+            if (!detailQuestions) {
+                return;
+            }
+
+            detailQuestions
+                .querySelectorAll('input[type="radio"]')
+                .forEach(function (radio) {
+                    radio.checked = false;
+                });
+        }
+
+        function updateDetailQuestions() {
+            if (!detailQuestions || !yesRadio) {
+                return;
+            }
+
+            var shouldShow = yesRadio.checked;
+            detailQuestions.hidden = !shouldShow;
+
+            if (!shouldShow) {
+                clearDetailAnswers();
+            }
+        }
+
+        if (yesRadio) {
+            yesRadio.addEventListener('change', updateDetailQuestions);
+        }
+
+        if (noRadio) {
+            noRadio.addEventListener('change', updateDetailQuestions);
+        }
+
+        updateDetailQuestions();
+    })();
+
+    (function () {
+        var overlay = document.getElementById('sourceDocumentTemplateOverlay');
+        var openButton = document.getElementById('btnSourceDocumentTemplate');
+        var addButton = document.getElementById('btnSourceDocumentTemplateAdd');
+        var cancelButton = document.getElementById('btnSourceDocumentTemplateCancel');
+        var description = document.getElementById('txtSourceDocumentInspectionDescription');
+
+        function openTemplateDialog() {
+            if (!overlay) {
+                return;
+            }
+
+            overlay.hidden = false;
+            var firstCheckbox = overlay.querySelector('input[name="sourceDocumentTemplateText"]');
+            if (firstCheckbox) {
+                firstCheckbox.focus();
+            }
+        }
+
+        function closeTemplateDialog() {
+            if (!overlay) {
+                return;
+            }
+
+            overlay.hidden = true;
+            if (openButton) {
+                openButton.focus();
+            }
+        }
+
+        function addTemplateText() {
+            if (!overlay || !description) {
+                closeTemplateDialog();
+                return;
+            }
+
+            var selectedTexts = Array.prototype.slice
+                .call(overlay.querySelectorAll('input[name="sourceDocumentTemplateText"]:checked'))
+                .map(function (checkbox) {
+                    return checkbox.value;
+                });
+
+            if (selectedTexts.length > 0) {
+                var currentValue = description.value.trim();
+                var addedValue = selectedTexts.join(';');
+                description.value = currentValue ? currentValue + ';' + addedValue : addedValue;
+                description.focus();
+            }
+
+            closeTemplateDialog();
+        }
+
+        if (openButton) {
+            openButton.addEventListener('click', openTemplateDialog);
+        }
+
+        if (addButton) {
+            addButton.addEventListener('click', addTemplateText);
+        }
+
+        if (cancelButton) {
+            cancelButton.addEventListener('click', closeTemplateDialog);
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', function (event) {
+                if (event.target === overlay) {
+                    closeTemplateDialog();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && overlay && !overlay.hidden) {
+                closeTemplateDialog();
+            }
+        });
+    })();
+
+    (function () {
+        var saveButton = document.getElementById('btnSaveSourceDocument');
+        var eventIdInput = document.getElementById('sourceDocumentEventId');
+        var description = document.getElementById('txtSourceDocumentInspectionDescription');
+        var saveUrl = '@Url.Action("SaveSourceDocumentInspection", "Inspection")';
+        var saveResultOverlay = document.getElementById('sourceDocumentSaveResultOverlay');
+        var saveResultMessage = document.getElementById('sourceDocumentSaveResultMessage');
+        var saveResultOkButton = document.getElementById('btnSourceDocumentSaveResultOk');
+        var shouldGoBackAfterSaveResult = false;
+
+        function getSelectedValue(name) {
+            var selected = document.querySelector('input[name="' + name + '"]:checked');
+            return selected ? selected.value : null;
+        }
+
+        function showSaveResult(message, shouldGoBack) {
+            shouldGoBackAfterSaveResult = shouldGoBack;
+
+            if (saveResultMessage) {
+                saveResultMessage.textContent = message;
+            }
+
+            if (saveResultOverlay) {
+                saveResultOverlay.hidden = false;
+            }
+
+            if (saveResultOkButton) {
+                saveResultOkButton.focus();
+            }
+        }
+
+        function closeSaveResult() {
+            if (saveResultOverlay) {
+                saveResultOverlay.hidden = true;
+            }
+
+            if (shouldGoBackAfterSaveResult) {
+                window.history.go(-1);
+                return;
+            }
+
+            if (saveButton) {
+                saveButton.disabled = false;
+                saveButton.focus();
+            }
+        }
+
+        if (saveResultOkButton) {
+            saveResultOkButton.addEventListener('click', closeSaveResult);
+        }
+
+        if (saveButton) {
+            saveButton.addEventListener('click', function () {
+                var eventId = eventIdInput ? parseInt(eventIdInput.value, 10) : 0;
+                var sourceDocumentSaved = getSelectedValue('sourceDocumentSaved');
+
+                if (!eventId) {
+                    showSaveResult('稽查事件主鍵不可為空', false);
+                    return;
+                }
+
+                if (sourceDocumentSaved !== 'Y' && sourceDocumentSaved !== 'N') {
+                    showSaveResult('請選擇是否保存來源文件', false);
+                    return;
+                }
+
+                saveButton.disabled = true;
+
+                fetch(saveUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        eventId: eventId,
+                        sourceDocumentSaved: sourceDocumentSaved,
+                        receiveDateOrBatchNoSpecified: getSelectedValue('sourceDocumentReceiveDate'),
+                        materialOrProductInfoSpecified: getSelectedValue('sourceDocumentProductInfo'),
+                        supplierInfoSpecified: getSelectedValue('sourceDocumentSupplierInfo'),
+                        inspectionDescription: description ? description.value : ''
+                    })
+                })
+                    .then(function (response) {
+                        return response.json()
+                            .catch(function () {
+                                return { message: response.ok ? '儲存成功' : '儲存失敗' };
+                            })
+                            .then(function (result) {
+                                if (!response.ok) {
+                                    throw new Error(result.message || '儲存失敗');
+                                }
+
+                                return result;
+                            });
+                    })
+                    .then(function (result) {
+                        showSaveResult(result.message || '儲存成功', true);
+                    })
+                    .catch(function (error) {
+                        showSaveResult(error.message || '儲存失敗', false);
+                    });
+            });
+        }
+    })();
+</script>

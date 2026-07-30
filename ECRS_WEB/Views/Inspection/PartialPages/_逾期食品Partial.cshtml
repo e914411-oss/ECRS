@@ -1,10 +1,11 @@
 <div class="expired-food-page">
+    <input type="hidden" id="expiredFoodEventId" value="@((ViewBag.EventId as string) ?? string.Empty)" />
     <h2 class="expired-food-title">逾期食品稽查</h2>
 
     <div class="expired-food-tabs" role="tablist" aria-label="逾期食品稽查頁籤">
         <div class="expired-food-tab active" role="tab" aria-selected="true">稽查內容</div>
-        <div class="expired-food-tab" role="tab" aria-selected="false">專案欄位</div>
-        <div class="expired-food-tab" role="tab" aria-selected="false">稽查結果</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">照片</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">附件</div>
     </div>
 
     <fieldset class="expired-food-section">
@@ -60,8 +61,8 @@
                             <span class="tree-label">現場稽查記錄</span>
                             <ul>
                                 <li>
-                                    <label class="tree-radio">
-                                        <input type="radio" name="expiredFoodTemplateText" value="勾兩個可以嗎?" />
+                                    <label class="tree-check">
+                                        <input type="checkbox" name="expiredFoodTemplateText" value="勾兩個可以嗎?" />
                                         <span>勾兩個可以嗎?</span>
                                     </label>
                                 </li>
@@ -71,8 +72,8 @@
                             <span class="tree-label">食品中毒速報</span>
                             <ul>
                                 <li>
-                                    <label class="tree-radio">
-                                        <input type="radio" name="expiredFoodTemplateText" value="勾兩個可以嗎?" checked />
+                                    <label class="tree-check">
+                                        <input type="checkbox" name="expiredFoodTemplateText" value="勾兩個可以嗎?" />
                                         <span>勾兩個可以嗎?</span>
                                     </label>
                                 </li>
@@ -102,6 +103,18 @@
     </div>
 </div>
 
+<div id="expiredFoodSaveResultOverlay" class="expired-food-save-result-overlay" hidden>
+    <div class="expired-food-save-result-dialog" role="dialog" aria-modal="true" aria-labelledby="expiredFoodSaveResultTitle">
+        <div class="expired-food-save-result-header">
+            <h3 id="expiredFoodSaveResultTitle">執行結果</h3>
+        </div>
+        <div class="expired-food-save-result-body" id="expiredFoodSaveResultMessage"></div>
+        <div class="expired-food-save-result-footer">
+            <button type="button" class="btn btn-success" id="btnExpiredFoodSaveResultOk">確定</button>
+        </div>
+    </div>
+</div>
+
 <style>
     .expired-food-template-overlay {
         position: fixed;
@@ -116,6 +129,69 @@
 
     .expired-food-template-overlay[hidden] {
         display: none;
+    }
+
+    .expired-food-save-result-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1060;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: rgba(0, 0, 0, .45);
+    }
+
+    .expired-food-save-result-overlay[hidden] {
+        display: none;
+    }
+
+    .expired-food-save-result-dialog {
+        width: 360px;
+        max-width: calc(100vw - 32px);
+        overflow: hidden;
+        border: 1px solid #cfd8d2;
+        border-radius: 6px;
+        background: #fff;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .22);
+    }
+
+    .expired-food-save-result-header {
+        padding: 12px 16px;
+        border-bottom: 1px solid #e3ebe5;
+        background: #eef8f0;
+    }
+
+    .expired-food-save-result-header h3 {
+        margin: 0;
+        color: #218544;
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    .expired-food-save-result-body {
+        min-height: 76px;
+        padding: 24px 18px;
+        color: #333;
+        font-size: 16px;
+        line-height: 1.6;
+        text-align: center;
+        word-break: break-word;
+    }
+
+    .expired-food-save-result-footer {
+        display: flex;
+        justify-content: center;
+        padding: 14px 16px 16px;
+        border-top: 1px solid #eef2ef;
+    }
+
+    .expired-food-save-result-footer .btn {
+        min-width: 82px;
+        border-color: #1f9d45;
+        background: #1f9d45;
+        color: #fff;
     }
 
     .expired-food-template-dialog {
@@ -222,7 +298,7 @@
     }
 
     .tree-label,
-    .tree-radio {
+    .tree-check {
         display: inline-flex;
         align-items: center;
         min-height: 24px;
@@ -231,12 +307,12 @@
         white-space: nowrap;
     }
 
-    .tree-radio {
+    .tree-check {
         gap: 4px;
         color: #555;
     }
 
-    .tree-radio input[type="radio"] {
+    .tree-check input[type="checkbox"] {
         margin: 0;
     }
 
@@ -264,6 +340,13 @@
         var addButton = document.getElementById('btnExpiredFoodTemplateAdd');
         var cancelButton = document.getElementById('btnExpiredFoodTemplateCancel');
         var description = document.getElementById('txtInspectionDescription');
+        var saveButton = document.getElementById('btnSaveExpiredFood');
+        var eventIdInput = document.getElementById('expiredFoodEventId');
+        var saveUrl = '@Url.Action("SaveExpiredFoodInspection", "Inspection")';
+        var saveResultOverlay = document.getElementById('expiredFoodSaveResultOverlay');
+        var saveResultMessage = document.getElementById('expiredFoodSaveResultMessage');
+        var saveResultOkButton = document.getElementById('btnExpiredFoodSaveResultOk');
+        var shouldGoBackAfterSaveResult = false;
 
         function openTemplateDialog() {
             if (!overlay) {
@@ -271,9 +354,9 @@
             }
 
             overlay.hidden = false;
-            var checkedRadio = overlay.querySelector('input[name="expiredFoodTemplateText"]:checked');
-            if (checkedRadio) {
-                checkedRadio.focus();
+            var firstCheckbox = overlay.querySelector('input[name="expiredFoodTemplateText"]');
+            if (firstCheckbox) {
+                firstCheckbox.focus();
             }
         }
 
@@ -289,13 +372,56 @@
         }
 
         function addTemplateText() {
-            var selected = overlay ? overlay.querySelector('input[name="expiredFoodTemplateText"]:checked') : null;
-            if (selected && description) {
-                description.value = selected.value;
+            if (!overlay || !description) {
+                closeTemplateDialog();
+                return;
+            }
+
+            var selectedTexts = Array.prototype.slice
+                .call(overlay.querySelectorAll('input[name="expiredFoodTemplateText"]:checked'))
+                .map(function (checkbox) {
+                    return checkbox.value;
+                });
+
+            if (selectedTexts.length > 0) {
+                var currentValue = description.value.trim();
+                var addedValue = selectedTexts.join(';');
+                description.value = currentValue ? currentValue + ';' + addedValue : addedValue;
                 description.focus();
             }
 
             closeTemplateDialog();
+        }
+
+        function showSaveResult(message, shouldGoBack) {
+            shouldGoBackAfterSaveResult = shouldGoBack;
+
+            if (saveResultMessage) {
+                saveResultMessage.textContent = message;
+            }
+
+            if (saveResultOverlay) {
+                saveResultOverlay.hidden = false;
+            }
+
+            if (saveResultOkButton) {
+                saveResultOkButton.focus();
+            }
+        }
+
+        function closeSaveResult() {
+            if (saveResultOverlay) {
+                saveResultOverlay.hidden = true;
+            }
+
+            if (shouldGoBackAfterSaveResult) {
+                window.history.go(-1);
+                return;
+            }
+
+            if (saveButton) {
+                saveButton.focus();
+            }
         }
 
         if (openButton) {
@@ -308,6 +434,61 @@
 
         if (cancelButton) {
             cancelButton.addEventListener('click', closeTemplateDialog);
+        }
+
+        if (saveResultOkButton) {
+            saveResultOkButton.addEventListener('click', closeSaveResult);
+        }
+
+        if (saveButton) {
+            saveButton.addEventListener('click', function () {
+                var selectedExpiredFood = document.querySelector('input[name="expiredFoodFound"]:checked');
+                var eventId = eventIdInput ? parseInt(eventIdInput.value, 10) : 0;
+
+                if (!eventId) {
+                    showSaveResult('稽查事件主鍵錯誤', false);
+                    return;
+                }
+
+                if (!selectedExpiredFood) {
+                    showSaveResult('請選擇有無貯存逾期食品或原料', false);
+                    return;
+                }
+
+                saveButton.disabled = true;
+
+                fetch(saveUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        eventId: eventId,
+                        hasExpiredFood: selectedExpiredFood.value,
+                        inspectionDescription: description ? description.value : ''
+                    })
+                })
+                    .then(function (response) {
+                        if (!response.ok) {
+                            return response.json()
+                                .catch(function () {
+                                    return { message: '儲存失敗' };
+                                })
+                                .then(function (result) {
+                                    throw new Error(result.message || '儲存失敗');
+                                });
+                        }
+
+                        return response.json();
+                    })
+                    .then(function () {
+                        showSaveResult('儲存成功', true);
+                    })
+                    .catch(function (error) {
+                        showSaveResult(error.message || '儲存失敗', false);
+                        saveButton.disabled = false;
+                    });
+            });
         }
 
         if (overlay) {

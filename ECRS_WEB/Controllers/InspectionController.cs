@@ -10,6 +10,7 @@ using static ECRS_WEB.Services.ReadPMDSDTApiClient;
 using ECRS_WEB.DTOs.FormManageDTO.FormEditer;
 using ECRS_WEB.DTOs.InspectionDTO.PReview;
 using ECRS_WEB.DTOs.InspectionDTO.Fquery;
+using ECRS_WEB.DTOs.InspectionDTO.InspectionForms;
 using ECRS_WEB.DTOs.InspectionDTO.InspectionQry;
 using ECRS_WEB.DTOs.InspectionDTO.Flist;
 using ECRS_WEB.Helpers;
@@ -109,7 +110,8 @@ namespace CoreWebApp.Controllers
             {
                 CompanyId = companyId ?? string.Empty,
                 ProjectId = projectId,
-                eventId = eventId ?? string.Empty
+                eventId = eventId ?? string.Empty,
+                InspectorName = HttpContext.Session.GetString("DisplayName") ?? string.Empty
             };
 
             var selectedProject = new InspectionProjectItemGroup
@@ -183,7 +185,8 @@ namespace CoreWebApp.Controllers
                 #region 查詢資料出來做顯示
                 var vm = new InspectionFormsViewModel
                 {
-                    CompanyId = companyId ?? string.Empty
+                    CompanyId = companyId ?? string.Empty,
+                    InspectorName = HttpContext.Session.GetString("DisplayName") ?? string.Empty
                 };
 
                 if (projectIds is { Length: > 0 })
@@ -269,6 +272,12 @@ namespace CoreWebApp.Controllers
                 .ToList();
         }
 
+        private static string? NormalizeYesNoOrNull(string? value)
+        {
+            var normalized = value?.Trim().ToUpperInvariant();
+            return normalized == "Y" || normalized == "N" ? normalized : null;
+        }
+
         public async Task<IActionResult> InspectionFormContent(string? InspectionId, string? inspectionItemName, string? encodedEventId)
         {
             InspectionId = QueryStringSecurityHelper.UrlDecode(InspectionId);
@@ -278,6 +287,7 @@ namespace CoreWebApp.Controllers
             var hasInspectionId = !string.IsNullOrWhiteSpace(InspectionId);
             ViewBag.InspectionItemName = inspectionItemName?.Trim() ?? string.Empty;
             ViewBag.HasInspectionId = hasInspectionId;
+            ViewBag.EventId = encodedEventId ?? string.Empty;
             ViewBag.PartialViewNames = new List<string>();
 
             if (hasInspectionId)
@@ -305,6 +315,190 @@ namespace CoreWebApp.Controllers
             }
 
             return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveExpiredFoodInspection([FromBody] ExpiredFoodInspectionSaveRequest request)
+        {
+            if (request.EventId <= 0)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "稽查事件主鍵錯誤"
+                });
+            }
+
+            var hasExpiredFood = request.HasExpiredFood?.Trim().ToUpperInvariant();
+            if (hasExpiredFood != "Y" && hasExpiredFood != "N")
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "請選擇有無貯存逾期食品或原料"
+                });
+            }
+
+            request.HasExpiredFood = hasExpiredFood;
+            request.InspectionUserId = HttpContext.Session.GetString("InspectionId");
+
+            var result = await _apiECRS.SaveExpiredFoodInspection(request);
+            if (!result.Success)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = string.IsNullOrWhiteSpace(result.Message) ? "儲存失敗" : result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                success = true
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveHealthManagerInspection([FromBody] HealthManagerInspectionSaveRequest request)
+        {
+            if (request.EventId <= 0)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "稽查事件主鍵錯誤"
+                });
+            }
+
+            var hasHealthManager = request.HasHealthManager?.Trim().ToUpperInvariant();
+            if (hasHealthManager != "1" && hasHealthManager != "2" && hasHealthManager != "3")
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "請選擇是否有衛生管理人員"
+                });
+            }
+
+            request.HasHealthManager = hasHealthManager;
+            request.InspectionUserId = HttpContext.Session.GetString("InspectionId");
+
+            var result = await _apiECRS.SaveHealthManagerInspection(request);
+            if (!result.Success)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = string.IsNullOrWhiteSpace(result.Message) ? "儲存失敗" : result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                success = true
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveSourceDocumentInspection([FromBody] SourceDocumentInspectionSaveRequest request)
+        {
+            if (request.EventId <= 0)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "稽查事件主鍵不可為空"
+                });
+            }
+
+            var sourceDocumentSaved = request.SourceDocumentSaved?.Trim().ToUpperInvariant();
+            if (sourceDocumentSaved != "Y" && sourceDocumentSaved != "N")
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "請選擇是否保存來源文件"
+                });
+            }
+
+            request.SourceDocumentSaved = sourceDocumentSaved;
+            request.ReceiveDateOrBatchNoSpecified = NormalizeYesNoOrNull(request.ReceiveDateOrBatchNoSpecified);
+            request.MaterialOrProductInfoSpecified = NormalizeYesNoOrNull(request.MaterialOrProductInfoSpecified);
+            request.SupplierInfoSpecified = NormalizeYesNoOrNull(request.SupplierInfoSpecified);
+            request.InspectionUserId = HttpContext.Session.GetString("InspectionId");
+
+            var result = await _apiECRS.SaveSourceDocumentInspection(request);
+            if (!result.Success)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = string.IsNullOrWhiteSpace(result.Message) ? "儲存失敗" : result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = "儲存成功"
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveProfessionalLicenseInspection([FromBody] ProfessionalLicenseInspectionSaveRequest request)
+        {
+            if (request.EventId <= 0)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "稽查事件主鍵不可為空"
+                });
+            }
+
+            var professionalLicenseStatus = request.ProfessionalLicenseStatus?.Trim().ToUpperInvariant();
+            if (professionalLicenseStatus != "1" && professionalLicenseStatus != "2" && professionalLicenseStatus != "3")
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "請選擇聘用食品業者專門職業或技術證照人員查核結果"
+                });
+            }
+
+            var trainingStatus = request.TrainingStatus?.Trim().ToUpperInvariant();
+            if (professionalLicenseStatus == "1" && trainingStatus != "Y" && trainingStatus != "N")
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "請選擇登錄各該人員資料及衛生講習或訓練時數查核結果"
+                });
+            }
+
+            request.ProfessionalLicenseStatus = professionalLicenseStatus;
+            request.TrainingStatus = professionalLicenseStatus == "1" ? trainingStatus : null;
+            request.NoFactoryRegistrationNotApplicable = professionalLicenseStatus == "3" && request.NoFactoryRegistrationNotApplicable == true;
+            request.CapitalUnderThirtyMillionNotApplicable = professionalLicenseStatus == "3" && request.CapitalUnderThirtyMillionNotApplicable == true;
+            request.FoodWorkersUnderTwentyNotApplicable = professionalLicenseStatus == "3" && request.FoodWorkersUnderTwentyNotApplicable == true;
+            request.NonRegulatedBusinessNotApplicable = professionalLicenseStatus == "3" && request.NonRegulatedBusinessNotApplicable == true;
+            request.InspectionUserId = HttpContext.Session.GetString("InspectionId");
+
+            var result = await _apiECRS.SaveProfessionalLicenseInspection(request);
+            if (!result.Success)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = string.IsNullOrWhiteSpace(result.Message) ? "儲存失敗" : result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = string.IsNullOrWhiteSpace(result.Message) ? "儲存成功" : result.Message
+            });
         }
 
         private static string? ToInspectionPartialViewName(string? inspectionItemName)

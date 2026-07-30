@@ -1,10 +1,11 @@
 <div class="expired-food-page">
+    <input type="hidden" id="healthManagerEventId" value="@((ViewBag.EventId as string) ?? string.Empty)" />
     <h2 class="expired-food-title">衛生管理人員查核</h2>
 
     <div class="expired-food-tabs" role="tablist" aria-label="衛生管理人員查核頁籤">
         <div class="expired-food-tab active" role="tab" aria-selected="true">稽查內容</div>
-        <div class="expired-food-tab" role="tab" aria-selected="false">專案欄位</div>
-        <div class="expired-food-tab" role="tab" aria-selected="false">稽查結果</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">照片</div>
+        <div class="expired-food-tab" role="tab" aria-selected="false">附件</div>
     </div>
 
     <fieldset class="expired-food-section">
@@ -18,15 +19,15 @@
             <div class="health-manager-toggle-area">
                 <div class="expired-food-radio-group" role="radiogroup" aria-label="是否有衛生管理人員">
                     <label class="expired-food-radio" for="healthManagerYes">
-                        <input id="healthManagerYes" name="healthManagerExists" type="radio" value="Y" />
+                        <input id="healthManagerYes" name="healthManagerExists" type="radio" value="1" />
                         <span>是</span>
                     </label>
                     <label class="expired-food-radio" for="healthManagerNo">
-                        <input id="healthManagerNo" name="healthManagerExists" type="radio" value="N" />
+                        <input id="healthManagerNo" name="healthManagerExists" type="radio" value="2" />
                         <span>否</span>
                     </label>
                     <label class="expired-food-radio" for="healthManagerNotApplicable">
-                        <input id="healthManagerNotApplicable" name="healthManagerExists" type="radio" value="NA" />
+                        <input id="healthManagerNotApplicable" name="healthManagerExists" type="radio" value="3" />
                         <span>不適用</span>
                     </label>
                 </div>
@@ -71,7 +72,268 @@
     </div>
 </div>
 
+<div id="healthManagerTemplateOverlay" class="expired-food-template-overlay" hidden>
+    <div class="expired-food-template-dialog" role="dialog" aria-modal="true" aria-labelledby="healthManagerTemplateTitle">
+        <div class="expired-food-template-header">
+            <h3 id="healthManagerTemplateTitle">請選擇您要加入的範本</h3>
+        </div>
+        <div class="expired-food-template-body">
+            <ul class="expired-food-template-tree">
+                <li class="is-expanded">
+                    <span class="tree-label">衛生管理人員</span>
+                    <ul>
+                        <li class="is-expanded">
+                            <span class="tree-label">稽查描述</span>
+                            <ul>
+                                <li>
+                                    <label class="tree-radio">
+                                        <input type="radio" name="healthManagerTemplateText" value="現場已設置衛生管理人員，並提供相關核備資料。" checked />
+                                        <span>現場已設置衛生管理人員，並提供相關核備資料。</span>
+                                    </label>
+                                </li>
+                                <li>
+                                    <label class="tree-radio">
+                                        <input type="radio" name="healthManagerTemplateText" value="現場未能提供衛生管理人員相關核備資料。" />
+                                        <span>現場未能提供衛生管理人員相關核備資料。</span>
+                                    </label>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="is-expanded">
+                            <span class="tree-label">個人專用範本</span>
+                            <ul>
+                                <li>
+                                    <label class="tree-radio">
+                                        <input type="radio" name="healthManagerTemplateText" value="勾兩個可以嗎?" />
+                                        <span>勾兩個可以嗎?</span>
+                                    </label>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="expired-food-template-footer">
+            <button type="button" class="btn btn-sm btn-light" id="btnHealthManagerTemplateAdd">加入</button>
+            <button type="button" class="btn btn-sm btn-light" id="btnHealthManagerTemplateCancel">取消</button>
+        </div>
+    </div>
+</div>
+
+<div id="healthManagerSaveResultOverlay" class="expired-food-save-result-overlay" hidden>
+    <div class="expired-food-save-result-dialog" role="dialog" aria-modal="true" aria-labelledby="healthManagerSaveResultTitle">
+        <div class="expired-food-save-result-header">
+            <h3 id="healthManagerSaveResultTitle">執行結果</h3>
+        </div>
+        <div class="expired-food-save-result-body" id="healthManagerSaveResultMessage"></div>
+        <div class="expired-food-save-result-footer">
+            <button type="button" class="btn btn-success" id="btnHealthManagerSaveResultOk">確定</button>
+        </div>
+    </div>
+</div>
+
 <style>
+    .expired-food-template-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1050;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 0;
+        background: rgba(0, 0, 0, .62);
+    }
+
+    .expired-food-template-overlay[hidden] {
+        display: none;
+    }
+
+    .expired-food-save-result-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1060;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: rgba(0, 0, 0, .45);
+    }
+
+    .expired-food-save-result-overlay[hidden] {
+        display: none;
+    }
+
+    .expired-food-save-result-dialog {
+        width: 360px;
+        max-width: calc(100vw - 32px);
+        overflow: hidden;
+        border: 1px solid #cfd8d2;
+        border-radius: 6px;
+        background: #fff;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .22);
+    }
+
+    .expired-food-save-result-header {
+        padding: 12px 16px;
+        border-bottom: 1px solid #e3ebe5;
+        background: #eef8f0;
+    }
+
+    .expired-food-save-result-header h3 {
+        margin: 0;
+        color: #218544;
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    .expired-food-save-result-body {
+        min-height: 76px;
+        padding: 24px 18px;
+        color: #333;
+        font-size: 16px;
+        line-height: 1.6;
+        text-align: center;
+        word-break: break-word;
+    }
+
+    .expired-food-save-result-footer {
+        display: flex;
+        justify-content: center;
+        padding: 14px 16px 16px;
+        border-top: 1px solid #eef2ef;
+    }
+
+    .expired-food-save-result-footer .btn {
+        min-width: 82px;
+        border-color: #1f9d45;
+        background: #1f9d45;
+        color: #fff;
+    }
+
+    .expired-food-template-dialog {
+        width: 662px;
+        max-width: calc(100vw - 28px);
+        min-height: 620px;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #9da5a0;
+        background: #fff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, .28);
+    }
+
+    .expired-food-template-header {
+        padding: 16px 16px 18px;
+        background: linear-gradient(180deg, #ffffff 0%, #eefbf1 100%);
+        border-bottom: 1px solid #e4eee7;
+    }
+
+    .expired-food-template-header h3 {
+        margin: 0;
+        color: #218544;
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    .expired-food-template-body {
+        flex: 1 1 auto;
+        padding: 42px 20px 18px;
+        overflow: auto;
+        color: #555;
+        font-size: 18px;
+        line-height: 1.35;
+    }
+
+    .expired-food-template-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 14px;
+        padding: 16px;
+        border-top: 1px solid #f0f0f0;
+        background: #fff;
+    }
+
+    .expired-food-template-footer .btn {
+        min-width: 58px;
+        height: 36px;
+        border: 1px solid #dfe4e2;
+        color: #666;
+        background: #fff;
+        font-size: 16px;
+    }
+
+    .expired-food-template-tree,
+    .expired-food-template-tree ul {
+        list-style: none;
+        margin: 0;
+        padding-left: 22px;
+    }
+
+    .expired-food-template-tree {
+        padding-left: 0;
+    }
+
+    .expired-food-template-tree li {
+        position: relative;
+        min-height: 24px;
+    }
+
+    .expired-food-template-tree ul li::before {
+        content: "";
+        position: absolute;
+        top: -5px;
+        left: -13px;
+        width: 1px;
+        height: 29px;
+        border-left: 1px dotted #9a9a9a;
+    }
+
+    .expired-food-template-tree ul li::after {
+        content: "";
+        position: absolute;
+        top: 12px;
+        left: -13px;
+        width: 11px;
+        border-top: 1px dotted #9a9a9a;
+    }
+
+    .expired-food-template-tree .is-expanded > .tree-label::before {
+        content: "-";
+        display: inline-flex;
+        width: 10px;
+        height: 10px;
+        align-items: center;
+        justify-content: center;
+        margin-right: 2px;
+        border: 1px solid #9bb7c6;
+        color: #58869b;
+        background: #f7fbfd;
+        font-size: 11px;
+        line-height: 1;
+        vertical-align: middle;
+    }
+
+    .tree-label,
+    .tree-radio {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        margin: 0;
+        font-weight: normal;
+        white-space: nowrap;
+    }
+
+    .tree-radio {
+        gap: 4px;
+        color: #555;
+    }
+
+    .tree-radio input[type="radio"] {
+        margin: 0;
+    }
+
     .health-manager-toggle-area .health-manager-approval-panel,
     .health-manager-toggle-area .health-manager-na-reason-panel {
         display: none;
@@ -146,10 +408,106 @@
     .health-manager-na-reason-check input {
         margin: 0;
     }
+
+    @@media (max-width: 768px) {
+        .expired-food-template-overlay {
+            padding: 12px;
+            align-items: flex-start;
+        }
+
+        .expired-food-template-dialog {
+            min-height: min(620px, calc(100vh - 24px));
+        }
+
+        .expired-food-template-body {
+            padding: 28px 16px 18px;
+            font-size: 16px;
+        }
+    }
 </style>
 
 <script>
     (function () {
+        var overlay = document.getElementById('healthManagerTemplateOverlay');
+        var openButton = document.getElementById('btnHealthManagerTemplate');
+        var addButton = document.getElementById('btnHealthManagerTemplateAdd');
+        var cancelButton = document.getElementById('btnHealthManagerTemplateCancel');
+        var description = document.getElementById('txtHealthManagerInspectionDescription');
+
+        function openTemplateDialog() {
+            if (!overlay) {
+                return;
+            }
+
+            overlay.hidden = false;
+            var checkedRadio = overlay.querySelector('input[name="healthManagerTemplateText"]:checked');
+            if (checkedRadio) {
+                checkedRadio.focus();
+            }
+        }
+
+        function closeTemplateDialog() {
+            if (!overlay) {
+                return;
+            }
+
+            overlay.hidden = true;
+            if (openButton) {
+                openButton.focus();
+            }
+        }
+
+        function addTemplateText() {
+            var selected = overlay ? overlay.querySelector('input[name="healthManagerTemplateText"]:checked') : null;
+            if (selected && description) {
+                description.value = selected.value;
+                description.focus();
+            }
+
+            closeTemplateDialog();
+        }
+
+        if (openButton) {
+            openButton.addEventListener('click', openTemplateDialog);
+        }
+
+        if (addButton) {
+            addButton.addEventListener('click', addTemplateText);
+        }
+
+        if (cancelButton) {
+            cancelButton.addEventListener('click', closeTemplateDialog);
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', function (event) {
+                if (event.target === overlay) {
+                    closeTemplateDialog();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && overlay && !overlay.hidden) {
+                closeTemplateDialog();
+            }
+        });
+    })();
+
+    (function () {
+        var saveButton = document.getElementById('btnSaveHealthManager');
+        var eventIdInput = document.getElementById('healthManagerEventId');
+        var description = document.getElementById('txtHealthManagerInspectionDescription');
+        var approvalNo = document.getElementById('txtHealthManagerApprovalNo');
+        var noApprovalNo = document.getElementById('chkHealthManagerNoApprovalNo');
+        var noFactoryRegistration = document.getElementById('chkHealthManagerNoFactoryRegistration');
+        var smallScaleManufacturer = document.getElementById('chkHealthManagerSmallScaleManufacturer');
+        var saveUrl = '@Url.Action("SaveHealthManagerInspection", "Inspection")';
+        var saveResultOverlay = document.getElementById('healthManagerSaveResultOverlay');
+        var saveResultMessage = document.getElementById('healthManagerSaveResultMessage');
+        var saveResultOkButton = document.getElementById('btnHealthManagerSaveResultOk');
+        var shouldGoBackAfterSaveResult = false;
+
         function updateHealthManagerConditionalPanels() {
             var yesRadio = document.getElementById('healthManagerYes');
             var notApplicableRadio = document.getElementById('healthManagerNotApplicable');
@@ -164,11 +522,105 @@
             notApplicablePanel.classList.toggle('is-visible', notApplicableRadio.checked);
         }
 
+        function showSaveResult(message, shouldGoBack) {
+            shouldGoBackAfterSaveResult = shouldGoBack;
+
+            if (saveResultMessage) {
+                saveResultMessage.textContent = message;
+            }
+
+            if (saveResultOverlay) {
+                saveResultOverlay.hidden = false;
+            }
+
+            if (saveResultOkButton) {
+                saveResultOkButton.focus();
+            }
+        }
+
+        function closeSaveResult() {
+            if (saveResultOverlay) {
+                saveResultOverlay.hidden = true;
+            }
+
+            if (shouldGoBackAfterSaveResult) {
+                window.history.go(-1);
+                return;
+            }
+
+            if (saveButton) {
+                saveButton.focus();
+            }
+        }
+
         document.addEventListener('change', function (event) {
             if (event.target && event.target.name === 'healthManagerExists') {
                 updateHealthManagerConditionalPanels();
             }
+
+            if (event.target && event.target.id === 'chkHealthManagerNoApprovalNo' && event.target.checked && approvalNo) {
+                approvalNo.value = '';
+            }
         });
+
+        if (saveResultOkButton) {
+            saveResultOkButton.addEventListener('click', closeSaveResult);
+        }
+
+        if (saveButton) {
+            saveButton.addEventListener('click', function () {
+                var selectedHealthManager = document.querySelector('input[name="healthManagerExists"]:checked');
+                var eventId = eventIdInput ? parseInt(eventIdInput.value, 10) : 0;
+
+                if (!eventId) {
+                    showSaveResult('稽查事件主鍵錯誤', false);
+                    return;
+                }
+
+                if (!selectedHealthManager) {
+                    showSaveResult('請選擇是否有衛生管理人員', false);
+                    return;
+                }
+
+                saveButton.disabled = true;
+
+                fetch(saveUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        eventId: eventId,
+                        hasHealthManager: selectedHealthManager.value,
+                        approvalNo: selectedHealthManager.value === '1' && approvalNo && (!noApprovalNo || !noApprovalNo.checked) ? approvalNo.value : null,
+                        noApprovalNo: selectedHealthManager.value === '1' && noApprovalNo ? noApprovalNo.checked : null,
+                        noFactoryRegistrationNotApplicable: selectedHealthManager.value === '3' && noFactoryRegistration ? noFactoryRegistration.checked : null,
+                        smallScaleManufacturerNotApplicable: selectedHealthManager.value === '3' && smallScaleManufacturer ? smallScaleManufacturer.checked : null,
+                        inspectionDescription: description ? description.value : ''
+                    })
+                })
+                    .then(function (response) {
+                        if (!response.ok) {
+                            return response.json()
+                                .catch(function () {
+                                    return { message: '儲存失敗' };
+                                })
+                                .then(function (result) {
+                                    throw new Error(result.message || '儲存失敗');
+                                });
+                        }
+
+                        return response.json();
+                    })
+                    .then(function () {
+                        showSaveResult('儲存成功', true);
+                    })
+                    .catch(function (error) {
+                        showSaveResult(error.message || '儲存失敗', false);
+                        saveButton.disabled = false;
+                    });
+            });
+        }
 
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', updateHealthManagerConditionalPanels);
