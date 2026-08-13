@@ -309,6 +309,24 @@ namespace CoreWebApp.Controllers
                 }
             }
 
+            var partialViewNames = ViewBag.PartialViewNames as IEnumerable<string> ?? Enumerable.Empty<string>();
+            var shouldLoadExpiredFoodInspection =
+                string.Equals(ViewBag.InspectionItemName as string, "逾期食品", StringComparison.OrdinalIgnoreCase)
+                || partialViewNames.Any(x => x.Contains("_逾期食品Partial", StringComparison.OrdinalIgnoreCase));
+
+            if (shouldLoadExpiredFoodInspection && int.TryParse(ViewBag.EventId as string, out var expiredFoodEventId))
+            {
+                try
+                {
+                    ViewBag.ExpiredFoodInspection = await _apiECRS.GetExpiredFoodInspection(expiredFoodEventId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "InspectionFormContent 查詢逾期食品稽查資料失敗，eventId={EventId}", expiredFoodEventId);
+                    ViewBag.ExpiredFoodInspection = null;
+                }
+            }
+
             if (Request.Headers.XRequestedWith == "XMLHttpRequest")
             {
                 return PartialView("InspectionFormContent");

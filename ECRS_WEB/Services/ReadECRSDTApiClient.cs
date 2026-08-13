@@ -420,6 +420,30 @@ namespace ECRS_WEB.Services
             return body ?? new List<string>();
         }
 
+        public async Task<ExpiredFoodInspectionResult?> GetExpiredFoodInspection(int eventId, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = $"/Api/Inspection/ExpiredFoodInspection/{eventId}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Get, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var resp = await _http.SendAsync(req, ct);
+
+            if (resp.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                var raw = await resp.Content.ReadAsStringAsync(ct);
+                throw new Exception($"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}");
+            }
+
+            return await resp.Content.ReadFromJsonAsync<ExpiredFoodInspectionResult>(cancellationToken: ct);
+        }
+
         public async Task<AddInspectionEventResponse> SaveExpiredFoodInspection(ExpiredFoodInspectionSaveRequest request, CancellationToken ct = default)
         {
             var token = GetTokenOrThrow();

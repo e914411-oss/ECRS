@@ -1,47 +1,88 @@
+@using ECRS_WEB.DTOs.InspectionDTO.InspectionForms
+@{
+    var expiredFoodInspection = ViewBag.ExpiredFoodInspection as ExpiredFoodInspectionResult;
+    var hasExpiredFoodData = expiredFoodInspection != null
+        && (!string.IsNullOrWhiteSpace(expiredFoodInspection.HasExpiredFood)
+            || !string.IsNullOrWhiteSpace(expiredFoodInspection.InspectionDescription));
+    var hasExpiredFood = expiredFoodInspection?.HasExpiredFood?.Trim().ToUpperInvariant();
+}
+
 <div class="expired-food-page">
     <input type="hidden" id="expiredFoodEventId" value="@((ViewBag.EventId as string) ?? string.Empty)" />
     <h2 class="expired-food-title">逾期食品稽查</h2>
 
     <div class="expired-food-tabs" role="tablist" aria-label="逾期食品稽查頁籤">
-        <div class="expired-food-tab active" role="tab" aria-selected="true">稽查內容</div>
-        <div class="expired-food-tab" role="tab" aria-selected="false">照片</div>
-        <div class="expired-food-tab" role="tab" aria-selected="false">附件</div>
+        <button type="button" class="expired-food-tab active" role="tab" aria-selected="true" aria-controls="expiredFoodContentPanel" data-expired-food-tab="content">稽查內容</button>
+        <button type="button" class="expired-food-tab" role="tab" aria-selected="false" aria-controls="expiredFoodPhotoPanel" data-expired-food-tab="photo">照片</button>
+        <button type="button" class="expired-food-tab" role="tab" aria-selected="false" aria-controls="expiredFoodAttachmentPanel" data-expired-food-tab="attachment">附件</button>
     </div>
 
-    <fieldset class="expired-food-section">
-        <legend>稽查情形</legend>
-
-        <div class="expired-food-inspection-panel">
-            <div class="expired-food-question">
-                <span class="required">*</span>有無貯存逾期食品或原料
+    <div id="expiredFoodContentPanel" class="expired-food-tab-panel active" role="tabpanel">
+        @if (hasExpiredFoodData)
+        {
+            <div class="expired-food-no-data expired-food-result-text">
+                <div>有無貯存逾期食品或原料：@(expiredFoodInspection?.HasExpiredFood ?? string.Empty)</div>
+                <div>現場稽查描述：@(expiredFoodInspection?.InspectionDescription ?? string.Empty)</div>
             </div>
+        }
+        else
+        {
+            <div class="expired-food-no-data">暫無稽查資料</div>
+        }
 
-            <div class="expired-food-radio-group" role="radiogroup" aria-label="有無貯存逾期食品或原料">
-                <label class="expired-food-radio" for="expiredFoodYes">
-                    <input id="expiredFoodYes" name="expiredFoodFound" type="radio" value="Y" />
-                    <span>有</span>
-                </label>
-                <label class="expired-food-radio" for="expiredFoodNo">
-                    <input id="expiredFoodNo" name="expiredFoodFound" type="radio" value="N" />
-                    <span>無</span>
-                </label>
-            </div>
+        <fieldset class="expired-food-section">
+            <legend>稽查情形</legend>
 
-            <div class="expired-food-description-row">
-                <div>
-                    <label class="expired-food-description-label" for="txtInspectionDescription">現場稽查描述：</label>
-                    <div class="expired-food-template">
-                        <button type="button" class="btn btn-sm" id="btnExpiredFoodTemplate">個人範本</button>
-                    </div>
+            <div class="expired-food-inspection-panel">
+                <div class="expired-food-question">
+                    <span class="required">*</span>有無貯存逾期食品或原料
                 </div>
-                <textarea id="txtInspectionDescription" class="form-control expired-food-description"></textarea>
-            </div>
-        </div>
-    </fieldset>
 
-    <div class="expired-food-actions">
-        <button type="button" class="btn btn-success" id="btnCancelExpiredFood" onclick="window.history.go(-1);">取消並返回</button>
-        <button type="button" class="btn btn-success" id="btnSaveExpiredFood">儲存並離開</button>
+                <div class="expired-food-radio-group" role="radiogroup" aria-label="有無貯存逾期食品或原料">
+                    <label class="expired-food-radio" for="expiredFoodYes">
+                        <input id="expiredFoodYes" name="expiredFoodFound" type="radio" value="Y" />
+                        <span>有</span>
+                    </label>
+                    <label class="expired-food-radio" for="expiredFoodNo">
+                        <input id="expiredFoodNo" name="expiredFoodFound" type="radio" value="N" />
+                        <span>無</span>
+                    </label>
+                </div>
+
+                <div class="expired-food-description-row">
+                    <div>
+                        <label class="expired-food-description-label" for="txtInspectionDescription">現場稽查描述：</label>
+                        <div class="expired-food-template">
+                            <button type="button" class="btn btn-sm" id="btnExpiredFoodTemplate">個人範本</button>
+                        </div>
+                    </div>
+                    <textarea id="txtInspectionDescription" class="form-control expired-food-description"></textarea>
+                </div>
+            </div>
+        </fieldset>
+
+        <div class="expired-food-actions">
+            <button type="button" class="btn btn-success" id="btnCancelExpiredFood" onclick="window.history.go(-1);">取消並返回</button>
+            <button type="button" class="btn btn-success" id="btnSaveExpiredFood">儲存並離開</button>
+        </div>
+    </div>
+
+    <div id="expiredFoodPhotoPanel" class="expired-food-tab-panel" role="tabpanel" hidden>
+        <div class="expired-food-no-data">暫無稽查資料</div>
+        <div class="expired-food-upload-panel">
+            <label class="btn btn-sm expired-food-upload-btn" for="expiredFoodPhotoUpload">上傳照片</label>
+            <input id="expiredFoodPhotoUpload" class="expired-food-upload-input" type="file" accept="image/*" multiple />
+            <span class="expired-food-upload-hint">尚未選擇檔案</span>
+        </div>
+    </div>
+
+    <div id="expiredFoodAttachmentPanel" class="expired-food-tab-panel" role="tabpanel" hidden>
+        <div class="expired-food-no-data">暫無稽查資料</div>
+        <div class="expired-food-upload-panel">
+            <label class="btn btn-sm expired-food-upload-btn" for="expiredFoodAttachmentUpload">上傳附件</label>
+            <input id="expiredFoodAttachmentUpload" class="expired-food-upload-input" type="file" multiple />
+            <span class="expired-food-upload-hint">尚未選擇檔案</span>
+        </div>
     </div>
 </div>
 
@@ -129,6 +170,101 @@
 
     .expired-food-template-overlay[hidden] {
         display: none;
+    }
+
+    .expired-food-tab-panel {
+        display: none;
+    }
+
+    .expired-food-tab-panel.active {
+        display: block;
+    }
+
+    .expired-food-page .expired-food-tabs {
+        border-color: #d9e5dc;
+    }
+
+    .expired-food-page .expired-food-tab {
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        outline: 0;
+    }
+
+    .expired-food-page .expired-food-tab:focus {
+        box-shadow: none;
+        outline: 0;
+    }
+
+    .expired-food-result-text {
+        color: #333;
+        font-size: 16px;
+        line-height: 1;
+        text-align: left;
+        word-break: break-word;
+    }
+
+    .expired-food-result-text div {
+        margin: 0 0 8px;
+    }
+
+    .expired-food-no-data {
+        margin-top: 4px;
+        margin-bottom: 22px;
+        padding: 32px 18px;
+        border: 1px solid #d9e5dc;
+        border-radius: 6px;
+        background: #fff;
+        color: #666;
+        font-size: 16px;
+        text-align: center;
+    }
+
+    .expired-food-no-data.expired-food-result-text {
+        text-align: left;
+    }
+
+    .expired-food-upload-panel {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 112px;
+        margin: 0 0 22px;
+        padding: 28px 24px;
+        border: 1px solid #d9e5dc;
+        border-radius: 6px;
+        background: #fff;
+    }
+
+    .expired-food-upload-btn,
+    .expired-food-upload-btn:hover,
+    .expired-food-upload-btn:focus {
+        min-width: 92px;
+        border: 1px solid #7ecb8a;
+        background: #fff;
+        color: #2aa84a;
+        box-shadow: none;
+    }
+
+    .expired-food-upload-btn:hover {
+        border-color: #2f9e44;
+        background: #f3fff6;
+        color: #20883a;
+    }
+
+    .expired-food-upload-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+    }
+
+    .expired-food-upload-hint {
+        color: #666;
+        font-size: 15px;
     }
 
     .expired-food-save-result-overlay {
@@ -347,6 +483,54 @@
         var saveResultMessage = document.getElementById('expiredFoodSaveResultMessage');
         var saveResultOkButton = document.getElementById('btnExpiredFoodSaveResultOk');
         var shouldGoBackAfterSaveResult = false;
+        var tabButtons = Array.prototype.slice.call(document.querySelectorAll('[data-expired-food-tab]'));
+        var tabPanels = {
+            content: document.getElementById('expiredFoodContentPanel'),
+            photo: document.getElementById('expiredFoodPhotoPanel'),
+            attachment: document.getElementById('expiredFoodAttachmentPanel')
+        };
+
+        function bindUploadHint(inputId) {
+            var input = document.getElementById(inputId);
+            if (!input) {
+                return;
+            }
+
+            var hint = input.parentElement ? input.parentElement.querySelector('.expired-food-upload-hint') : null;
+            if (!hint) {
+                return;
+            }
+
+            input.addEventListener('change', function () {
+                if (!input.files || input.files.length === 0) {
+                    hint.textContent = '尚未選擇檔案';
+                    return;
+                }
+
+                hint.textContent = input.files.length === 1
+                    ? input.files[0].name
+                    : '已選擇 ' + input.files.length + ' 個檔案';
+            });
+        }
+
+        function activateTab(tabName) {
+            tabButtons.forEach(function (button) {
+                var isActive = button.getAttribute('data-expired-food-tab') === tabName;
+                button.classList.toggle('active', isActive);
+                button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+
+            Object.keys(tabPanels).forEach(function (key) {
+                var panel = tabPanels[key];
+                if (!panel) {
+                    return;
+                }
+
+                var isActive = key === tabName;
+                panel.classList.toggle('active', isActive);
+                panel.hidden = !isActive;
+            });
+        }
 
         function openTemplateDialog() {
             if (!overlay) {
@@ -490,6 +674,15 @@
                     });
             });
         }
+
+        tabButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                activateTab(button.getAttribute('data-expired-food-tab'));
+            });
+        });
+
+        bindUploadHint('expiredFoodPhotoUpload');
+        bindUploadHint('expiredFoodAttachmentUpload');
 
         if (overlay) {
             overlay.addEventListener('click', function (event) {

@@ -442,6 +442,31 @@ namespace ECRS_API.Controllers
             return Ok(data);
         }
 
+        [HttpGet("ExpiredFoodInspection/{eventId:int}")]
+        public async Task<ActionResult<ExpiredFoodInspectionResult>> GetExpiredFoodInspection(int eventId)
+        {
+            if (eventId <= 0)
+            {
+                return BadRequest("稽查事件主鍵錯誤");
+            }
+
+            var entity = await _ECRSdb.逾期食品稽查_主表s
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.稽查事件主鍵 == eventId);
+
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new ExpiredFoodInspectionResult
+            {
+                EventId = entity.稽查事件主鍵,
+                HasExpiredFood = entity.有無貯存逾期食品或原料,
+                InspectionDescription = entity.現場稽查描述
+            });
+        }
+
         [HttpPost("ExpiredFoodInspection")]
         public async Task<ActionResult<AddInspectionEventResponse>> SaveExpiredFoodInspection([FromBody] ExpiredFoodInspectionSaveRequest request)
         {
