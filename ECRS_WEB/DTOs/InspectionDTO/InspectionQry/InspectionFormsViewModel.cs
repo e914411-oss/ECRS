@@ -8,6 +8,7 @@ namespace ECRS_WEB.DTOs.InspectionDTO.InspectionQry
             get; set;
         }
         public string eventId { get; set; } = string.Empty;
+        public string InspectorName { get; set; } = string.Empty;
         public List<InspectionProjectItemGroup> ProjectGroups { get; set; } = [];
     }
 

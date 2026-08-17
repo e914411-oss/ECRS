@@ -72,6 +72,97 @@
             color: #007500;
         }
 
+        .workflow-setting-panel {
+            margin: 0 0 20px 0;
+            border: 1px solid #9bd39f;
+            border-radius: 4px;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .workflow-setting-title {
+            min-height: 34px;
+            padding: 4px 10px;
+            background: #dfe7f1;
+            border-bottom: 1px solid #c8d2df;
+            color: #222;
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .workflow-setting-body {
+            padding: 20px 10px 12px;
+        }
+
+        .workflow-inspector-row {
+            margin-bottom: 24px;
+            color: #333;
+            font-size: 18px;
+            line-height: 1.5;
+        }
+
+        .workflow-controls-row {
+            display: flex;
+            align-items: center;
+            gap: 38px;
+            flex-wrap: wrap;
+        }
+
+        .workflow-control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #333;
+            font-size: 18px;
+            white-space: nowrap;
+        }
+
+        .workflow-control-group label {
+            margin: 0;
+            font-weight: 400;
+        }
+
+        .workflow-select {
+            width: 136px;
+            height: 36px;
+            padding: 4px 36px 4px 12px;
+            border: 1px solid #d7d7d7;
+            border-radius: 0;
+            background-color: #fff;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .workflow-confirm-btn {
+            margin-left: auto;
+            cursor: pointer;
+        }
+
+        @@media (max-width: 768px) {
+            .workflow-setting-body {
+                padding: 16px 10px 12px;
+            }
+
+            .workflow-controls-row {
+                gap: 14px;
+            }
+
+            .workflow-control-group {
+                width: 100%;
+                white-space: normal;
+            }
+
+            .workflow-select {
+                flex: 1;
+                min-width: 160px;
+            }
+
+            .workflow-confirm-btn {
+                margin-left: 0;
+            }
+        }
+
         .form-toolbar-btn {
             display: inline-flex;
             align-items: center;
@@ -471,6 +562,31 @@
 </h1>
 
 <div class="content form-editer-page" style="min-height: 561px;">
+
+    <section class="workflow-setting-panel" aria-labelledby="workflowSettingTitle">
+        <div class="workflow-setting-title" id="workflowSettingTitle">作業流程設定</div>
+        <div class="workflow-setting-body">
+            <div class="workflow-inspector-row">稽查員：@Model?.InspectorName</div>
+
+            <div class="workflow-controls-row">
+                <div class="workflow-control-group">
+                    <label for="workflowStage">作業階段：</label>
+                    <select id="workflowStage" name="workflowStage" class="form-select workflow-select">
+                        <option value="審查員" selected>審查員</option>
+                    </select>
+                </div>
+
+                <div class="workflow-control-group">
+                    <label for="workflowReviewer">審查員：</label>
+                    <select id="workflowReviewer" name="workflowReviewer" class="form-select workflow-select">
+                        <option value="" selected>請選擇</option>
+                    </select>
+                </div>
+
+                <button type="button" class="inspection-back-btn workflow-confirm-btn">確定</button>
+            </div>
+        </div>
+    </section>
 
     <!-- 表單列表標題 + 功能按鈕 -->
     <div class="form-list-header">

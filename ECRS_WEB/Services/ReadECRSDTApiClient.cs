@@ -419,5 +419,723 @@ namespace ECRS_WEB.Services
             var body = await resp.Content.ReadFromJsonAsync<List<string>>(cancellationToken: ct);
             return body ?? new List<string>();
         }
+
+        public async Task<ExpiredFoodInspectionResult?> GetExpiredFoodInspection(int eventId, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = $"/Api/Inspection/ExpiredFoodInspection/{eventId}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Get, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var resp = await _http.SendAsync(req, ct);
+
+            if (resp.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                var raw = await resp.Content.ReadAsStringAsync(ct);
+                throw new Exception($"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}");
+            }
+
+            return await resp.Content.ReadFromJsonAsync<ExpiredFoodInspectionResult>(cancellationToken: ct);
+        }
+
+        public async Task<AddInspectionEventResponse> SaveExpiredFoodInspection(ExpiredFoodInspectionSaveRequest request, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = "/Api/Inspection/ExpiredFoodInspection";
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = JsonContent.Create(request);
+
+            using var resp = await _http.SendAsync(req, ct);
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+
+            AddInspectionEventResponse? result = null;
+            try
+            {
+                result = JsonSerializer.Deserialize<AddInspectionEventResponse>(
+                    raw,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+            catch (JsonException)
+            {
+            }
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                return result ?? new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                };
+            }
+
+            return result ?? new AddInspectionEventResponse
+            {
+                Success = false,
+                Message = "API 回傳資料格式錯誤"
+            };
+        }
+
+        public async Task<AddInspectionEventResponse> UploadExpiredFoodInspectionPhoto(string encodedEventId, IFormFile photo, string zipFileName, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = "/Api/Inspection/ExpiredFoodInspectionPhoto";
+
+            await using var photoStream = photo.OpenReadStream();
+            using var content = new MultipartFormDataContent();
+            content.Add(new StringContent(encodedEventId ?? string.Empty), "encodedEventId");
+            content.Add(new StringContent(_httpContextAccessor.HttpContext?.Session.GetString("InspectionId") ?? string.Empty), "createUser");
+            content.Add(new StringContent(zipFileName ?? string.Empty), "zipFileName");
+
+            var fileContent = new StreamContent(photoStream);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(photo.ContentType ?? "application/octet-stream");
+            content.Add(fileContent, "photo", photo.FileName);
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = content;
+
+            using var resp = await _http.SendAsync(req, ct);
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+
+            var result = JsonSerializer.Deserialize<AddInspectionEventResponse>(
+                raw,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                return result ?? new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                };
+            }
+
+            return result ?? new AddInspectionEventResponse
+            {
+                Success = false,
+                Message = "API response format is invalid"
+            };
+        }
+
+        public async Task<AddInspectionEventResponse> UploadExpiredFoodInspectionAttachment(string encodedEventId, IFormFile attachment, string zipFileName, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = "/Api/Inspection/ExpiredFoodInspectionAttachment";
+
+            await using var attachmentStream = attachment.OpenReadStream();
+            using var content = new MultipartFormDataContent();
+            content.Add(new StringContent(encodedEventId ?? string.Empty), "encodedEventId");
+            content.Add(new StringContent(_httpContextAccessor.HttpContext?.Session.GetString("InspectionId") ?? string.Empty), "createUser");
+            content.Add(new StringContent(zipFileName ?? string.Empty), "zipFileName");
+
+            var fileContent = new StreamContent(attachmentStream);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(attachment.ContentType ?? "application/octet-stream");
+            content.Add(fileContent, "attachment", attachment.FileName);
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = content;
+
+            using var resp = await _http.SendAsync(req, ct);
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+
+            var result = JsonSerializer.Deserialize<AddInspectionEventResponse>(
+                raw,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                return result ?? new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                };
+            }
+
+            return result ?? new AddInspectionEventResponse
+            {
+                Success = false,
+                Message = "API response format is invalid"
+            };
+        }
+
+        public async Task<List<InspectionUploadFileResult>> GetExpiredFoodInspectionPhotos(string encodedEventId, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = $"/Api/Inspection/ExpiredFoodInspectionPhotos/{WebUtility.UrlEncode(encodedEventId ?? string.Empty)}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Get, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var resp = await _http.SendAsync(req, ct);
+            if (!resp.IsSuccessStatusCode)
+            {
+                var raw = await resp.Content.ReadAsStringAsync(ct);
+                throw new Exception($"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}");
+            }
+
+            var body = await resp.Content.ReadFromJsonAsync<List<InspectionUploadFileResult>>(cancellationToken: ct);
+            return body ?? new List<InspectionUploadFileResult>();
+        }
+
+        public async Task<List<InspectionUploadFileResult>> GetExpiredFoodInspectionAttachments(string encodedEventId, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = $"/Api/Inspection/ExpiredFoodInspectionAttachments/{WebUtility.UrlEncode(encodedEventId ?? string.Empty)}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Get, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var resp = await _http.SendAsync(req, ct);
+            if (!resp.IsSuccessStatusCode)
+            {
+                var raw = await resp.Content.ReadAsStringAsync(ct);
+                throw new Exception($"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}");
+            }
+
+            var body = await resp.Content.ReadFromJsonAsync<List<InspectionUploadFileResult>>(cancellationToken: ct);
+            return body ?? new List<InspectionUploadFileResult>();
+        }
+
+        public async Task<AddInspectionEventResponse> UploadHealthManagerInspectionPhoto(string encodedEventId, IFormFile photo, string zipFileName, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = "/Api/Inspection/HealthManagerInspectionPhoto";
+
+            await using var photoStream = photo.OpenReadStream();
+            using var content = new MultipartFormDataContent();
+            content.Add(new StringContent(encodedEventId ?? string.Empty), "encodedEventId");
+            content.Add(new StringContent(_httpContextAccessor.HttpContext?.Session.GetString("InspectionId") ?? string.Empty), "createUser");
+            content.Add(new StringContent(zipFileName ?? string.Empty), "zipFileName");
+
+            var fileContent = new StreamContent(photoStream);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(photo.ContentType ?? "application/octet-stream");
+            content.Add(fileContent, "photo", photo.FileName);
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = content;
+
+            using var resp = await _http.SendAsync(req, ct);
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+
+            var result = JsonSerializer.Deserialize<AddInspectionEventResponse>(
+                raw,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                return result ?? new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                };
+            }
+
+            return result ?? new AddInspectionEventResponse
+            {
+                Success = false,
+                Message = "API response format is invalid"
+            };
+        }
+
+        public async Task<AddInspectionEventResponse> UploadHealthManagerInspectionAttachment(string encodedEventId, IFormFile attachment, string zipFileName, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = "/Api/Inspection/HealthManagerInspectionAttachment";
+
+            await using var attachmentStream = attachment.OpenReadStream();
+            using var content = new MultipartFormDataContent();
+            content.Add(new StringContent(encodedEventId ?? string.Empty), "encodedEventId");
+            content.Add(new StringContent(_httpContextAccessor.HttpContext?.Session.GetString("InspectionId") ?? string.Empty), "createUser");
+            content.Add(new StringContent(zipFileName ?? string.Empty), "zipFileName");
+
+            var fileContent = new StreamContent(attachmentStream);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(attachment.ContentType ?? "application/octet-stream");
+            content.Add(fileContent, "attachment", attachment.FileName);
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = content;
+
+            using var resp = await _http.SendAsync(req, ct);
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+
+            var result = JsonSerializer.Deserialize<AddInspectionEventResponse>(
+                raw,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                return result ?? new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                };
+            }
+
+            return result ?? new AddInspectionEventResponse
+            {
+                Success = false,
+                Message = "API response format is invalid"
+            };
+        }
+
+        public async Task<List<InspectionUploadFileResult>> GetHealthManagerInspectionPhotos(string encodedEventId, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = $"/Api/Inspection/HealthManagerInspectionPhotos/{WebUtility.UrlEncode(encodedEventId ?? string.Empty)}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Get, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var resp = await _http.SendAsync(req, ct);
+            if (!resp.IsSuccessStatusCode)
+            {
+                var raw = await resp.Content.ReadAsStringAsync(ct);
+                throw new Exception($"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}");
+            }
+
+            var body = await resp.Content.ReadFromJsonAsync<List<InspectionUploadFileResult>>(cancellationToken: ct);
+            return body ?? new List<InspectionUploadFileResult>();
+        }
+
+        public async Task<List<InspectionUploadFileResult>> GetHealthManagerInspectionAttachments(string encodedEventId, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = $"/Api/Inspection/HealthManagerInspectionAttachments/{WebUtility.UrlEncode(encodedEventId ?? string.Empty)}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Get, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var resp = await _http.SendAsync(req, ct);
+            if (!resp.IsSuccessStatusCode)
+            {
+                var raw = await resp.Content.ReadAsStringAsync(ct);
+                throw new Exception($"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}");
+            }
+
+            var body = await resp.Content.ReadFromJsonAsync<List<InspectionUploadFileResult>>(cancellationToken: ct);
+            return body ?? new List<InspectionUploadFileResult>();
+        }
+
+        public async Task<AddInspectionEventResponse> UploadProfessionalLicenseInspectionAttachment(string encodedEventId, IFormFile attachment, string zipFileName, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = "/Api/Inspection/ProfessionalLicenseInspectionAttachment";
+
+            await using var attachmentStream = attachment.OpenReadStream();
+            using var content = new MultipartFormDataContent();
+            content.Add(new StringContent(encodedEventId ?? string.Empty), "encodedEventId");
+            content.Add(new StringContent(_httpContextAccessor.HttpContext?.Session.GetString("InspectionId") ?? string.Empty), "createUser");
+            content.Add(new StringContent(zipFileName ?? string.Empty), "zipFileName");
+
+            var fileContent = new StreamContent(attachmentStream);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(attachment.ContentType ?? "application/octet-stream");
+            content.Add(fileContent, "attachment", attachment.FileName);
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = content;
+
+            using var resp = await _http.SendAsync(req, ct);
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+
+            var result = JsonSerializer.Deserialize<AddInspectionEventResponse>(
+                raw,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                return result ?? new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                };
+            }
+
+            return result ?? new AddInspectionEventResponse
+            {
+                Success = false,
+                Message = "API response format is invalid"
+            };
+        }
+
+        public async Task<AddInspectionEventResponse> UploadProfessionalLicenseInspectionPhoto(string encodedEventId, IFormFile photo, string zipFileName, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = "/Api/Inspection/ProfessionalLicenseInspectionPhoto";
+
+            await using var photoStream = photo.OpenReadStream();
+            using var content = new MultipartFormDataContent();
+            content.Add(new StringContent(encodedEventId ?? string.Empty), "encodedEventId");
+            content.Add(new StringContent(_httpContextAccessor.HttpContext?.Session.GetString("InspectionId") ?? string.Empty), "createUser");
+            content.Add(new StringContent(zipFileName ?? string.Empty), "zipFileName");
+
+            var fileContent = new StreamContent(photoStream);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(photo.ContentType ?? "application/octet-stream");
+            content.Add(fileContent, "photo", photo.FileName);
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = content;
+
+            using var resp = await _http.SendAsync(req, ct);
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+
+            var result = JsonSerializer.Deserialize<AddInspectionEventResponse>(
+                raw,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                return result ?? new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                };
+            }
+
+            return result ?? new AddInspectionEventResponse
+            {
+                Success = false,
+                Message = "API response format is invalid"
+            };
+        }
+
+        public async Task<List<InspectionUploadFileResult>> GetProfessionalLicenseInspectionPhotos(string encodedEventId, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = $"/Api/Inspection/ProfessionalLicenseInspectionPhotos/{WebUtility.UrlEncode(encodedEventId ?? string.Empty)}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Get, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var resp = await _http.SendAsync(req, ct);
+            if (!resp.IsSuccessStatusCode)
+            {
+                var raw = await resp.Content.ReadAsStringAsync(ct);
+                throw new Exception($"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}");
+            }
+
+            var body = await resp.Content.ReadFromJsonAsync<List<InspectionUploadFileResult>>(cancellationToken: ct);
+            return body ?? new List<InspectionUploadFileResult>();
+        }
+
+        public async Task<List<InspectionUploadFileResult>> GetProfessionalLicenseInspectionAttachments(string encodedEventId, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = $"/Api/Inspection/ProfessionalLicenseInspectionAttachments/{WebUtility.UrlEncode(encodedEventId ?? string.Empty)}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Get, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var resp = await _http.SendAsync(req, ct);
+            if (!resp.IsSuccessStatusCode)
+            {
+                var raw = await resp.Content.ReadAsStringAsync(ct);
+                throw new Exception($"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}");
+            }
+
+            var body = await resp.Content.ReadFromJsonAsync<List<InspectionUploadFileResult>>(cancellationToken: ct);
+            return body ?? new List<InspectionUploadFileResult>();
+        }
+
+        public async Task<HealthManagerInspectionResult?> GetHealthManagerInspection(int eventId, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = $"/Api/Inspection/HealthManagerInspection/{eventId}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Get, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var resp = await _http.SendAsync(req, ct);
+
+            if (resp.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                var raw = await resp.Content.ReadAsStringAsync(ct);
+                throw new Exception($"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}");
+            }
+
+            return await resp.Content.ReadFromJsonAsync<HealthManagerInspectionResult>(cancellationToken: ct);
+        }
+
+        public async Task<AddInspectionEventResponse> SaveHealthManagerInspection(HealthManagerInspectionSaveRequest request, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = "/Api/Inspection/HealthManagerInspection";
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = JsonContent.Create(request);
+
+            using var resp = await _http.SendAsync(req, ct);
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+
+            var result = JsonSerializer.Deserialize<AddInspectionEventResponse>(
+                raw,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                return result ?? new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                };
+            }
+
+            return result ?? new AddInspectionEventResponse
+            {
+                Success = false,
+                Message = "API 回傳資料格式錯誤"
+            };
+        }
+
+        public async Task<SourceDocumentInspectionResult?> GetSourceDocumentInspection(int eventId, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = $"/Api/Inspection/SourceDocumentInspection/{eventId}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Get, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var resp = await _http.SendAsync(req, ct);
+            if (resp.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+            if (!resp.IsSuccessStatusCode)
+            {
+                throw new Exception($"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}");
+            }
+
+            return await resp.Content.ReadFromJsonAsync<SourceDocumentInspectionResult>(cancellationToken: ct);
+        }
+
+        public async Task<AddInspectionEventResponse> SaveSourceDocumentInspection(SourceDocumentInspectionSaveRequest request, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = "/Api/Inspection/SourceDocumentInspection";
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = JsonContent.Create(request);
+
+            using var resp = await _http.SendAsync(req, ct);
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+
+            var result = JsonSerializer.Deserialize<AddInspectionEventResponse>(
+                raw,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                return result ?? new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                };
+            }
+
+            return result ?? new AddInspectionEventResponse
+            {
+                Success = false,
+                Message = "API 回傳資料格式錯誤"
+            };
+        }
+
+        public async Task<AddInspectionEventResponse> UploadSourceDocumentInspectionAttachment(string encodedEventId, IFormFile attachment, string zipFileName, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = "/Api/Inspection/SourceDocumentInspectionAttachment";
+
+            await using var attachmentStream = attachment.OpenReadStream();
+            using var content = new MultipartFormDataContent();
+            content.Add(new StringContent(encodedEventId ?? string.Empty), "encodedEventId");
+            content.Add(new StringContent(_httpContextAccessor.HttpContext?.Session.GetString("InspectionId") ?? string.Empty), "createUser");
+            content.Add(new StringContent(zipFileName ?? string.Empty), "zipFileName");
+
+            var fileContent = new StreamContent(attachmentStream);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(attachment.ContentType ?? "application/octet-stream");
+            content.Add(fileContent, "attachment", attachment.FileName);
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = content;
+
+            using var resp = await _http.SendAsync(req, ct);
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+
+            var result = JsonSerializer.Deserialize<AddInspectionEventResponse>(
+                raw,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                return result ?? new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                };
+            }
+
+            return result ?? new AddInspectionEventResponse
+            {
+                Success = false,
+                Message = "API response format is invalid"
+            };
+        }
+
+        public async Task<AddInspectionEventResponse> UploadSourceDocumentInspectionPhoto(string encodedEventId, IFormFile photo, string zipFileName, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = "/Api/Inspection/SourceDocumentInspectionPhoto";
+
+            await using var photoStream = photo.OpenReadStream();
+            using var content = new MultipartFormDataContent();
+            content.Add(new StringContent(encodedEventId ?? string.Empty), "encodedEventId");
+            content.Add(new StringContent(_httpContextAccessor.HttpContext?.Session.GetString("InspectionId") ?? string.Empty), "createUser");
+            content.Add(new StringContent(zipFileName ?? string.Empty), "zipFileName");
+
+            var fileContent = new StreamContent(photoStream);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue(photo.ContentType ?? "application/octet-stream");
+            content.Add(fileContent, "photo", photo.FileName);
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = content;
+
+            using var resp = await _http.SendAsync(req, ct);
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+
+            var result = JsonSerializer.Deserialize<AddInspectionEventResponse>(
+                raw,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                return result ?? new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                };
+            }
+
+            return result ?? new AddInspectionEventResponse
+            {
+                Success = false,
+                Message = "API response format is invalid"
+            };
+        }
+
+        public async Task<List<InspectionUploadFileResult>> GetSourceDocumentInspectionAttachments(string encodedEventId, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = $"/Api/Inspection/SourceDocumentInspectionAttachments/{WebUtility.UrlEncode(encodedEventId ?? string.Empty)}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Get, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var resp = await _http.SendAsync(req, ct);
+            if (!resp.IsSuccessStatusCode)
+            {
+                var raw = await resp.Content.ReadAsStringAsync(ct);
+                throw new Exception($"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}");
+            }
+
+            var body = await resp.Content.ReadFromJsonAsync<List<InspectionUploadFileResult>>(cancellationToken: ct);
+            return body ?? new List<InspectionUploadFileResult>();
+        }
+
+        public async Task<List<InspectionUploadFileResult>> GetSourceDocumentInspectionPhotos(string encodedEventId, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = $"/Api/Inspection/SourceDocumentInspectionPhotos/{WebUtility.UrlEncode(encodedEventId ?? string.Empty)}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Get, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var resp = await _http.SendAsync(req, ct);
+            if (!resp.IsSuccessStatusCode)
+            {
+                var raw = await resp.Content.ReadAsStringAsync(ct);
+                throw new Exception($"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}");
+            }
+
+            var body = await resp.Content.ReadFromJsonAsync<List<InspectionUploadFileResult>>(cancellationToken: ct);
+            return body ?? new List<InspectionUploadFileResult>();
+        }
+
+        public async Task<ProfessionalLicenseInspectionResult?> GetProfessionalLicenseInspection(int eventId, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = $"/Api/Inspection/ProfessionalLicenseInspection/{eventId}";
+
+            using var req = new HttpRequestMessage(HttpMethod.Get, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var resp = await _http.SendAsync(req, ct);
+
+            if (resp.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                var raw = await resp.Content.ReadAsStringAsync(ct);
+                throw new Exception($"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}");
+            }
+
+            return await resp.Content.ReadFromJsonAsync<ProfessionalLicenseInspectionResult>(cancellationToken: ct);
+        }
+
+        public async Task<AddInspectionEventResponse> SaveProfessionalLicenseInspection(ProfessionalLicenseInspectionSaveRequest request, CancellationToken ct = default)
+        {
+            var token = GetTokenOrThrow();
+            var url = "/Api/Inspection/ProfessionalLicenseInspection";
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            req.Content = JsonContent.Create(request);
+
+            using var resp = await _http.SendAsync(req, ct);
+            var raw = await resp.Content.ReadAsStringAsync(ct);
+
+            var result = JsonSerializer.Deserialize<AddInspectionEventResponse>(
+                raw,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                return result ?? new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = $"API {(int)resp.StatusCode} {resp.ReasonPhrase}: {raw}"
+                };
+            }
+
+            return result ?? new AddInspectionEventResponse
+            {
+                Success = false,
+                Message = "API response format is invalid"
+            };
+        }
     }
 }

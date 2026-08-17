@@ -1,11 +1,56 @@
+@using ECRS_WEB.DTOs.InspectionDTO.InspectionForms
+@{
+    var healthManagerInspection = ViewBag.HealthManagerInspection as HealthManagerInspectionResult;
+    var hasHealthManagerData = healthManagerInspection != null
+        && (!string.IsNullOrWhiteSpace(healthManagerInspection.HasHealthManager)
+            || !string.IsNullOrWhiteSpace(healthManagerInspection.InspectionDescription));
+    var healthManagerValue = healthManagerInspection?.HasHealthManager?.Trim().ToUpperInvariant();
+    var isHealthManagerNotApplicable = string.Equals(healthManagerValue, "3", StringComparison.OrdinalIgnoreCase);
+    var showNoFactoryRegistrationReason = isHealthManagerNotApplicable
+        && string.Equals(healthManagerInspection?.NoFactoryRegistrationNotApplicable?.Trim(), "Y", StringComparison.OrdinalIgnoreCase);
+    var showSmallScaleManufacturerReason = isHealthManagerNotApplicable
+        && string.Equals(healthManagerInspection?.SmallScaleManufacturerNotApplicable?.Trim(), "Y", StringComparison.OrdinalIgnoreCase);
+    var healthManagerDisplay = healthManagerValue switch
+    {
+        "1" => "Y",
+        "2" => "N",
+        "3" => "不適用",
+        var value => value ?? string.Empty
+    };
+}
+
 <div class="expired-food-page">
+    <input type="hidden" id="healthManagerEventId" value="@((ViewBag.EventId as string) ?? string.Empty)" />
     <h2 class="expired-food-title">衛生管理人員查核</h2>
 
     <div class="expired-food-tabs" role="tablist" aria-label="衛生管理人員查核頁籤">
-        <div class="expired-food-tab active" role="tab" aria-selected="true">稽查內容</div>
-        <div class="expired-food-tab" role="tab" aria-selected="false">專案欄位</div>
-        <div class="expired-food-tab" role="tab" aria-selected="false">稽查結果</div>
+        <button type="button" class="expired-food-tab active" role="tab" aria-selected="true">稽查內容</button>
+        <button type="button" class="expired-food-tab" role="tab" aria-selected="false">照片</button>
+        <button type="button" class="expired-food-tab" role="tab" aria-selected="false">附件</button>
     </div>
+
+    @if (hasHealthManagerData)
+    {
+        <div class="expired-food-no-data expired-food-result-text">
+            <div>是否有衛生管理人員：@healthManagerDisplay</div>
+            @if (isHealthManagerNotApplicable)
+            {
+                @if (showNoFactoryRegistrationReason)
+                {
+                    <div>無工廠登記</div>
+                }
+                @if (showSmallScaleManufacturerReason)
+                {
+                    <div>未滿5人且未達3千萬</div>
+                }
+            }
+            <div>現場稽查描述：@(healthManagerInspection?.InspectionDescription ?? string.Empty)</div>
+        </div>
+    }
+    else
+    {
+        <div class="expired-food-no-data">暫無稽查資料</div>
+    }
 
     <fieldset class="expired-food-section">
         <legend>稽查情形</legend>
@@ -18,15 +63,15 @@
             <div class="health-manager-toggle-area">
                 <div class="expired-food-radio-group" role="radiogroup" aria-label="是否有衛生管理人員">
                     <label class="expired-food-radio" for="healthManagerYes">
-                        <input id="healthManagerYes" name="healthManagerExists" type="radio" value="Y" />
+                        <input id="healthManagerYes" name="healthManagerExists" type="radio" value="1" />
                         <span>是</span>
                     </label>
                     <label class="expired-food-radio" for="healthManagerNo">
-                        <input id="healthManagerNo" name="healthManagerExists" type="radio" value="N" />
+                        <input id="healthManagerNo" name="healthManagerExists" type="radio" value="2" />
                         <span>否</span>
                     </label>
                     <label class="expired-food-radio" for="healthManagerNotApplicable">
-                        <input id="healthManagerNotApplicable" name="healthManagerExists" type="radio" value="NA" />
+                        <input id="healthManagerNotApplicable" name="healthManagerExists" type="radio" value="3" />
                         <span>不適用</span>
                     </label>
                 </div>
@@ -69,9 +114,424 @@
         <button type="button" class="btn btn-success" id="btnCancelHealthManager" onclick="window.history.go(-1);">取消並返回</button>
         <button type="button" class="btn btn-success" id="btnSaveHealthManager">儲存並離開</button>
     </div>
+
+    <div id="healthManagerPhotoPanel" class="expired-food-tab-panel" role="tabpanel" hidden>
+        <div id="healthManagerPhotoList" class="expired-food-no-data expired-food-photo-list">暫無稽查資料</div>
+        <div class="expired-food-upload-panel">
+            <label class="btn btn-sm expired-food-upload-btn" for="healthManagerPhotoUpload">上傳照片</label>
+            <input id="healthManagerPhotoUpload" class="expired-food-upload-input" type="file" accept=".jpg,.png" />
+            <span id="healthManagerPhotoUploadStatus" class="expired-food-upload-hint">尚未選擇檔案</span>
+        </div>
+    </div>
+
+    <div id="healthManagerAttachmentPanel" class="expired-food-tab-panel" role="tabpanel" hidden>
+        <div id="healthManagerAttachmentList" class="expired-food-no-data expired-food-photo-list">暫無稽查資料</div>
+        <div class="expired-food-upload-panel">
+            <label class="btn btn-sm expired-food-upload-btn" for="healthManagerAttachmentUpload">上傳附件</label>
+            <input id="healthManagerAttachmentUpload" class="expired-food-upload-input" type="file" multiple />
+            <span id="healthManagerAttachmentUploadStatus" class="expired-food-upload-hint">尚未選擇檔案</span>
+        </div>
+    </div>
+</div>
+
+<div id="healthManagerTemplateOverlay" class="expired-food-template-overlay" hidden>
+    <div class="expired-food-template-dialog" role="dialog" aria-modal="true" aria-labelledby="healthManagerTemplateTitle">
+        <div class="expired-food-template-header">
+            <h3 id="healthManagerTemplateTitle">請選擇您要加入的範本</h3>
+        </div>
+        <div class="expired-food-template-body">
+            <ul class="expired-food-template-tree">
+                <li class="is-expanded">
+                    <span class="tree-label">衛生管理人員</span>
+                    <ul>
+                        <li class="is-expanded">
+                            <span class="tree-label">稽查描述</span>
+                            <ul>
+                                <li>
+                                    <label class="tree-radio">
+                                        <input type="radio" name="healthManagerTemplateText" value="現場已設置衛生管理人員，並提供相關核備資料。" checked />
+                                        <span>現場已設置衛生管理人員，並提供相關核備資料。</span>
+                                    </label>
+                                </li>
+                                <li>
+                                    <label class="tree-radio">
+                                        <input type="radio" name="healthManagerTemplateText" value="現場未能提供衛生管理人員相關核備資料。" />
+                                        <span>現場未能提供衛生管理人員相關核備資料。</span>
+                                    </label>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="is-expanded">
+                            <span class="tree-label">個人專用範本</span>
+                            <ul>
+                                <li>
+                                    <label class="tree-radio">
+                                        <input type="radio" name="healthManagerTemplateText" value="勾兩個可以嗎?" />
+                                        <span>勾兩個可以嗎?</span>
+                                    </label>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="expired-food-template-footer">
+            <button type="button" class="btn btn-sm btn-light" id="btnHealthManagerTemplateAdd">加入</button>
+            <button type="button" class="btn btn-sm btn-light" id="btnHealthManagerTemplateCancel">取消</button>
+        </div>
+    </div>
+</div>
+
+<div id="healthManagerSaveResultOverlay" class="expired-food-save-result-overlay" hidden>
+    <div class="expired-food-save-result-dialog" role="dialog" aria-modal="true" aria-labelledby="healthManagerSaveResultTitle">
+        <div class="expired-food-save-result-header">
+            <h3 id="healthManagerSaveResultTitle">執行結果</h3>
+        </div>
+        <div class="expired-food-save-result-body" id="healthManagerSaveResultMessage"></div>
+        <div class="expired-food-save-result-footer">
+            <button type="button" class="btn btn-success" id="btnHealthManagerSaveResultOk">確定</button>
+        </div>
+    </div>
 </div>
 
 <style>
+    .expired-food-template-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1050;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 0;
+        background: rgba(0, 0, 0, .62);
+    }
+
+    .expired-food-template-overlay[hidden] {
+        display: none;
+    }
+
+    .expired-food-tab-panel {
+        display: none;
+    }
+
+    .expired-food-tab-panel.active {
+        display: block;
+    }
+
+    .expired-food-page .expired-food-tabs {
+        border-color: #d9e5dc;
+    }
+
+    .expired-food-page .expired-food-tab {
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        outline: 0;
+        cursor: pointer;
+    }
+
+    .expired-food-page .expired-food-tab:focus {
+        box-shadow: none;
+        outline: 0;
+    }
+
+    .expired-food-result-text {
+        color: #333;
+        font-size: 16px;
+        line-height: 1;
+        text-align: left;
+        word-break: break-word;
+    }
+
+    .expired-food-result-text div {
+        margin: 0 0 8px;
+    }
+
+    .expired-food-no-data {
+        margin-top: 4px;
+        margin-bottom: 22px;
+        padding: 32px 18px;
+        border: 1px solid #d9e5dc;
+        border-radius: 6px;
+        background: #fff;
+        color: #666;
+        font-size: 16px;
+        text-align: center;
+    }
+
+    .expired-food-no-data.expired-food-result-text {
+        text-align: left;
+    }
+
+    .expired-food-photo-list {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        text-align: left;
+    }
+
+    .expired-food-photo-list.is-empty {
+        align-items: center;
+        text-align: center;
+    }
+
+    .expired-food-photo-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #166534;
+        font-size: 16px;
+        line-height: 1.35;
+        text-decoration: underline;
+        word-break: break-all;
+    }
+
+    .expired-food-photo-extension {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        height: 20px;
+        padding: 0 5px;
+        border: 1px solid #8ccf9a;
+        border-radius: 2px;
+        background: #f0fff4;
+        color: #218544;
+        font-size: 11px;
+        line-height: 20px;
+        text-transform: uppercase;
+    }
+
+    .expired-food-upload-panel {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 112px;
+        margin: 0 0 22px;
+        padding: 28px 24px;
+        border: 1px solid #d9e5dc;
+        border-radius: 6px;
+        background: #fff;
+    }
+
+    .expired-food-upload-btn,
+    .expired-food-upload-btn:hover,
+    .expired-food-upload-btn:focus {
+        min-width: 92px;
+        border: 1px solid #7ecb8a;
+        background: #fff;
+        color: #2aa84a;
+        box-shadow: none;
+    }
+
+    .expired-food-upload-btn:hover {
+        border-color: #2f9e44;
+        background: #f3fff6;
+        color: #20883a;
+    }
+
+    .expired-food-upload-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+    }
+
+    .expired-food-upload-hint {
+        color: #666;
+        font-size: 15px;
+    }
+
+    .expired-food-save-result-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1060;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: rgba(0, 0, 0, .45);
+    }
+
+    .expired-food-save-result-overlay[hidden] {
+        display: none;
+    }
+
+    .expired-food-save-result-dialog {
+        width: 360px;
+        max-width: calc(100vw - 32px);
+        overflow: hidden;
+        border: 1px solid #cfd8d2;
+        border-radius: 6px;
+        background: #fff;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .22);
+    }
+
+    .expired-food-save-result-header {
+        padding: 12px 16px;
+        border-bottom: 1px solid #e3ebe5;
+        background: #eef8f0;
+    }
+
+    .expired-food-save-result-header h3 {
+        margin: 0;
+        color: #218544;
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    .expired-food-save-result-body {
+        min-height: 76px;
+        padding: 24px 18px;
+        color: #333;
+        font-size: 16px;
+        line-height: 1.6;
+        text-align: center;
+        word-break: break-word;
+    }
+
+    .expired-food-save-result-footer {
+        display: flex;
+        justify-content: center;
+        padding: 14px 16px 16px;
+        border-top: 1px solid #eef2ef;
+    }
+
+    .expired-food-save-result-footer .btn {
+        min-width: 82px;
+        border-color: #1f9d45;
+        background: #1f9d45;
+        color: #fff;
+    }
+
+    .expired-food-template-dialog {
+        width: 662px;
+        max-width: calc(100vw - 28px);
+        min-height: 620px;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #9da5a0;
+        background: #fff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, .28);
+    }
+
+    .expired-food-template-header {
+        padding: 16px 16px 18px;
+        background: linear-gradient(180deg, #ffffff 0%, #eefbf1 100%);
+        border-bottom: 1px solid #e4eee7;
+    }
+
+    .expired-food-template-header h3 {
+        margin: 0;
+        color: #218544;
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    .expired-food-template-body {
+        flex: 1 1 auto;
+        padding: 42px 20px 18px;
+        overflow: auto;
+        color: #555;
+        font-size: 18px;
+        line-height: 1.35;
+    }
+
+    .expired-food-template-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 14px;
+        padding: 16px;
+        border-top: 1px solid #f0f0f0;
+        background: #fff;
+    }
+
+    .expired-food-template-footer .btn {
+        min-width: 58px;
+        height: 36px;
+        border: 1px solid #dfe4e2;
+        color: #666;
+        background: #fff;
+        font-size: 16px;
+    }
+
+    .expired-food-template-tree,
+    .expired-food-template-tree ul {
+        list-style: none;
+        margin: 0;
+        padding-left: 22px;
+    }
+
+    .expired-food-template-tree {
+        padding-left: 0;
+    }
+
+    .expired-food-template-tree li {
+        position: relative;
+        min-height: 24px;
+    }
+
+    .expired-food-template-tree ul li::before {
+        content: "";
+        position: absolute;
+        top: -5px;
+        left: -13px;
+        width: 1px;
+        height: 29px;
+        border-left: 1px dotted #9a9a9a;
+    }
+
+    .expired-food-template-tree ul li::after {
+        content: "";
+        position: absolute;
+        top: 12px;
+        left: -13px;
+        width: 11px;
+        border-top: 1px dotted #9a9a9a;
+    }
+
+    .expired-food-template-tree .is-expanded > .tree-label::before {
+        content: "-";
+        display: inline-flex;
+        width: 10px;
+        height: 10px;
+        align-items: center;
+        justify-content: center;
+        margin-right: 2px;
+        border: 1px solid #9bb7c6;
+        color: #58869b;
+        background: #f7fbfd;
+        font-size: 11px;
+        line-height: 1;
+        vertical-align: middle;
+    }
+
+    .tree-label,
+    .tree-radio {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        margin: 0;
+        font-weight: normal;
+        white-space: nowrap;
+    }
+
+    .tree-radio {
+        gap: 4px;
+        color: #555;
+    }
+
+    .tree-radio input[type="radio"] {
+        margin: 0;
+    }
+
     .health-manager-toggle-area .health-manager-approval-panel,
     .health-manager-toggle-area .health-manager-na-reason-panel {
         display: none;
@@ -146,10 +606,460 @@
     .health-manager-na-reason-check input {
         margin: 0;
     }
+
+    @@media (max-width: 768px) {
+        .expired-food-template-overlay {
+            padding: 12px;
+            align-items: flex-start;
+        }
+
+        .expired-food-template-dialog {
+            min-height: min(620px, calc(100vh - 24px));
+        }
+
+        .expired-food-template-body {
+            padding: 28px 16px 18px;
+            font-size: 16px;
+        }
+    }
 </style>
 
 <script>
     (function () {
+        var page = document.querySelector('.expired-food-page');
+        if (!page) {
+            return;
+        }
+
+        var tabButtons = Array.prototype.slice.call(page.querySelectorAll('.expired-food-tabs .expired-food-tab'));
+        var tabNames = ['content', 'photo', 'attachment'];
+        var tabPanels = {
+            photo: document.getElementById('healthManagerPhotoPanel'),
+            attachment: document.getElementById('healthManagerAttachmentPanel')
+        };
+        var contentNodes = Array.prototype.slice.call(page.querySelectorAll(':scope > .expired-food-no-data, :scope > .expired-food-section, :scope > .expired-food-actions'));
+        var eventIdInput = document.getElementById('healthManagerEventId');
+        var photoUploadInput = document.getElementById('healthManagerPhotoUpload');
+        var photoUploadStatus = document.getElementById('healthManagerPhotoUploadStatus');
+        var photoList = document.getElementById('healthManagerPhotoList');
+        var attachmentUploadInput = document.getElementById('healthManagerAttachmentUpload');
+        var attachmentUploadStatus = document.getElementById('healthManagerAttachmentUploadStatus');
+        var attachmentList = document.getElementById('healthManagerAttachmentList');
+        var photoUploadUrl = '@Url.Action("UploadHealthManagerPhoto", "Inspection")';
+        var photoListUrl = '@Url.Action("GetHealthManagerPhotos", "Inspection")';
+        var photoPreviewUrl = '@Url.Action("PreviewHealthManagerPhoto", "Inspection")';
+        var attachmentUploadUrl = '@Url.Action("UploadHealthManagerAttachment", "Inspection")';
+        var attachmentListUrl = '@Url.Action("GetHealthManagerAttachments", "Inspection")';
+        var attachmentPreviewUrl = '@Url.Action("PreviewHealthManagerAttachment", "Inspection")';
+        var maxUploadFileSize = 4 * 1024 * 1024;
+
+        function bindUploadHint(inputId) {
+            var input = document.getElementById(inputId);
+            if (!input) {
+                return;
+            }
+
+            var hint = input.parentElement ? input.parentElement.querySelector('.expired-food-upload-hint') : null;
+            if (!hint) {
+                return;
+            }
+
+            input.addEventListener('change', function () {
+                if (!input.files || input.files.length === 0) {
+                    hint.textContent = '尚未選擇檔案';
+                    return;
+                }
+
+                hint.textContent = input.files.length === 1
+                    ? input.files[0].name
+                    : '已選擇 ' + input.files.length + ' 個檔案';
+            });
+        }
+
+        function activateTab(tabName) {
+            tabButtons.forEach(function (button, index) {
+                var currentTabName = button.getAttribute('data-health-manager-tab') || tabNames[index] || 'content';
+                var isActive = currentTabName === tabName;
+                button.classList.toggle('active', isActive);
+                button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+
+            contentNodes.forEach(function (node) {
+                node.style.display = tabName === 'content' ? '' : 'none';
+            });
+
+            Object.keys(tabPanels).forEach(function (key) {
+                var panel = tabPanels[key];
+                if (!panel) {
+                    return;
+                }
+
+                var isActive = key === tabName;
+                panel.classList.toggle('active', isActive);
+                panel.hidden = !isActive;
+            });
+
+            if (tabName === 'photo') {
+                loadPhotoList();
+            }
+
+            if (tabName === 'attachment') {
+                loadAttachmentList();
+            }
+        }
+
+        function bindPhotoUpload() {
+            if (!photoUploadInput || !photoUploadStatus) {
+                return;
+            }
+
+            photoUploadInput.addEventListener('change', function () {
+                if (!photoUploadInput.files || photoUploadInput.files.length === 0) {
+                    photoUploadStatus.textContent = '尚未選擇檔案';
+                    return;
+                }
+
+                var file = photoUploadInput.files[0];
+                if (file.size > maxUploadFileSize) {
+                    alert('上傳檔案大小不能超過4MB：' + file.name);
+                    photoUploadStatus.textContent = '尚未選擇檔案';
+                    photoUploadInput.value = '';
+                    return;
+                }
+
+                var extension = (file.name.split('.').pop() || '').toLowerCase();
+                if (extension !== 'jpg' && extension !== 'png') {
+                    alert('照片格式不符，僅允許 jpg 或 png');
+                    photoUploadStatus.textContent = '尚未選擇檔案';
+                    photoUploadInput.value = '';
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append('encodedEventId', eventIdInput ? eventIdInput.value : '');
+                formData.append('photo', file);
+
+                photoUploadStatus.textContent = file.name;
+                photoUploadInput.disabled = true;
+
+                fetch(photoUploadUrl, {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(function (response) {
+                        return response.json()
+                            .catch(function () {
+                                return { message: '上傳照片失敗' };
+                            })
+                            .then(function (result) {
+                                if (!response.ok || !result.success) {
+                                    throw new Error(result.message || '上傳照片失敗');
+                                }
+
+                                return result;
+                            });
+                    })
+                    .then(function () {
+                        photoUploadStatus.textContent = '上傳照片已成功';
+                        loadPhotoList();
+                    })
+                    .catch(function (error) {
+                        alert(error.message || '上傳照片失敗');
+                        photoUploadStatus.textContent = '上傳照片失敗';
+                    })
+                    .finally(function () {
+                        photoUploadInput.disabled = false;
+                        photoUploadInput.value = '';
+                    });
+            });
+        }
+
+        function bindAttachmentUpload() {
+            if (!attachmentUploadInput || !attachmentUploadStatus) {
+                return;
+            }
+
+            attachmentUploadInput.addEventListener('change', function () {
+                if (!attachmentUploadInput.files || attachmentUploadInput.files.length === 0) {
+                    attachmentUploadStatus.textContent = '尚未選擇檔案';
+                    return;
+                }
+
+                var files = Array.prototype.slice.call(attachmentUploadInput.files);
+                var imageFile = files.find(function (file) {
+                    var extension = (file.name.split('.').pop() || '').toLowerCase();
+                    return (file.type || '').toLowerCase().indexOf('image/') === 0
+                        || ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tif', 'tiff', 'svg', 'heic', 'heif'].indexOf(extension) >= 0;
+                });
+
+                if (imageFile) {
+                    alert('請選擇非圖片檔案上傳');
+                    attachmentUploadStatus.textContent = '尚未選擇檔案';
+                    attachmentUploadInput.value = '';
+                    return;
+                }
+
+                var oversizedFile = files.find(function (file) {
+                    return file.size > maxUploadFileSize;
+                });
+
+                if (oversizedFile) {
+                    alert('上傳檔案大小不能超過4MB：' + oversizedFile.name);
+                    attachmentUploadStatus.textContent = '尚未選擇檔案';
+                    attachmentUploadInput.value = '';
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append('encodedEventId', eventIdInput ? eventIdInput.value : '');
+                files.forEach(function (file) {
+                    formData.append('attachments', file);
+                });
+
+                attachmentUploadStatus.textContent = files.length === 1
+                    ? files[0].name
+                    : '已選擇 ' + files.length + ' 個檔案';
+                attachmentUploadInput.disabled = true;
+
+                fetch(attachmentUploadUrl, {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(function (response) {
+                        return response.json()
+                            .catch(function () {
+                                return { message: '上傳附件失敗' };
+                            })
+                            .then(function (result) {
+                                if (!response.ok || !result.success) {
+                                    throw new Error(result.message || '上傳附件失敗');
+                                }
+
+                                return result;
+                            });
+                    })
+                    .then(function () {
+                        attachmentUploadStatus.textContent = '上傳附件已成功';
+                        loadAttachmentList();
+                    })
+                    .catch(function (error) {
+                        alert(error.message || '上傳附件失敗');
+                        attachmentUploadStatus.textContent = '上傳附件失敗';
+                    })
+                    .finally(function () {
+                        attachmentUploadInput.disabled = false;
+                        attachmentUploadInput.value = '';
+                    });
+            });
+        }
+
+        function loadPhotoList() {
+            if (!photoList || !eventIdInput || !eventIdInput.value) {
+                renderFileList(photoList, [], photoPreviewUrl, '尚未上傳照片', 'IMG');
+                return;
+            }
+
+            fetch(photoListUrl + '?encodedEventId=' + encodeURIComponent(eventIdInput.value), {
+                method: 'GET'
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('照片讀取失敗');
+                    }
+
+                    return response.json();
+                })
+                .then(function (items) {
+                    renderFileList(photoList, Array.isArray(items) ? items : [], photoPreviewUrl, '尚未上傳照片', 'IMG');
+                })
+                .catch(function () {
+                    renderFileList(photoList, [], photoPreviewUrl, '尚未上傳照片', 'IMG');
+                });
+        }
+
+        function loadAttachmentList() {
+            if (!attachmentList || !eventIdInput || !eventIdInput.value) {
+                renderFileList(attachmentList, [], attachmentPreviewUrl, '尚未上傳附件', 'FILE');
+                return;
+            }
+
+            fetch(attachmentListUrl + '?encodedEventId=' + encodeURIComponent(eventIdInput.value), {
+                method: 'GET'
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('附件讀取失敗');
+                    }
+
+                    return response.json();
+                })
+                .then(function (items) {
+                    renderFileList(attachmentList, Array.isArray(items) ? items : [], attachmentPreviewUrl, '尚未上傳附件', 'FILE');
+                })
+                .catch(function () {
+                    renderFileList(attachmentList, [], attachmentPreviewUrl, '尚未上傳附件', 'FILE');
+                });
+        }
+
+        function renderFileList(container, items, previewUrl, emptyText, fallbackExtension) {
+            if (!container) {
+                return;
+            }
+
+            container.innerHTML = '';
+
+            if (!items || items.length === 0) {
+                container.classList.add('is-empty');
+                container.textContent = emptyText;
+                return;
+            }
+
+            container.classList.remove('is-empty');
+
+            items.forEach(function (item) {
+                var extension = (item.extension || '').replace(/^\./, '').toLowerCase();
+                var fileName = item.fileName || '';
+                var displayName = fileName + (extension ? '.' + extension : '');
+                var zipFileName = item.zipFileName || '';
+
+                if (!displayName || !zipFileName) {
+                    return;
+                }
+
+                var link = document.createElement('a');
+                link.className = 'expired-food-photo-link';
+                link.href = previewUrl + '?zipFileName=' + encodeURIComponent(zipFileName);
+                link.target = '_blank';
+                link.rel = 'noopener';
+
+                var icon = document.createElement('span');
+                icon.className = 'expired-food-photo-extension';
+                icon.textContent = extension || fallbackExtension;
+
+                var text = document.createElement('span');
+                text.textContent = displayName;
+
+                link.appendChild(icon);
+                link.appendChild(text);
+                container.appendChild(link);
+            });
+
+            if (!container.childElementCount) {
+                container.classList.add('is-empty');
+                container.textContent = emptyText;
+            }
+        }
+
+        tabButtons.forEach(function (button, index) {
+            var tabName = tabNames[index] || 'content';
+            button.setAttribute('data-health-manager-tab', tabName);
+            button.setAttribute('aria-controls', tabName === 'content'
+                ? 'healthManagerContentArea'
+                : (tabName === 'photo' ? 'healthManagerPhotoPanel' : 'healthManagerAttachmentPanel'));
+            button.setAttribute('tabindex', '0');
+
+            button.addEventListener('click', function () {
+                activateTab(tabName);
+            });
+
+            button.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    activateTab(tabName);
+                }
+            });
+        });
+
+        bindUploadHint('healthManagerPhotoUpload');
+        bindUploadHint('healthManagerAttachmentUpload');
+        bindPhotoUpload();
+        bindAttachmentUpload();
+        loadPhotoList();
+        loadAttachmentList();
+        activateTab('content');
+    })();
+
+    (function () {
+        var overlay = document.getElementById('healthManagerTemplateOverlay');
+        var openButton = document.getElementById('btnHealthManagerTemplate');
+        var addButton = document.getElementById('btnHealthManagerTemplateAdd');
+        var cancelButton = document.getElementById('btnHealthManagerTemplateCancel');
+        var description = document.getElementById('txtHealthManagerInspectionDescription');
+
+        function openTemplateDialog() {
+            if (!overlay) {
+                return;
+            }
+
+            overlay.hidden = false;
+            var checkedRadio = overlay.querySelector('input[name="healthManagerTemplateText"]:checked');
+            if (checkedRadio) {
+                checkedRadio.focus();
+            }
+        }
+
+        function closeTemplateDialog() {
+            if (!overlay) {
+                return;
+            }
+
+            overlay.hidden = true;
+            if (openButton) {
+                openButton.focus();
+            }
+        }
+
+        function addTemplateText() {
+            var selected = overlay ? overlay.querySelector('input[name="healthManagerTemplateText"]:checked') : null;
+            if (selected && description) {
+                description.value = selected.value;
+                description.focus();
+            }
+
+            closeTemplateDialog();
+        }
+
+        if (openButton) {
+            openButton.addEventListener('click', openTemplateDialog);
+        }
+
+        if (addButton) {
+            addButton.addEventListener('click', addTemplateText);
+        }
+
+        if (cancelButton) {
+            cancelButton.addEventListener('click', closeTemplateDialog);
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', function (event) {
+                if (event.target === overlay) {
+                    closeTemplateDialog();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && overlay && !overlay.hidden) {
+                closeTemplateDialog();
+            }
+        });
+    })();
+
+    (function () {
+        var saveButton = document.getElementById('btnSaveHealthManager');
+        var eventIdInput = document.getElementById('healthManagerEventId');
+        var description = document.getElementById('txtHealthManagerInspectionDescription');
+        var approvalNo = document.getElementById('txtHealthManagerApprovalNo');
+        var noApprovalNo = document.getElementById('chkHealthManagerNoApprovalNo');
+        var noFactoryRegistration = document.getElementById('chkHealthManagerNoFactoryRegistration');
+        var smallScaleManufacturer = document.getElementById('chkHealthManagerSmallScaleManufacturer');
+        var saveUrl = '@Url.Action("SaveHealthManagerInspection", "Inspection")';
+        var saveResultOverlay = document.getElementById('healthManagerSaveResultOverlay');
+        var saveResultMessage = document.getElementById('healthManagerSaveResultMessage');
+        var saveResultOkButton = document.getElementById('btnHealthManagerSaveResultOk');
+        var shouldGoBackAfterSaveResult = false;
+
         function updateHealthManagerConditionalPanels() {
             var yesRadio = document.getElementById('healthManagerYes');
             var notApplicableRadio = document.getElementById('healthManagerNotApplicable');
@@ -164,11 +1074,105 @@
             notApplicablePanel.classList.toggle('is-visible', notApplicableRadio.checked);
         }
 
+        function showSaveResult(message, shouldGoBack) {
+            shouldGoBackAfterSaveResult = shouldGoBack;
+
+            if (saveResultMessage) {
+                saveResultMessage.textContent = message;
+            }
+
+            if (saveResultOverlay) {
+                saveResultOverlay.hidden = false;
+            }
+
+            if (saveResultOkButton) {
+                saveResultOkButton.focus();
+            }
+        }
+
+        function closeSaveResult() {
+            if (saveResultOverlay) {
+                saveResultOverlay.hidden = true;
+            }
+
+            if (shouldGoBackAfterSaveResult) {
+                window.history.go(-1);
+                return;
+            }
+
+            if (saveButton) {
+                saveButton.focus();
+            }
+        }
+
         document.addEventListener('change', function (event) {
             if (event.target && event.target.name === 'healthManagerExists') {
                 updateHealthManagerConditionalPanels();
             }
+
+            if (event.target && event.target.id === 'chkHealthManagerNoApprovalNo' && event.target.checked && approvalNo) {
+                approvalNo.value = '';
+            }
         });
+
+        if (saveResultOkButton) {
+            saveResultOkButton.addEventListener('click', closeSaveResult);
+        }
+
+        if (saveButton) {
+            saveButton.addEventListener('click', function () {
+                var selectedHealthManager = document.querySelector('input[name="healthManagerExists"]:checked');
+                var eventId = eventIdInput ? parseInt(eventIdInput.value, 10) : 0;
+
+                if (!eventId) {
+                    showSaveResult('稽查事件主鍵錯誤', false);
+                    return;
+                }
+
+                if (!selectedHealthManager) {
+                    showSaveResult('請選擇是否有衛生管理人員', false);
+                    return;
+                }
+
+                saveButton.disabled = true;
+
+                fetch(saveUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        eventId: eventId,
+                        hasHealthManager: selectedHealthManager.value,
+                        approvalNo: selectedHealthManager.value === '1' && approvalNo && (!noApprovalNo || !noApprovalNo.checked) ? approvalNo.value : null,
+                        noApprovalNo: selectedHealthManager.value === '1' && noApprovalNo ? noApprovalNo.checked : null,
+                        noFactoryRegistrationNotApplicable: selectedHealthManager.value === '3' && noFactoryRegistration ? noFactoryRegistration.checked : null,
+                        smallScaleManufacturerNotApplicable: selectedHealthManager.value === '3' && smallScaleManufacturer ? smallScaleManufacturer.checked : null,
+                        inspectionDescription: description ? description.value : ''
+                    })
+                })
+                    .then(function (response) {
+                        if (!response.ok) {
+                            return response.json()
+                                .catch(function () {
+                                    return { message: '儲存失敗' };
+                                })
+                                .then(function (result) {
+                                    throw new Error(result.message || '儲存失敗');
+                                });
+                        }
+
+                        return response.json();
+                    })
+                    .then(function () {
+                        showSaveResult('儲存成功', true);
+                    })
+                    .catch(function (error) {
+                        showSaveResult(error.message || '儲存失敗', false);
+                        saveButton.disabled = false;
+                    });
+            });
+        }
 
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', updateHealthManagerConditionalPanels);

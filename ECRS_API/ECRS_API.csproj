@@ -8,9 +8,13 @@
 
   <ItemGroup>
     <Compile Remove="Controllers\Inspection\**" />
+    <Compile Remove="Files\**" />
     <Content Remove="Controllers\Inspection\**" />
+    <Content Remove="Files\**" />
     <EmbeddedResource Remove="Controllers\Inspection\**" />
+    <EmbeddedResource Remove="Files\**" />
     <None Remove="Controllers\Inspection\**" />
+    <None Remove="Files\**" />
   </ItemGroup>
 
   <ItemGroup>
