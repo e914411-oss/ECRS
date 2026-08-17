@@ -68,20 +68,20 @@
     </div>
 
     <div id="expiredFoodPhotoPanel" class="expired-food-tab-panel" role="tabpanel" hidden>
-        <div class="expired-food-no-data">暫無稽查資料</div>
+        <div id="expiredFoodPhotoList" class="expired-food-no-data expired-food-photo-list">暫無稽查資料</div>
         <div class="expired-food-upload-panel">
             <label class="btn btn-sm expired-food-upload-btn" for="expiredFoodPhotoUpload">上傳照片</label>
-            <input id="expiredFoodPhotoUpload" class="expired-food-upload-input" type="file" accept="image/*" multiple />
-            <span class="expired-food-upload-hint">尚未選擇檔案</span>
+            <input id="expiredFoodPhotoUpload" class="expired-food-upload-input" type="file" accept=".jpg,.png" />
+            <span id="expiredFoodPhotoUploadStatus" class="expired-food-upload-hint">尚未選擇檔案</span>
         </div>
     </div>
 
     <div id="expiredFoodAttachmentPanel" class="expired-food-tab-panel" role="tabpanel" hidden>
-        <div class="expired-food-no-data">暫無稽查資料</div>
+        <div id="expiredFoodAttachmentList" class="expired-food-no-data expired-food-photo-list">暫無稽查資料</div>
         <div class="expired-food-upload-panel">
             <label class="btn btn-sm expired-food-upload-btn" for="expiredFoodAttachmentUpload">上傳附件</label>
             <input id="expiredFoodAttachmentUpload" class="expired-food-upload-input" type="file" multiple />
-            <span class="expired-food-upload-hint">尚未選擇檔案</span>
+            <span id="expiredFoodAttachmentUploadStatus" class="expired-food-upload-hint">尚未選擇檔案</span>
         </div>
     </div>
 </div>
@@ -223,6 +223,46 @@
 
     .expired-food-no-data.expired-food-result-text {
         text-align: left;
+    }
+
+    .expired-food-photo-list {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        text-align: left;
+    }
+
+    .expired-food-photo-list.is-empty {
+        align-items: center;
+        text-align: center;
+    }
+
+    .expired-food-photo-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #166534;
+        font-size: 16px;
+        line-height: 1.35;
+        text-decoration: underline;
+        word-break: break-all;
+    }
+
+    .expired-food-photo-extension {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 30px;
+        height: 18px;
+        padding: 0 4px;
+        border: 1px solid #8ccf9a;
+        border-radius: 2px;
+        background: #f0fff4;
+        color: #218544;
+        font-size: 11px;
+        line-height: 18px;
+        text-transform: uppercase;
     }
 
     .expired-food-upload-panel {
@@ -479,10 +519,23 @@
         var saveButton = document.getElementById('btnSaveExpiredFood');
         var eventIdInput = document.getElementById('expiredFoodEventId');
         var saveUrl = '@Url.Action("SaveExpiredFoodInspection", "Inspection")';
+        var photoUploadUrl = '@Url.Action("UploadExpiredFoodPhoto", "Inspection")';
+        var photoListUrl = '@Url.Action("GetExpiredFoodPhotos", "Inspection")';
+        var photoPreviewUrl = '@Url.Action("PreviewExpiredFoodPhoto", "Inspection")';
+        var attachmentUploadUrl = '@Url.Action("UploadExpiredFoodAttachment", "Inspection")';
+        var attachmentListUrl = '@Url.Action("GetExpiredFoodAttachments", "Inspection")';
+        var attachmentPreviewUrl = '@Url.Action("PreviewExpiredFoodAttachment", "Inspection")';
+        var photoUploadInput = document.getElementById('expiredFoodPhotoUpload');
+        var photoUploadStatus = document.getElementById('expiredFoodPhotoUploadStatus');
+        var photoList = document.getElementById('expiredFoodPhotoList');
+        var attachmentUploadInput = document.getElementById('expiredFoodAttachmentUpload');
+        var attachmentUploadStatus = document.getElementById('expiredFoodAttachmentUploadStatus');
+        var attachmentList = document.getElementById('expiredFoodAttachmentList');
         var saveResultOverlay = document.getElementById('expiredFoodSaveResultOverlay');
         var saveResultMessage = document.getElementById('expiredFoodSaveResultMessage');
         var saveResultOkButton = document.getElementById('btnExpiredFoodSaveResultOk');
         var shouldGoBackAfterSaveResult = false;
+        var maxAttachmentFileSize = 4 * 1024 * 1024;
         var tabButtons = Array.prototype.slice.call(document.querySelectorAll('[data-expired-food-tab]'));
         var tabPanels = {
             content: document.getElementById('expiredFoodContentPanel'),
@@ -511,6 +564,301 @@
                     ? input.files[0].name
                     : '已選擇 ' + input.files.length + ' 個檔案';
             });
+        }
+
+        function bindPhotoUpload() {
+            if (!photoUploadInput || !photoUploadStatus) {
+                return;
+            }
+
+            photoUploadInput.addEventListener('change', function () {
+                if (!photoUploadInput.files || photoUploadInput.files.length === 0) {
+                    photoUploadStatus.textContent = '尚未選擇檔案';
+                    return;
+                }
+
+                var file = photoUploadInput.files[0];
+                var formData = new FormData();
+                formData.append('encodedEventId', eventIdInput ? eventIdInput.value : '');
+                formData.append('photo', file);
+
+                photoUploadStatus.textContent = file.name;
+                photoUploadInput.disabled = true;
+
+                fetch(photoUploadUrl, {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(function (response) {
+                        return response.json()
+                            .catch(function () {
+                                return { message: '上傳照片失敗' };
+                            })
+                            .then(function (result) {
+                                if (!response.ok || !result.success) {
+                                    throw new Error(result.message || '上傳照片失敗');
+                                }
+
+                                return result;
+                            });
+                    })
+                    .then(function () {
+                        photoUploadStatus.textContent = '上傳照片已成功';
+                        loadPhotoList();
+                    })
+                    .catch(function (error) {
+                        var message = error.message || '上傳照片失敗';
+                        alert(message);
+                        photoUploadStatus.textContent = '上傳照片失敗';
+                    })
+                    .finally(function () {
+                        photoUploadInput.disabled = false;
+                        photoUploadInput.value = '';
+                    });
+            });
+        }
+
+        function bindAttachmentUpload() {
+            if (!attachmentUploadInput || !attachmentUploadStatus) {
+                return;
+            }
+
+            attachmentUploadInput.addEventListener('change', function () {
+                if (!attachmentUploadInput.files || attachmentUploadInput.files.length === 0) {
+                    attachmentUploadStatus.textContent = '尚未選擇檔案';
+                    return;
+                }
+
+                var files = Array.prototype.slice.call(attachmentUploadInput.files);
+                var oversizedFile = files.find(function (file) {
+                    return file.size > maxAttachmentFileSize;
+                });
+
+                if (oversizedFile) {
+                    alert('上傳檔案大小不得超過4MB：' + oversizedFile.name);
+                    attachmentUploadStatus.textContent = '尚未選擇檔案';
+                    attachmentUploadInput.value = '';
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append('encodedEventId', eventIdInput ? eventIdInput.value : '');
+                files.forEach(function (file) {
+                    formData.append('attachments', file);
+                });
+
+                attachmentUploadStatus.textContent = files.length === 1
+                    ? files[0].name
+                    : '已選擇 ' + files.length + ' 個檔案';
+                attachmentUploadInput.disabled = true;
+
+                fetch(attachmentUploadUrl, {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(function (response) {
+                        return response.json()
+                            .catch(function () {
+                                return { message: '上傳附件失敗' };
+                            })
+                            .then(function (result) {
+                                if (!response.ok || !result.success) {
+                                    throw new Error(result.message || '上傳附件失敗');
+                                }
+
+                                return result;
+                            });
+                    })
+                    .then(function () {
+                        attachmentUploadStatus.textContent = '上傳附件已成功';
+                        loadAttachmentList();
+                    })
+                    .catch(function (error) {
+                        var message = error.message || '上傳附件失敗';
+                        alert(message);
+                        attachmentUploadStatus.textContent = '上傳附件失敗';
+                    })
+                    .finally(function () {
+                        attachmentUploadInput.disabled = false;
+                        attachmentUploadInput.value = '';
+                    });
+            });
+        }
+
+        function loadPhotoList() {
+            if (!photoList || !eventIdInput || !eventIdInput.value) {
+                renderPhotoList([]);
+                return;
+            }
+
+            fetch(photoListUrl + '?encodedEventId=' + encodeURIComponent(eventIdInput.value), {
+                method: 'GET'
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('照片清單讀取失敗');
+                    }
+
+                    return response.json();
+                })
+                .then(function (items) {
+                    renderPhotoList(Array.isArray(items) ? items : []);
+                })
+                .catch(function () {
+                    renderPhotoList([]);
+                });
+        }
+
+        function loadAttachmentList() {
+            if (!attachmentList || !eventIdInput || !eventIdInput.value) {
+                renderAttachmentList([]);
+                return;
+            }
+
+            fetch(attachmentListUrl + '?encodedEventId=' + encodeURIComponent(eventIdInput.value), {
+                method: 'GET'
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('附件讀取失敗');
+                    }
+
+                    return response.json();
+                })
+                .then(function (items) {
+                    renderAttachmentList(Array.isArray(items) ? items : []);
+                })
+                .catch(function () {
+                    renderAttachmentList([]);
+                });
+        }
+
+        function renderPhotoList(items) {
+            if (!photoList) {
+                return;
+            }
+
+            photoList.innerHTML = '';
+
+            if (!items || items.length === 0) {
+                photoList.classList.add('is-empty');
+                photoList.textContent = '暫無稽查資料';
+                return;
+            }
+
+            photoList.classList.remove('is-empty');
+
+            items.forEach(function (item) {
+                var extension = (item.extension || '').replace(/^\./, '').toLowerCase();
+                var fileName = item.fileName || '';
+                var displayName = fileName + (extension ? '.' + extension : '');
+                var zipFileName = item.zipFileName || '';
+
+                if (!displayName || !zipFileName) {
+                    return;
+                }
+
+                var link = document.createElement('a');
+                link.className = 'expired-food-photo-link';
+                link.href = photoPreviewUrl + '?zipFileName=' + encodeURIComponent(zipFileName);
+                link.target = '_blank';
+                link.rel = 'noopener';
+
+                var icon = document.createElement('span');
+                icon.className = 'expired-food-photo-extension';
+                icon.textContent = extension || 'IMG';
+
+                var text = document.createElement('span');
+                text.textContent = displayName;
+
+                link.appendChild(icon);
+                link.appendChild(text);
+                photoList.appendChild(link);
+            });
+
+            if (!photoList.childElementCount) {
+                photoList.classList.add('is-empty');
+                photoList.textContent = '暫無稽查資料';
+            }
+        }
+
+        function renderAttachmentList(items) {
+            if (!attachmentList) {
+                return;
+            }
+
+            attachmentList.innerHTML = '';
+
+            if (!items || items.length === 0) {
+                attachmentList.classList.add('is-empty');
+                attachmentList.textContent = '暫無稽查資料';
+                return;
+            }
+
+            attachmentList.classList.remove('is-empty');
+
+            items.forEach(function (item) {
+                var extension = (item.extension || '').replace(/^\./, '').toLowerCase();
+                var fileName = item.fileName || '';
+                var displayName = fileName + (extension ? '.' + extension : '');
+                var zipFileName = item.zipFileName || '';
+
+                if (!displayName || !zipFileName) {
+                    return;
+                }
+
+                var link = document.createElement('a');
+                link.className = 'expired-food-photo-link';
+                link.href = attachmentPreviewUrl + '?zipFileName=' + encodeURIComponent(zipFileName);
+                link.target = '_blank';
+                link.rel = 'noopener';
+
+                var icon = document.createElement('span');
+                icon.className = 'expired-food-photo-extension';
+                icon.textContent = getAttachmentThumbnailText(extension);
+
+                var text = document.createElement('span');
+                text.textContent = displayName;
+
+                link.appendChild(icon);
+                link.appendChild(text);
+                attachmentList.appendChild(link);
+            });
+
+            if (!attachmentList.childElementCount) {
+                attachmentList.classList.add('is-empty');
+                attachmentList.textContent = '暫無稽查資料';
+            }
+        }
+
+        function getAttachmentThumbnailText(extension) {
+            switch (extension) {
+                case 'pdf':
+                    return 'PDF';
+                case 'doc':
+                case 'docx':
+                    return 'DOC';
+                case 'xls':
+                case 'xlsx':
+                    return 'XLS';
+                case 'ppt':
+                case 'pptx':
+                    return 'PPT';
+                case 'jpg':
+                case 'jpeg':
+                case 'png':
+                case 'gif':
+                    return 'IMG';
+                case 'zip':
+                case 'rar':
+                case '7z':
+                    return 'ZIP';
+                case 'txt':
+                case 'csv':
+                    return 'TXT';
+                default:
+                    return extension ? extension.substring(0, 3).toUpperCase() : 'FILE';
+            }
         }
 
         function activateTab(tabName) {
@@ -681,8 +1029,10 @@
             });
         });
 
-        bindUploadHint('expiredFoodPhotoUpload');
-        bindUploadHint('expiredFoodAttachmentUpload');
+        bindPhotoUpload();
+        bindAttachmentUpload();
+        loadPhotoList();
+        loadAttachmentList();
 
         if (overlay) {
             overlay.addEventListener('click', function (event) {

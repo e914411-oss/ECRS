@@ -16,6 +16,7 @@ using ECRS_WEB.DTOs.InspectionDTO.Flist;
 using ECRS_WEB.Helpers;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.Razor;
+using System.IO.Compression;
 
 namespace CoreWebApp.Controllers
 {
@@ -26,13 +27,16 @@ namespace CoreWebApp.Controllers
         private readonly ReadECRSDTApiClient _apiECRS;
         private readonly ILogger<InspectionController> _logger;
         private readonly IRazorViewEngine _razorViewEngine;
+        private readonly IWebHostEnvironment _environment;
+        private const long MaxUploadFileSizeBytes = 4 * 1024 * 1024;
 
-        public InspectionController(ReadPMDSDTApiClient apiPMDS, ReadECRSDTApiClient apiECRS, ILogger<InspectionController> logger, IRazorViewEngine razorViewEngine)
+        public InspectionController(ReadPMDSDTApiClient apiPMDS, ReadECRSDTApiClient apiECRS, ILogger<InspectionController> logger, IRazorViewEngine razorViewEngine, IWebHostEnvironment environment)
         {
             _apiPMDS = apiPMDS;
             _apiECRS = apiECRS;
             _logger = logger;
             _razorViewEngine = razorViewEngine;
+            _environment = environment;
         }
 
         public IActionResult Index()
@@ -327,6 +331,57 @@ namespace CoreWebApp.Controllers
                 }
             }
 
+            var shouldLoadSourceDocumentInspection =
+                string.Equals(ViewBag.InspectionItemName as string, "保存來源文件", StringComparison.OrdinalIgnoreCase)
+                || partialViewNames.Any(x => x.Contains("_保存來源文件Partial", StringComparison.OrdinalIgnoreCase));
+
+            if (shouldLoadSourceDocumentInspection && int.TryParse(ViewBag.EventId as string, out var sourceDocumentEventId))
+            {
+                try
+                {
+                    ViewBag.SourceDocumentInspection = await _apiECRS.GetSourceDocumentInspection(sourceDocumentEventId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "InspectionFormContent 查詢保存來源文件稽查資料失敗，eventId={EventId}", sourceDocumentEventId);
+                    ViewBag.SourceDocumentInspection = null;
+                }
+            }
+
+            var shouldLoadHealthManagerInspection =
+                string.Equals(ViewBag.InspectionItemName as string, "衛生管理人員", StringComparison.OrdinalIgnoreCase)
+                || partialViewNames.Any(x => x.Contains("_衛生管理人員Partial", StringComparison.OrdinalIgnoreCase));
+
+            if (shouldLoadHealthManagerInspection && int.TryParse(ViewBag.EventId as string, out var healthManagerEventId))
+            {
+                try
+                {
+                    ViewBag.HealthManagerInspection = await _apiECRS.GetHealthManagerInspection(healthManagerEventId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "InspectionFormContent 查詢衛生管理人員稽查資料失敗，eventId={EventId}", healthManagerEventId);
+                    ViewBag.HealthManagerInspection = null;
+                }
+            }
+
+            var shouldLoadProfessionalLicenseInspection =
+                string.Equals(ViewBag.InspectionItemName as string, "專門職業或技術證照人員查核", StringComparison.OrdinalIgnoreCase)
+                || partialViewNames.Any(x => x.Contains("_專門職業或技術證照人員查核Partial", StringComparison.OrdinalIgnoreCase));
+
+            if (shouldLoadProfessionalLicenseInspection && int.TryParse(ViewBag.EventId as string, out var professionalLicenseEventId))
+            {
+                try
+                {
+                    ViewBag.ProfessionalLicenseInspection = await _apiECRS.GetProfessionalLicenseInspection(professionalLicenseEventId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "InspectionFormContent 讀取專門職業或技術證照人員查核稽查資料失敗，EventId={EventId}", professionalLicenseEventId);
+                    ViewBag.ProfessionalLicenseInspection = null;
+                }
+            }
+
             if (Request.Headers.XRequestedWith == "XMLHttpRequest")
             {
                 return PartialView("InspectionFormContent");
@@ -377,6 +432,508 @@ namespace CoreWebApp.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> UploadExpiredFoodPhoto([FromForm] string encodedEventId, [FromForm] IFormFile photo)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "稽查事件主鍵不可為空"
+                });
+            }
+
+            if (photo == null || photo.Length == 0)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "上傳照片失敗"
+                });
+            }
+
+            if (photo.Length > MaxUploadFileSizeBytes)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "上傳圖檔大小不得超過4MB"
+                });
+            }
+
+            var extension = Path.GetExtension(photo.FileName).ToLowerInvariant();
+            if (extension != ".jpg" && extension != ".png")
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "請上傳副檔名為 jpg 或 png 的圖檔。"
+                });
+            }
+
+            var savedZip = (ZipPath: string.Empty, ZipFileName: string.Empty);
+
+            AddInspectionEventResponse result;
+            try
+            {
+                savedZip = await SaveExpiredFoodPhotoZip(encodedEventId, photo);
+                result = await _apiECRS.UploadExpiredFoodInspectionPhoto(encodedEventId, photo, savedZip.ZipFileName);
+            }
+            catch (Exception ex)
+            {
+                DeleteFileIfExists(savedZip.ZipPath);
+                _logger.LogError(ex, "UploadExpiredFoodPhoto failed. encodedEventId={EncodedEventId}, fileName={FileName}", encodedEventId, photo.FileName);
+                var message = ex is InvalidOperationException && ex.Message == "上傳圖檔大小不得超過4MB"
+                    ? ex.Message
+                    : "上傳照片失敗";
+
+                return BadRequest(new
+                {
+                    success = false,
+                    message
+                });
+            }
+
+            if (!result.Success)
+            {
+                DeleteFileIfExists(savedZip.ZipPath);
+                return BadRequest(new
+                {
+                    success = false,
+                    message = string.IsNullOrWhiteSpace(result.Message) ? "上傳照片失敗" : result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = "上傳照片已成功",
+                zipFileName = savedZip.ZipFileName
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadExpiredFoodAttachment([FromForm] string encodedEventId, [FromForm] List<IFormFile> attachments)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "稽查事件主鍵不可為空"
+                });
+            }
+
+            if (attachments == null || attachments.Count == 0 || attachments.Any(x => x == null || x.Length == 0))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "上傳附件失敗"
+                });
+            }
+
+            var imageFile = attachments.FirstOrDefault(IsImageUploadFile);
+            if (imageFile != null)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "請選擇非圖片檔案上傳"
+                });
+            }
+
+            var oversizedFile = attachments.FirstOrDefault(x => x.Length > MaxUploadFileSizeBytes);
+            if (oversizedFile != null)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = $"上傳檔案大小不得超過4MB：{Path.GetFileName(oversizedFile.FileName)}"
+                });
+            }
+
+            var uploadedCount = 0;
+            foreach (var attachment in attachments)
+            {
+                var savedZip = (ZipPath: string.Empty, ZipFileName: string.Empty);
+
+                AddInspectionEventResponse result;
+                try
+                {
+                    savedZip = await SaveExpiredFoodAttachmentZip(encodedEventId, attachment);
+                    result = await _apiECRS.UploadExpiredFoodInspectionAttachment(encodedEventId, attachment, savedZip.ZipFileName);
+                }
+                catch (Exception ex)
+                {
+                    DeleteFileIfExists(savedZip.ZipPath);
+                    _logger.LogError(ex, "UploadExpiredFoodAttachment failed. encodedEventId={EncodedEventId}, fileName={FileName}", encodedEventId, attachment.FileName);
+                    var message = ex is InvalidOperationException && ex.Message == "上傳檔案大小不得超過4MB"
+                        ? ex.Message
+                        : "上傳附件失敗";
+
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message
+                    });
+                }
+
+                if (!result.Success)
+                {
+                    DeleteFileIfExists(savedZip.ZipPath);
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = string.IsNullOrWhiteSpace(result.Message) ? "上傳附件失敗" : result.Message
+                    });
+                }
+
+                uploadedCount++;
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = $"上傳附件已成功，共 {uploadedCount} 個"
+            });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetExpiredFoodPhotos(string encodedEventId)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return Ok(Array.Empty<InspectionUploadFileResult>());
+            }
+
+            var files = await _apiECRS.GetExpiredFoodInspectionPhotos(encodedEventId);
+            return Ok(files);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetExpiredFoodAttachments(string encodedEventId)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return Ok(Array.Empty<InspectionUploadFileResult>());
+            }
+
+            var files = await _apiECRS.GetExpiredFoodInspectionAttachments(encodedEventId);
+            return Ok(files);
+        }
+
+        [HttpGet]
+        public IActionResult PreviewExpiredFoodPhoto(string zipFileName)
+        {
+            if (string.IsNullOrWhiteSpace(zipFileName))
+            {
+                return BadRequest();
+            }
+
+            var safeZipFileName = Path.GetFileName(zipFileName);
+            if (!safeZipFileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest();
+            }
+
+            var photoDirectory = Path.Combine(_environment.ContentRootPath, "Files", "Inspection", "Photo");
+            var zipPath = Path.GetFullPath(Path.Combine(photoDirectory, safeZipFileName));
+            var photoRoot = Path.GetFullPath(photoDirectory);
+            if (!photoRoot.EndsWith(Path.DirectorySeparatorChar))
+            {
+                photoRoot += Path.DirectorySeparatorChar;
+            }
+
+            if (!zipPath.StartsWith(photoRoot, StringComparison.OrdinalIgnoreCase) || !System.IO.File.Exists(zipPath))
+            {
+                return NotFound();
+            }
+
+            using var archive = ZipFile.OpenRead(zipPath);
+            var entry = archive.Entries.FirstOrDefault(x =>
+            {
+                var extension = Path.GetExtension(x.Name).ToLowerInvariant();
+                return extension == ".jpg" || extension == ".png";
+            });
+
+            if (entry == null)
+            {
+                return NotFound();
+            }
+
+            using var entryStream = entry.Open();
+            using var imageStream = new MemoryStream();
+            entryStream.CopyTo(imageStream);
+            var imageBytes = imageStream.ToArray();
+            var contentType = Path.GetExtension(entry.Name).Equals(".png", StringComparison.OrdinalIgnoreCase)
+                ? "image/png"
+                : "image/jpeg";
+
+            return File(imageBytes, contentType);
+        }
+
+        [HttpGet]
+        public IActionResult PreviewExpiredFoodAttachment(string zipFileName)
+        {
+            if (string.IsNullOrWhiteSpace(zipFileName))
+            {
+                return BadRequest();
+            }
+
+            var safeZipFileName = Path.GetFileName(zipFileName);
+            if (!safeZipFileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest();
+            }
+
+            var attachmentDirectory = Path.Combine(_environment.ContentRootPath, "Files", "Inspection", "Attachment");
+            var zipPath = Path.GetFullPath(Path.Combine(attachmentDirectory, safeZipFileName));
+            var attachmentRoot = Path.GetFullPath(attachmentDirectory);
+            if (!attachmentRoot.EndsWith(Path.DirectorySeparatorChar))
+            {
+                attachmentRoot += Path.DirectorySeparatorChar;
+            }
+
+            if (!zipPath.StartsWith(attachmentRoot, StringComparison.OrdinalIgnoreCase) || !System.IO.File.Exists(zipPath))
+            {
+                return NotFound();
+            }
+
+            using var archive = ZipFile.OpenRead(zipPath);
+            var entry = archive.Entries.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.Name));
+            if (entry == null)
+            {
+                return NotFound();
+            }
+
+            using var entryStream = entry.Open();
+            using var fileStream = new MemoryStream();
+            entryStream.CopyTo(fileStream);
+
+            return File(fileStream.ToArray(), GetContentTypeByExtension(Path.GetExtension(entry.Name)), Path.GetFileName(entry.Name));
+        }
+
+        private IActionResult PreviewInspectionZip(string zipFileName, string directoryName, bool onlyImages)
+        {
+            if (string.IsNullOrWhiteSpace(zipFileName))
+            {
+                return BadRequest();
+            }
+
+            var safeZipFileName = Path.GetFileName(zipFileName);
+            if (!safeZipFileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest();
+            }
+
+            var uploadDirectory = Path.Combine(_environment.ContentRootPath, "Files", "Inspection", directoryName);
+            var zipPath = Path.GetFullPath(Path.Combine(uploadDirectory, safeZipFileName));
+            var uploadRoot = Path.GetFullPath(uploadDirectory);
+            if (!uploadRoot.EndsWith(Path.DirectorySeparatorChar))
+            {
+                uploadRoot += Path.DirectorySeparatorChar;
+            }
+
+            if (!zipPath.StartsWith(uploadRoot, StringComparison.OrdinalIgnoreCase) || !System.IO.File.Exists(zipPath))
+            {
+                return NotFound();
+            }
+
+            using var archive = ZipFile.OpenRead(zipPath);
+            var entry = archive.Entries.FirstOrDefault(x =>
+            {
+                if (string.IsNullOrWhiteSpace(x.Name))
+                {
+                    return false;
+                }
+
+                if (!onlyImages)
+                {
+                    return true;
+                }
+
+                var extension = Path.GetExtension(x.Name).ToLowerInvariant();
+                return extension == ".jpg" || extension == ".png";
+            });
+
+            if (entry == null)
+            {
+                return NotFound();
+            }
+
+            using var entryStream = entry.Open();
+            using var fileStream = new MemoryStream();
+            entryStream.CopyTo(fileStream);
+
+            var extensionName = Path.GetExtension(entry.Name);
+            var contentType = GetContentTypeByExtension(extensionName);
+            return onlyImages
+                ? File(fileStream.ToArray(), contentType)
+                : File(fileStream.ToArray(), contentType, Path.GetFileName(entry.Name));
+        }
+
+        private async Task<(string ZipPath, string ZipFileName)> SaveExpiredFoodPhotoZip(string encodedEventId, IFormFile photo)
+        {
+            var originalFileName = Path.GetFileName(photo.FileName);
+            var safeEventId = SanitizeFileNamePart(encodedEventId);
+            var zipFileName = $"{safeEventId}_Photo_{DateTime.Now:yyyyMMddHHmmssfff}.zip";
+
+            await using var zipStream = new MemoryStream();
+            using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
+            {
+                var entry = archive.CreateEntry(originalFileName, CompressionLevel.Optimal);
+                await using var entryStream = entry.Open();
+                await using var uploadedStream = photo.OpenReadStream();
+                await uploadedStream.CopyToAsync(entryStream);
+            }
+
+            if (zipStream.Length > MaxUploadFileSizeBytes)
+            {
+                throw new InvalidOperationException("上傳圖檔大小不得超過4MB");
+            }
+
+            var photoDirectory = Path.Combine(_environment.ContentRootPath, "Files", "Inspection", "Photo");
+            Directory.CreateDirectory(photoDirectory);
+
+            var zipPath = Path.Combine(photoDirectory, zipFileName);
+            await System.IO.File.WriteAllBytesAsync(zipPath, zipStream.ToArray());
+            return (zipPath, zipFileName);
+        }
+
+        private async Task<(string ZipPath, string ZipFileName)> SaveExpiredFoodAttachmentZip(string encodedEventId, IFormFile attachment)
+        {
+            var originalFileName = Path.GetFileName(attachment.FileName);
+            var safeEventId = SanitizeFileNamePart(encodedEventId);
+            var zipFileName = $"{safeEventId}_Attachment_{DateTime.Now:yyyyMMddHHmmssfff}.zip";
+
+            await using var zipStream = new MemoryStream();
+            using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
+            {
+                var entry = archive.CreateEntry(originalFileName, CompressionLevel.Optimal);
+                await using var entryStream = entry.Open();
+                await using var uploadedStream = attachment.OpenReadStream();
+                await uploadedStream.CopyToAsync(entryStream);
+            }
+
+            if (zipStream.Length > MaxUploadFileSizeBytes)
+            {
+                throw new InvalidOperationException("上傳檔案大小不得超過4MB");
+            }
+
+            var attachmentDirectory = Path.Combine(_environment.ContentRootPath, "Files", "Inspection", "Attachment");
+            Directory.CreateDirectory(attachmentDirectory);
+
+            var zipPath = Path.Combine(attachmentDirectory, zipFileName);
+            await System.IO.File.WriteAllBytesAsync(zipPath, zipStream.ToArray());
+            return (zipPath, zipFileName);
+        }
+
+        private Task<(string ZipPath, string ZipFileName)> SaveHealthManagerPhotoZip(string encodedEventId, IFormFile photo)
+        {
+            return SaveInspectionZip(encodedEventId, photo, "HealthManagerPhoto", "Photo", "上傳檔案大小不能超過4MB");
+        }
+
+        private Task<(string ZipPath, string ZipFileName)> SaveHealthManagerAttachmentZip(string encodedEventId, IFormFile attachment)
+        {
+            return SaveInspectionZip(encodedEventId, attachment, "HealthManagerAttachment", "Attachment", "上傳檔案大小不能超過4MB");
+        }
+
+        private Task<(string ZipPath, string ZipFileName)> SaveProfessionalLicenseAttachmentZip(string encodedEventId, IFormFile attachment)
+        {
+            return SaveInspectionZip(encodedEventId, attachment, "ProfessionalLicenseAttachment", "Attachment", "上傳檔案大小不能超過4MB");
+        }
+
+        private Task<(string ZipPath, string ZipFileName)> SaveSourceDocumentAttachmentZip(string encodedEventId, IFormFile attachment)
+        {
+            return SaveInspectionZip(encodedEventId, attachment, "SourceDocumentAttachment", "Attachment", "上傳檔案大小不能超過4MB");
+        }
+
+        private Task<(string ZipPath, string ZipFileName)> SaveSourceDocumentPhotoZip(string encodedEventId, IFormFile photo)
+        {
+            return SaveInspectionZip(encodedEventId, photo, "SourceDocumentPhoto", "Photo", "上傳檔案大小不能超過4MB");
+        }
+
+        private Task<(string ZipPath, string ZipFileName)> SaveProfessionalLicensePhotoZip(string encodedEventId, IFormFile photo)
+        {
+            return SaveInspectionZip(encodedEventId, photo, "ProfessionalLicensePhoto", "Photo", "上傳檔案大小不能超過4MB");
+        }
+
+        private async Task<(string ZipPath, string ZipFileName)> SaveInspectionZip(
+            string encodedEventId,
+            IFormFile uploadFile,
+            string zipKind,
+            string directoryName,
+            string oversizedMessage)
+        {
+            var originalFileName = Path.GetFileName(uploadFile.FileName);
+            var safeEventId = SanitizeFileNamePart(encodedEventId);
+            var zipFileName = $"{safeEventId}_{zipKind}_{DateTime.Now:yyyyMMddHHmmssfff}.zip";
+
+            await using var zipStream = new MemoryStream();
+            using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
+            {
+                var entry = archive.CreateEntry(originalFileName, CompressionLevel.Optimal);
+                await using var entryStream = entry.Open();
+                await using var uploadedStream = uploadFile.OpenReadStream();
+                await uploadedStream.CopyToAsync(entryStream);
+            }
+
+            if (zipStream.Length > MaxUploadFileSizeBytes)
+            {
+                throw new InvalidOperationException(oversizedMessage);
+            }
+
+            var uploadDirectory = Path.Combine(_environment.ContentRootPath, "Files", "Inspection", directoryName);
+            Directory.CreateDirectory(uploadDirectory);
+
+            var zipPath = Path.Combine(uploadDirectory, zipFileName);
+            await System.IO.File.WriteAllBytesAsync(zipPath, zipStream.ToArray());
+            return (zipPath, zipFileName);
+        }
+
+        private static string GetContentTypeByExtension(string extension)
+        {
+            return extension.ToLowerInvariant() switch
+            {
+                ".pdf" => "application/pdf",
+                ".txt" => "text/plain",
+                ".csv" => "text/csv",
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".gif" => "image/gif",
+                ".doc" => "application/msword",
+                ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ".xls" => "application/vnd.ms-excel",
+                ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                ".ppt" => "application/vnd.ms-powerpoint",
+                ".pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                ".zip" => "application/zip",
+                _ => "application/octet-stream"
+            };
+        }
+
+        private static string SanitizeFileNamePart(string value)
+        {
+            var invalidChars = Path.GetInvalidFileNameChars();
+            var chars = value
+                .Trim()
+                .Select(ch => invalidChars.Contains(ch) ? '_' : ch)
+                .ToArray();
+
+            var sanitized = new string(chars);
+            return string.IsNullOrWhiteSpace(sanitized) ? "Event" : sanitized;
+        }
+
+        private static void DeleteFileIfExists(string? path)
+        {
+            if (!string.IsNullOrWhiteSpace(path) && System.IO.File.Exists(path))
+            {
+                System.IO.File.Delete(path);
+            }
+        }
+
+        [HttpPost]
         public async Task<IActionResult> SaveHealthManagerInspection([FromBody] HealthManagerInspectionSaveRequest request)
         {
             if (request.EventId <= 0)
@@ -415,6 +972,414 @@ namespace CoreWebApp.Controllers
             {
                 success = true
             });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadHealthManagerPhoto([FromForm] string encodedEventId, [FromForm] IFormFile photo)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "稽查表單編號錯誤，無法上傳"
+                });
+            }
+
+            if (photo == null || photo.Length == 0)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "上傳照片失敗"
+                });
+            }
+
+            if (photo.Length > MaxUploadFileSizeBytes)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "上傳檔案大小不能超過4MB"
+                });
+            }
+
+            var extension = Path.GetExtension(photo.FileName).ToLowerInvariant();
+            if (extension != ".jpg" && extension != ".png")
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "照片格式不符，僅允許 jpg 或 png"
+                });
+            }
+
+            var savedZip = (ZipPath: string.Empty, ZipFileName: string.Empty);
+            AddInspectionEventResponse result;
+
+            try
+            {
+                savedZip = await SaveHealthManagerPhotoZip(encodedEventId, photo);
+                result = await _apiECRS.UploadHealthManagerInspectionPhoto(encodedEventId, photo, savedZip.ZipFileName);
+            }
+            catch (Exception ex)
+            {
+                DeleteFileIfExists(savedZip.ZipPath);
+                _logger.LogError(ex, "UploadHealthManagerPhoto failed. encodedEventId={EncodedEventId}, fileName={FileName}", encodedEventId, photo.FileName);
+
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex is InvalidOperationException ? ex.Message : "上傳照片失敗"
+                });
+            }
+
+            if (!result.Success)
+            {
+                DeleteFileIfExists(savedZip.ZipPath);
+                return BadRequest(new
+                {
+                    success = false,
+                    message = string.IsNullOrWhiteSpace(result.Message) ? "上傳照片失敗" : result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = "上傳照片已成功",
+                zipFileName = savedZip.ZipFileName
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadHealthManagerAttachment([FromForm] string encodedEventId, [FromForm] List<IFormFile> attachments)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "稽查表單編號錯誤，無法上傳"
+                });
+            }
+
+            if (attachments == null || attachments.Count == 0 || attachments.Any(x => x == null || x.Length == 0))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "上傳附件失敗"
+                });
+            }
+
+            var imageFile = attachments.FirstOrDefault(IsImageUploadFile);
+            if (imageFile != null)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = $"請至照片頁籤上傳圖檔：{Path.GetFileName(imageFile.FileName)}"
+                });
+            }
+
+            var oversizedFile = attachments.FirstOrDefault(x => x.Length > MaxUploadFileSizeBytes);
+            if (oversizedFile != null)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = $"上傳檔案大小不能超過4MB：{Path.GetFileName(oversizedFile.FileName)}"
+                });
+            }
+
+            var uploadedCount = 0;
+            foreach (var attachment in attachments)
+            {
+                var savedZip = (ZipPath: string.Empty, ZipFileName: string.Empty);
+                AddInspectionEventResponse result;
+
+                try
+                {
+                    savedZip = await SaveHealthManagerAttachmentZip(encodedEventId, attachment);
+                    result = await _apiECRS.UploadHealthManagerInspectionAttachment(encodedEventId, attachment, savedZip.ZipFileName);
+                }
+                catch (Exception ex)
+                {
+                    DeleteFileIfExists(savedZip.ZipPath);
+                    _logger.LogError(ex, "UploadHealthManagerAttachment failed. encodedEventId={EncodedEventId}, fileName={FileName}", encodedEventId, attachment.FileName);
+
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = ex is InvalidOperationException ? ex.Message : "上傳附件失敗"
+                    });
+                }
+
+                if (!result.Success)
+                {
+                    DeleteFileIfExists(savedZip.ZipPath);
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = string.IsNullOrWhiteSpace(result.Message) ? "上傳附件失敗" : result.Message
+                    });
+                }
+
+                uploadedCount++;
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = $"上傳附件已成功，共 {uploadedCount} 個"
+            });
+        }
+
+        private static bool IsImageUploadFile(IFormFile file)
+        {
+            var contentType = file.ContentType?.Trim().ToLowerInvariant() ?? string.Empty;
+            if (contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            return extension is ".jpg" or ".jpeg" or ".png" or ".gif" or ".bmp" or ".webp" or ".tif" or ".tiff" or ".svg" or ".heic" or ".heif";
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetHealthManagerPhotos(string encodedEventId)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return Ok(Array.Empty<InspectionUploadFileResult>());
+            }
+
+            var files = await _apiECRS.GetHealthManagerInspectionPhotos(encodedEventId);
+            return Ok(files);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetHealthManagerAttachments(string encodedEventId)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return Ok(Array.Empty<InspectionUploadFileResult>());
+            }
+
+            var files = await _apiECRS.GetHealthManagerInspectionAttachments(encodedEventId);
+            return Ok(files);
+        }
+
+        [HttpGet]
+        public IActionResult PreviewHealthManagerPhoto(string zipFileName)
+        {
+            return PreviewInspectionZip(zipFileName, "Photo", onlyImages: true);
+        }
+
+        [HttpGet]
+        public IActionResult PreviewHealthManagerAttachment(string zipFileName)
+        {
+            return PreviewInspectionZip(zipFileName, "Attachment", onlyImages: false);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadProfessionalLicensePhoto([FromForm] string encodedEventId, [FromForm] IFormFile photo)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "稽查事件主鍵錯誤，無法上傳"
+                });
+            }
+
+            if (photo == null || photo.Length == 0)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "上傳照片失敗"
+                });
+            }
+
+            if (photo.Length > MaxUploadFileSizeBytes)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "上傳檔案大小不能超過4MB"
+                });
+            }
+
+            var extension = Path.GetExtension(photo.FileName).ToLowerInvariant();
+            if (extension != ".jpg" && extension != ".png")
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "照片格式不符，僅允許 jpg 或 png"
+                });
+            }
+
+            var savedZip = (ZipPath: string.Empty, ZipFileName: string.Empty);
+            AddInspectionEventResponse result;
+
+            try
+            {
+                savedZip = await SaveProfessionalLicensePhotoZip(encodedEventId, photo);
+                result = await _apiECRS.UploadProfessionalLicenseInspectionPhoto(encodedEventId, photo, savedZip.ZipFileName);
+            }
+            catch (Exception ex)
+            {
+                DeleteFileIfExists(savedZip.ZipPath);
+                _logger.LogError(ex, "UploadProfessionalLicensePhoto failed. encodedEventId={EncodedEventId}, fileName={FileName}", encodedEventId, photo.FileName);
+
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex is InvalidOperationException ? ex.Message : "上傳照片失敗"
+                });
+            }
+
+            if (!result.Success)
+            {
+                DeleteFileIfExists(savedZip.ZipPath);
+                return BadRequest(new
+                {
+                    success = false,
+                    message = string.IsNullOrWhiteSpace(result.Message) ? "上傳照片失敗" : result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = "上傳照片已成功",
+                zipFileName = savedZip.ZipFileName
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadProfessionalLicenseAttachment([FromForm] string encodedEventId, [FromForm] List<IFormFile> attachments)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "稽查事件主鍵錯誤，無法上傳"
+                });
+            }
+
+            if (attachments == null || attachments.Count == 0 || attachments.Any(x => x == null || x.Length == 0))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "上傳附件失敗"
+                });
+            }
+
+            var imageFile = attachments.FirstOrDefault(IsImageUploadFile);
+            if (imageFile != null)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "請使用照片頁籤上傳圖片檔"
+                });
+            }
+
+            var oversizedFile = attachments.FirstOrDefault(x => x.Length > MaxUploadFileSizeBytes);
+            if (oversizedFile != null)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = $"上傳檔案大小不能超過4MB：{Path.GetFileName(oversizedFile.FileName)}"
+                });
+            }
+
+            var uploadedCount = 0;
+            foreach (var attachment in attachments)
+            {
+                var savedZip = (ZipPath: string.Empty, ZipFileName: string.Empty);
+                AddInspectionEventResponse result;
+
+                try
+                {
+                    savedZip = await SaveProfessionalLicenseAttachmentZip(encodedEventId, attachment);
+                    result = await _apiECRS.UploadProfessionalLicenseInspectionAttachment(encodedEventId, attachment, savedZip.ZipFileName);
+                }
+                catch (Exception ex)
+                {
+                    DeleteFileIfExists(savedZip.ZipPath);
+                    _logger.LogError(ex, "UploadProfessionalLicenseAttachment failed. encodedEventId={EncodedEventId}, fileName={FileName}", encodedEventId, attachment.FileName);
+
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = ex is InvalidOperationException ? ex.Message : "上傳附件失敗"
+                    });
+                }
+
+                if (!result.Success)
+                {
+                    DeleteFileIfExists(savedZip.ZipPath);
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = string.IsNullOrWhiteSpace(result.Message) ? "上傳附件失敗" : result.Message
+                    });
+                }
+
+                uploadedCount++;
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = $"上傳附件已成功，共 {uploadedCount} 個"
+            });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetProfessionalLicensePhotos(string encodedEventId)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return Ok(Array.Empty<InspectionUploadFileResult>());
+            }
+
+            var files = await _apiECRS.GetProfessionalLicenseInspectionPhotos(encodedEventId);
+            return Ok(files);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetProfessionalLicenseAttachments(string encodedEventId)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return Ok(Array.Empty<InspectionUploadFileResult>());
+            }
+
+            var files = await _apiECRS.GetProfessionalLicenseInspectionAttachments(encodedEventId);
+            return Ok(files);
+        }
+
+        [HttpGet]
+        public IActionResult PreviewProfessionalLicensePhoto(string zipFileName)
+        {
+            return PreviewInspectionZip(zipFileName, "Photo", onlyImages: true);
+        }
+
+        [HttpGet]
+        public IActionResult PreviewProfessionalLicenseAttachment(string zipFileName)
+        {
+            return PreviewInspectionZip(zipFileName, "Attachment", onlyImages: false);
         }
 
         [HttpPost]
@@ -460,6 +1425,210 @@ namespace CoreWebApp.Controllers
                 success = true,
                 message = "儲存成功"
             });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadSourceDocumentAttachment([FromForm] string encodedEventId, [FromForm] List<IFormFile> attachments)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "稽查事件主鍵不可為空"
+                });
+            }
+
+            if (attachments == null || attachments.Count == 0 || attachments.Any(x => x == null || x.Length == 0))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "上傳附件失敗"
+                });
+            }
+
+            var imageFile = attachments.FirstOrDefault(IsImageUploadFile);
+            if (imageFile != null)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = $"請至照片頁籤上傳圖檔：{Path.GetFileName(imageFile.FileName)}"
+                });
+            }
+
+            var oversizedFile = attachments.FirstOrDefault(x => x.Length > MaxUploadFileSizeBytes);
+            if (oversizedFile != null)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = $"上傳檔案大小不得超過4MB：{Path.GetFileName(oversizedFile.FileName)}"
+                });
+            }
+
+            var uploadedCount = 0;
+            foreach (var attachment in attachments)
+            {
+                var savedZip = (ZipPath: string.Empty, ZipFileName: string.Empty);
+
+                AddInspectionEventResponse result;
+                try
+                {
+                    savedZip = await SaveSourceDocumentAttachmentZip(encodedEventId, attachment);
+                    result = await _apiECRS.UploadSourceDocumentInspectionAttachment(encodedEventId, attachment, savedZip.ZipFileName);
+                }
+                catch (Exception ex)
+                {
+                    DeleteFileIfExists(savedZip.ZipPath);
+                    _logger.LogError(ex, "UploadSourceDocumentAttachment failed. encodedEventId={EncodedEventId}, fileName={FileName}", encodedEventId, attachment.FileName);
+                    var message = ex is InvalidOperationException && ex.Message == "上傳檔案大小不能超過4MB"
+                        ? ex.Message
+                        : "上傳附件失敗";
+
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message
+                    });
+                }
+
+                if (!result.Success)
+                {
+                    DeleteFileIfExists(savedZip.ZipPath);
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = string.IsNullOrWhiteSpace(result.Message) ? "上傳附件失敗" : result.Message
+                    });
+                }
+
+                uploadedCount++;
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = $"上傳附件已成功，共 {uploadedCount} 筆"
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadSourceDocumentPhoto([FromForm] string encodedEventId, [FromForm] IFormFile photo)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "稽查事件主鍵不可為空"
+                });
+            }
+
+            if (photo == null || photo.Length == 0)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "上傳照片失敗"
+                });
+            }
+
+            if (photo.Length > MaxUploadFileSizeBytes)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "上傳圖檔大小不得超過4MB"
+                });
+            }
+
+            var extension = Path.GetExtension(photo.FileName).ToLowerInvariant();
+            if (extension != ".jpg" && extension != ".png")
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "照片格式不符，僅允許 jpg 或 png"
+                });
+            }
+
+            var savedZip = (ZipPath: string.Empty, ZipFileName: string.Empty);
+
+            AddInspectionEventResponse result;
+            try
+            {
+                savedZip = await SaveSourceDocumentPhotoZip(encodedEventId, photo);
+                result = await _apiECRS.UploadSourceDocumentInspectionPhoto(encodedEventId, photo, savedZip.ZipFileName);
+            }
+            catch (Exception ex)
+            {
+                DeleteFileIfExists(savedZip.ZipPath);
+                _logger.LogError(ex, "UploadSourceDocumentPhoto failed. encodedEventId={EncodedEventId}, fileName={FileName}", encodedEventId, photo.FileName);
+                var message = ex is InvalidOperationException && ex.Message == "上傳檔案大小不能超過4MB"
+                    ? "上傳圖檔大小不得超過4MB"
+                    : "上傳照片失敗";
+
+                return BadRequest(new
+                {
+                    success = false,
+                    message
+                });
+            }
+
+            if (!result.Success)
+            {
+                DeleteFileIfExists(savedZip.ZipPath);
+                return BadRequest(new
+                {
+                    success = false,
+                    message = string.IsNullOrWhiteSpace(result.Message) ? "上傳照片失敗" : result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = "上傳照片已成功",
+                zipFileName = savedZip.ZipFileName
+            });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetSourceDocumentAttachments(string encodedEventId)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return Ok(Array.Empty<InspectionUploadFileResult>());
+            }
+
+            var files = await _apiECRS.GetSourceDocumentInspectionAttachments(encodedEventId);
+            return Ok(files);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetSourceDocumentPhotos(string encodedEventId)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return Ok(Array.Empty<InspectionUploadFileResult>());
+            }
+
+            var files = await _apiECRS.GetSourceDocumentInspectionPhotos(encodedEventId);
+            return Ok(files);
+        }
+
+        [HttpGet]
+        public IActionResult PreviewSourceDocumentAttachment(string zipFileName)
+        {
+            return PreviewInspectionZip(zipFileName, "Attachment", onlyImages: false);
+        }
+
+        [HttpGet]
+        public IActionResult PreviewSourceDocumentPhoto(string zipFileName)
+        {
+            return PreviewInspectionZip(zipFileName, "Photo", onlyImages: true);
         }
 
         [HttpPost]

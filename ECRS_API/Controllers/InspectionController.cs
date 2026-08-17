@@ -542,6 +542,242 @@ namespace ECRS_API.Controllers
             }
         }
 
+        [HttpPost("ExpiredFoodInspectionPhoto")]
+        [RequestSizeLimit(50 * 1024 * 1024)]
+        public async Task<ActionResult<AddInspectionEventResponse>> UploadExpiredFoodInspectionPhoto(
+            [FromForm] string encodedEventId,
+            [FromForm] string? createUser,
+            [FromForm] string? zipFileName,
+            [FromForm] IFormFile photo)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "稽查事件主鍵錯誤，無法上傳"
+                });
+            }
+
+            if (photo == null || photo.Length == 0)
+            {
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "上傳照片失敗"
+                });
+            }
+
+            var originalFileName = Path.GetFileName(photo.FileName);
+            var extension = Path.GetExtension(originalFileName).ToLowerInvariant();
+            if (extension != ".jpg" && extension != ".png")
+            {
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "照片格式不符，僅允許 jpg 或 png"
+                });
+            }
+
+            try
+            {
+                var uploadFile = new 稽查項目上傳檔案
+                {
+                    EventId = Truncate(encodedEventId, 50) ?? string.Empty,
+                    FileName = Truncate(Path.GetFileNameWithoutExtension(originalFileName), 50),
+                    Extension = Truncate(extension.TrimStart('.'), 5),
+                    ZipFileName = Truncate(zipFileName, 50),
+                    CreateUser = Truncate(createUser, 50),
+                    CreateDate = DateTime.Now,
+                    IsDelete = false
+                };
+
+                _ECRSdb.稽查項目上傳檔案s.Add(uploadFile);
+                await _ECRSdb.SaveChangesAsync();
+
+                return Ok(new AddInspectionEventResponse
+                {
+                    Success = true,
+                    Message = "上傳照片已成功"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UploadExpiredFoodInspectionPhoto failed. encodedEventId={EncodedEventId}, fileName={FileName}", encodedEventId, originalFileName);
+
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "上傳照片失敗",
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message ?? string.Empty
+                });
+            }
+        }
+
+        [HttpPost("ExpiredFoodInspectionAttachment")]
+        [RequestSizeLimit(50 * 1024 * 1024)]
+        public async Task<ActionResult<AddInspectionEventResponse>> UploadExpiredFoodInspectionAttachment(
+            [FromForm] string encodedEventId,
+            [FromForm] string? createUser,
+            [FromForm] string? zipFileName,
+            [FromForm] IFormFile attachment)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "稽查事件主鍵錯誤，無法上傳"
+                });
+            }
+
+            if (attachment == null || attachment.Length == 0)
+            {
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "上傳附件失敗"
+                });
+            }
+
+            var originalFileName = Path.GetFileName(attachment.FileName);
+            var extension = Path.GetExtension(originalFileName).ToLowerInvariant();
+
+            try
+            {
+                var uploadFile = new 稽查項目上傳檔案
+                {
+                    EventId = Truncate(encodedEventId, 50) ?? string.Empty,
+                    FileName = Truncate(Path.GetFileNameWithoutExtension(originalFileName), 50),
+                    Extension = Truncate(extension.TrimStart('.'), 5),
+                    ZipFileName = Truncate(zipFileName, 50),
+                    CreateUser = Truncate(createUser, 50),
+                    CreateDate = DateTime.Now,
+                    IsDelete = false
+                };
+
+                _ECRSdb.稽查項目上傳檔案s.Add(uploadFile);
+                await _ECRSdb.SaveChangesAsync();
+
+                return Ok(new AddInspectionEventResponse
+                {
+                    Success = true,
+                    Message = "上傳附件已成功"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UploadExpiredFoodInspectionAttachment failed. encodedEventId={EncodedEventId}, fileName={FileName}", encodedEventId, originalFileName);
+
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "上傳附件失敗",
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message ?? string.Empty
+                });
+            }
+        }
+
+        [HttpGet("ExpiredFoodInspectionPhotos/{encodedEventId}")]
+        public async Task<ActionResult<IEnumerable<InspectionUploadFileResult>>> GetExpiredFoodInspectionPhotos(string encodedEventId)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest("稽查事件主鍵錯誤");
+            }
+
+            var eventId = Truncate(encodedEventId, 50) ?? string.Empty;
+            var files = await _ECRSdb.稽查項目上傳檔案s
+                .AsNoTracking()
+                .Where(x => x.EventId == eventId
+                    && x.IsDelete != true
+                    && x.ZipFileName != null
+                    && x.ZipFileName.Contains("_Photo_"))
+                .OrderByDescending(x => x.CreateDate)
+                .ThenByDescending(x => x.PKey)
+                .Select(x => new InspectionUploadFileResult
+                {
+                    PKey = x.PKey,
+                    EventId = x.EventId,
+                    FileName = x.FileName ?? string.Empty,
+                    Extension = x.Extension ?? string.Empty,
+                    ZipFileName = x.ZipFileName ?? string.Empty
+                })
+                .ToListAsync();
+
+            return Ok(files);
+        }
+
+        [HttpGet("ExpiredFoodInspectionAttachments/{encodedEventId}")]
+        public async Task<ActionResult<IEnumerable<InspectionUploadFileResult>>> GetExpiredFoodInspectionAttachments(string encodedEventId)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest("稽查事件主鍵錯誤");
+            }
+
+            var eventId = Truncate(encodedEventId, 50) ?? string.Empty;
+            var files = await _ECRSdb.稽查項目上傳檔案s
+                .AsNoTracking()
+                .Where(x => x.EventId == eventId
+                    && x.IsDelete != true
+                    && x.ZipFileName != null
+                    && x.ZipFileName.Contains("_Attachment_"))
+                .OrderByDescending(x => x.CreateDate)
+                .ThenByDescending(x => x.PKey)
+                .Select(x => new InspectionUploadFileResult
+                {
+                    PKey = x.PKey,
+                    EventId = x.EventId,
+                    FileName = x.FileName ?? string.Empty,
+                    Extension = x.Extension ?? string.Empty,
+                    ZipFileName = x.ZipFileName ?? string.Empty
+                })
+                .ToListAsync();
+
+            return Ok(files);
+        }
+
+        private static string? Truncate(string? value, int maxLength)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+
+            return value.Length <= maxLength ? value : value[..maxLength];
+        }
+
+        [HttpGet("SourceDocumentInspection/{eventId:int}")]
+        public async Task<ActionResult<SourceDocumentInspectionResult>> GetSourceDocumentInspection(int eventId)
+        {
+            if (eventId <= 0)
+            {
+                return BadRequest("稽查事件主鍵錯誤");
+            }
+
+            var entity = await _ECRSdb.來源文件保存稽查_主表s
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.稽查事件主鍵 == eventId);
+
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new SourceDocumentInspectionResult
+            {
+                EventId = entity.稽查事件主鍵,
+                SourceDocumentSaved = entity.以書面或電子化保存來源文件,
+                ReceiveDateOrBatchNoSpecified = entity.載明收貨日期或批號,
+                MaterialOrProductInfoSpecified = entity.載明材料或成品之資訊,
+                SupplierInfoSpecified = entity.載明供應商資訊,
+                InspectionDescription = entity.現場稽查描述
+            });
+        }
+
         [HttpPost("SourceDocumentInspection")]
         public async Task<ActionResult<AddInspectionEventResponse>> SaveSourceDocumentInspection([FromBody] SourceDocumentInspectionSaveRequest request)
         {
@@ -619,6 +855,223 @@ namespace ECRS_API.Controllers
                     innerError = ex.InnerException?.Message ?? string.Empty
                 });
             }
+        }
+
+        [HttpPost("SourceDocumentInspectionAttachment")]
+        [RequestSizeLimit(50 * 1024 * 1024)]
+        public async Task<ActionResult<AddInspectionEventResponse>> UploadSourceDocumentInspectionAttachment(
+            [FromForm] string encodedEventId,
+            [FromForm] string? createUser,
+            [FromForm] string? zipFileName,
+            [FromForm] IFormFile attachment)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "稽查事件主鍵錯誤，無法上傳"
+                });
+            }
+
+            if (attachment == null || attachment.Length == 0)
+            {
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "上傳附件失敗"
+                });
+            }
+
+            var originalFileName = Path.GetFileName(attachment.FileName);
+            var extension = Path.GetExtension(originalFileName).ToLowerInvariant();
+
+            try
+            {
+                var uploadFile = new 稽查項目上傳檔案
+                {
+                    EventId = Truncate(encodedEventId, 50) ?? string.Empty,
+                    FileName = Truncate(Path.GetFileNameWithoutExtension(originalFileName), 50),
+                    Extension = Truncate(extension.TrimStart('.'), 5),
+                    ZipFileName = Truncate(zipFileName, 50),
+                    CreateUser = Truncate(createUser, 50),
+                    CreateDate = DateTime.Now,
+                    IsDelete = false
+                };
+
+                _ECRSdb.稽查項目上傳檔案s.Add(uploadFile);
+                await _ECRSdb.SaveChangesAsync();
+
+                return Ok(new AddInspectionEventResponse
+                {
+                    Success = true,
+                    Message = "上傳附件已成功"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UploadSourceDocumentInspectionAttachment failed. encodedEventId={EncodedEventId}, fileName={FileName}", encodedEventId, originalFileName);
+
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "上傳附件失敗",
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message ?? string.Empty
+                });
+            }
+        }
+
+        [HttpPost("SourceDocumentInspectionPhoto")]
+        [RequestSizeLimit(50 * 1024 * 1024)]
+        public async Task<ActionResult<AddInspectionEventResponse>> UploadSourceDocumentInspectionPhoto(
+            [FromForm] string encodedEventId,
+            [FromForm] string? createUser,
+            [FromForm] string? zipFileName,
+            [FromForm] IFormFile photo)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "稽查事件主鍵錯誤，無法上傳"
+                });
+            }
+
+            if (photo == null || photo.Length == 0)
+            {
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "上傳照片失敗"
+                });
+            }
+
+            var originalFileName = Path.GetFileName(photo.FileName);
+            var extension = Path.GetExtension(originalFileName).ToLowerInvariant();
+
+            try
+            {
+                var uploadFile = new 稽查項目上傳檔案
+                {
+                    EventId = Truncate(encodedEventId, 50) ?? string.Empty,
+                    FileName = Truncate(Path.GetFileNameWithoutExtension(originalFileName), 50),
+                    Extension = Truncate(extension.TrimStart('.'), 5),
+                    ZipFileName = Truncate(zipFileName, 50),
+                    CreateUser = Truncate(createUser, 50),
+                    CreateDate = DateTime.Now,
+                    IsDelete = false
+                };
+
+                _ECRSdb.稽查項目上傳檔案s.Add(uploadFile);
+                await _ECRSdb.SaveChangesAsync();
+
+                return Ok(new AddInspectionEventResponse
+                {
+                    Success = true,
+                    Message = "上傳照片已成功"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UploadSourceDocumentInspectionPhoto failed. encodedEventId={EncodedEventId}, fileName={FileName}", encodedEventId, originalFileName);
+
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "上傳照片失敗",
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message ?? string.Empty
+                });
+            }
+        }
+
+        [HttpGet("SourceDocumentInspectionAttachments/{encodedEventId}")]
+        public async Task<ActionResult<IEnumerable<InspectionUploadFileResult>>> GetSourceDocumentInspectionAttachments(string encodedEventId)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest("稽查事件主鍵錯誤");
+            }
+
+            var eventId = Truncate(encodedEventId, 50) ?? string.Empty;
+            var files = await _ECRSdb.稽查項目上傳檔案s
+                .AsNoTracking()
+                .Where(x => x.EventId == eventId
+                    && x.IsDelete != true
+                    && x.ZipFileName != null
+                    && x.ZipFileName.Contains("_SourceDocumentAttachment_"))
+                .OrderByDescending(x => x.CreateDate)
+                .ThenByDescending(x => x.PKey)
+                .Select(x => new InspectionUploadFileResult
+                {
+                    PKey = x.PKey,
+                    EventId = x.EventId,
+                    FileName = x.FileName ?? string.Empty,
+                    Extension = x.Extension ?? string.Empty,
+                    ZipFileName = x.ZipFileName ?? string.Empty
+                })
+                .ToListAsync();
+
+            return Ok(files);
+        }
+
+        [HttpGet("SourceDocumentInspectionPhotos/{encodedEventId}")]
+        public async Task<ActionResult<IEnumerable<InspectionUploadFileResult>>> GetSourceDocumentInspectionPhotos(string encodedEventId)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest("稽查事件主鍵錯誤");
+            }
+
+            var eventId = Truncate(encodedEventId, 50) ?? string.Empty;
+            var files = await _ECRSdb.稽查項目上傳檔案s
+                .AsNoTracking()
+                .Where(x => x.EventId == eventId
+                    && x.IsDelete != true
+                    && x.ZipFileName != null
+                    && x.ZipFileName.Contains("_SourceDocumentPhoto_"))
+                .OrderByDescending(x => x.CreateDate)
+                .ThenByDescending(x => x.PKey)
+                .Select(x => new InspectionUploadFileResult
+                {
+                    PKey = x.PKey,
+                    EventId = x.EventId,
+                    FileName = x.FileName ?? string.Empty,
+                    Extension = x.Extension ?? string.Empty,
+                    ZipFileName = x.ZipFileName ?? string.Empty
+                })
+                .ToListAsync();
+
+            return Ok(files);
+        }
+
+        [HttpGet("HealthManagerInspection/{eventId:int}")]
+        public async Task<ActionResult<HealthManagerInspectionResult>> GetHealthManagerInspection(int eventId)
+        {
+            if (eventId <= 0)
+            {
+                return BadRequest("稽查事件主鍵錯誤");
+            }
+
+            var entity = await _ECRSdb.衛生管理人員查核_主表s
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.稽查事件主鍵 == eventId);
+
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new HealthManagerInspectionResult
+            {
+                EventId = entity.稽查事件主鍵,
+                HasHealthManager = entity.是否有衛生管理人員,
+                NoFactoryRegistrationNotApplicable = entity.不適用原因_無工廠登記,
+                SmallScaleManufacturerNotApplicable = entity.不適用原因_未滿5人且未達3千萬,
+                InspectionDescription = entity.現場稽查描述
+            });
         }
 
         [HttpPost("HealthManagerInspection")]
@@ -730,6 +1183,431 @@ namespace ECRS_API.Controllers
                     innerError = ex.InnerException?.Message ?? string.Empty
                 });
             }
+        }
+
+        [HttpPost("HealthManagerInspectionPhoto")]
+        [RequestSizeLimit(50 * 1024 * 1024)]
+        public async Task<ActionResult<AddInspectionEventResponse>> UploadHealthManagerInspectionPhoto(
+            [FromForm] string encodedEventId,
+            [FromForm] string? createUser,
+            [FromForm] string? zipFileName,
+            [FromForm] IFormFile photo)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "稽查事件主鍵錯誤，無法上傳"
+                });
+            }
+
+            if (photo == null || photo.Length == 0)
+            {
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "上傳照片失敗"
+                });
+            }
+
+            var originalFileName = Path.GetFileName(photo.FileName);
+            var extension = Path.GetExtension(originalFileName).ToLowerInvariant();
+            if (extension != ".jpg" && extension != ".png")
+            {
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "照片格式不符，僅允許 jpg 或 png"
+                });
+            }
+
+            try
+            {
+                var uploadFile = new 稽查項目上傳檔案
+                {
+                    EventId = Truncate(encodedEventId, 50) ?? string.Empty,
+                    FileName = Truncate(Path.GetFileNameWithoutExtension(originalFileName), 50),
+                    Extension = Truncate(extension.TrimStart('.'), 5),
+                    ZipFileName = Truncate(zipFileName, 50),
+                    CreateUser = Truncate(createUser, 50),
+                    CreateDate = DateTime.Now,
+                    IsDelete = false
+                };
+
+                _ECRSdb.稽查項目上傳檔案s.Add(uploadFile);
+                await _ECRSdb.SaveChangesAsync();
+
+                return Ok(new AddInspectionEventResponse
+                {
+                    Success = true,
+                    Message = "上傳照片已成功"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UploadHealthManagerInspectionPhoto failed. encodedEventId={EncodedEventId}, fileName={FileName}", encodedEventId, originalFileName);
+
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "上傳照片失敗",
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message ?? string.Empty
+                });
+            }
+        }
+
+        [HttpPost("HealthManagerInspectionAttachment")]
+        [RequestSizeLimit(50 * 1024 * 1024)]
+        public async Task<ActionResult<AddInspectionEventResponse>> UploadHealthManagerInspectionAttachment(
+            [FromForm] string encodedEventId,
+            [FromForm] string? createUser,
+            [FromForm] string? zipFileName,
+            [FromForm] IFormFile attachment)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "稽查事件主鍵錯誤，無法上傳"
+                });
+            }
+
+            if (attachment == null || attachment.Length == 0)
+            {
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "上傳附件失敗"
+                });
+            }
+
+            var originalFileName = Path.GetFileName(attachment.FileName);
+            var extension = Path.GetExtension(originalFileName).ToLowerInvariant();
+
+            try
+            {
+                var uploadFile = new 稽查項目上傳檔案
+                {
+                    EventId = Truncate(encodedEventId, 50) ?? string.Empty,
+                    FileName = Truncate(Path.GetFileNameWithoutExtension(originalFileName), 50),
+                    Extension = Truncate(extension.TrimStart('.'), 5),
+                    ZipFileName = Truncate(zipFileName, 50),
+                    CreateUser = Truncate(createUser, 50),
+                    CreateDate = DateTime.Now,
+                    IsDelete = false
+                };
+
+                _ECRSdb.稽查項目上傳檔案s.Add(uploadFile);
+                await _ECRSdb.SaveChangesAsync();
+
+                return Ok(new AddInspectionEventResponse
+                {
+                    Success = true,
+                    Message = "上傳附件已成功"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UploadHealthManagerInspectionAttachment failed. encodedEventId={EncodedEventId}, fileName={FileName}", encodedEventId, originalFileName);
+
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "上傳附件失敗",
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message ?? string.Empty
+                });
+            }
+        }
+
+        [HttpGet("HealthManagerInspectionPhotos/{encodedEventId}")]
+        public async Task<ActionResult<IEnumerable<InspectionUploadFileResult>>> GetHealthManagerInspectionPhotos(string encodedEventId)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest("稽查事件主鍵錯誤");
+            }
+
+            var eventId = Truncate(encodedEventId, 50) ?? string.Empty;
+            var files = await _ECRSdb.稽查項目上傳檔案s
+                .AsNoTracking()
+                .Where(x => x.EventId == eventId
+                    && x.IsDelete != true
+                    && x.ZipFileName != null
+                    && x.ZipFileName.Contains("_HealthManagerPhoto_"))
+                .OrderByDescending(x => x.CreateDate)
+                .ThenByDescending(x => x.PKey)
+                .Select(x => new InspectionUploadFileResult
+                {
+                    PKey = x.PKey,
+                    EventId = x.EventId,
+                    FileName = x.FileName ?? string.Empty,
+                    Extension = x.Extension ?? string.Empty,
+                    ZipFileName = x.ZipFileName ?? string.Empty
+                })
+                .ToListAsync();
+
+            return Ok(files);
+        }
+
+        [HttpGet("HealthManagerInspectionAttachments/{encodedEventId}")]
+        public async Task<ActionResult<IEnumerable<InspectionUploadFileResult>>> GetHealthManagerInspectionAttachments(string encodedEventId)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest("稽查事件主鍵錯誤");
+            }
+
+            var eventId = Truncate(encodedEventId, 50) ?? string.Empty;
+            var files = await _ECRSdb.稽查項目上傳檔案s
+                .AsNoTracking()
+                .Where(x => x.EventId == eventId
+                    && x.IsDelete != true
+                    && x.ZipFileName != null
+                    && x.ZipFileName.Contains("_HealthManagerAttachment_"))
+                .OrderByDescending(x => x.CreateDate)
+                .ThenByDescending(x => x.PKey)
+                .Select(x => new InspectionUploadFileResult
+                {
+                    PKey = x.PKey,
+                    EventId = x.EventId,
+                    FileName = x.FileName ?? string.Empty,
+                    Extension = x.Extension ?? string.Empty,
+                    ZipFileName = x.ZipFileName ?? string.Empty
+                })
+                .ToListAsync();
+
+            return Ok(files);
+        }
+
+        [HttpPost("ProfessionalLicenseInspectionAttachment")]
+        [RequestSizeLimit(50 * 1024 * 1024)]
+        public async Task<ActionResult<AddInspectionEventResponse>> UploadProfessionalLicenseInspectionAttachment(
+            [FromForm] string encodedEventId,
+            [FromForm] string? createUser,
+            [FromForm] string? zipFileName,
+            [FromForm] IFormFile attachment)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "稽查事件主鍵錯誤，無法上傳"
+                });
+            }
+
+            if (attachment == null || attachment.Length == 0)
+            {
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "上傳附件失敗"
+                });
+            }
+
+            var originalFileName = Path.GetFileName(attachment.FileName);
+            var extension = Path.GetExtension(originalFileName).ToLowerInvariant();
+
+            try
+            {
+                var uploadFile = new ECRS_API.Models.ECRS.稽查項目上傳檔案
+                {
+                    EventId = Truncate(encodedEventId, 50) ?? string.Empty,
+                    FileName = Truncate(Path.GetFileNameWithoutExtension(originalFileName), 50),
+                    Extension = Truncate(extension.TrimStart('.'), 5),
+                    ZipFileName = Truncate(zipFileName, 50),
+                    CreateUser = Truncate(createUser, 50),
+                    CreateDate = DateTime.Now,
+                    IsDelete = false
+                };
+
+                _ECRSdb.稽查項目上傳檔案s.Add(uploadFile);
+                await _ECRSdb.SaveChangesAsync();
+
+                return Ok(new AddInspectionEventResponse
+                {
+                    Success = true,
+                    Message = "上傳附件已成功"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UploadProfessionalLicenseInspectionAttachment failed. encodedEventId={EncodedEventId}, fileName={FileName}", encodedEventId, originalFileName);
+
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "上傳附件失敗",
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message ?? string.Empty
+                });
+            }
+        }
+
+        [HttpPost("ProfessionalLicenseInspectionPhoto")]
+        [RequestSizeLimit(50 * 1024 * 1024)]
+        public async Task<ActionResult<AddInspectionEventResponse>> UploadProfessionalLicenseInspectionPhoto(
+            [FromForm] string encodedEventId,
+            [FromForm] string? createUser,
+            [FromForm] string? zipFileName,
+            [FromForm] IFormFile photo)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "稽查事件主鍵錯誤，無法上傳"
+                });
+            }
+
+            if (photo == null || photo.Length == 0)
+            {
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "上傳照片失敗"
+                });
+            }
+
+            var originalFileName = Path.GetFileName(photo.FileName);
+            var extension = Path.GetExtension(originalFileName).ToLowerInvariant();
+            if (extension != ".jpg" && extension != ".png")
+            {
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "照片格式不符，僅允許 jpg 或 png"
+                });
+            }
+
+            try
+            {
+                var uploadFile = new ECRS_API.Models.ECRS.稽查項目上傳檔案
+                {
+                    EventId = Truncate(encodedEventId, 50) ?? string.Empty,
+                    FileName = Truncate(Path.GetFileNameWithoutExtension(originalFileName), 50),
+                    Extension = Truncate(extension.TrimStart('.'), 5),
+                    ZipFileName = Truncate(zipFileName, 50),
+                    CreateUser = Truncate(createUser, 50),
+                    CreateDate = DateTime.Now,
+                    IsDelete = false
+                };
+
+                _ECRSdb.稽查項目上傳檔案s.Add(uploadFile);
+                await _ECRSdb.SaveChangesAsync();
+
+                return Ok(new AddInspectionEventResponse
+                {
+                    Success = true,
+                    Message = "上傳照片已成功"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UploadProfessionalLicenseInspectionPhoto failed. encodedEventId={EncodedEventId}, fileName={FileName}", encodedEventId, originalFileName);
+
+                return BadRequest(new AddInspectionEventResponse
+                {
+                    Success = false,
+                    Message = "上傳照片失敗",
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message ?? string.Empty
+                });
+            }
+        }
+
+        [HttpGet("ProfessionalLicenseInspectionPhotos/{encodedEventId}")]
+        public async Task<ActionResult<IEnumerable<InspectionUploadFileResult>>> GetProfessionalLicenseInspectionPhotos(string encodedEventId)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest("稽查事件主鍵錯誤");
+            }
+
+            var eventId = Truncate(encodedEventId, 50) ?? string.Empty;
+            var files = await _ECRSdb.稽查項目上傳檔案s
+                .AsNoTracking()
+                .Where(x => x.EventId == eventId
+                    && x.IsDelete != true
+                    && x.ZipFileName != null
+                    && x.ZipFileName.Contains("_ProfessionalLicensePhoto_"))
+                .OrderByDescending(x => x.CreateDate)
+                .ThenByDescending(x => x.PKey)
+                .Select(x => new InspectionUploadFileResult
+                {
+                    PKey = x.PKey,
+                    EventId = x.EventId,
+                    FileName = x.FileName ?? string.Empty,
+                    Extension = x.Extension ?? string.Empty,
+                    ZipFileName = x.ZipFileName ?? string.Empty
+                })
+                .ToListAsync();
+
+            return Ok(files);
+        }
+
+        [HttpGet("ProfessionalLicenseInspectionAttachments/{encodedEventId}")]
+        public async Task<ActionResult<IEnumerable<InspectionUploadFileResult>>> GetProfessionalLicenseInspectionAttachments(string encodedEventId)
+        {
+            if (string.IsNullOrWhiteSpace(encodedEventId))
+            {
+                return BadRequest("稽查事件主鍵錯誤");
+            }
+
+            var eventId = Truncate(encodedEventId, 50) ?? string.Empty;
+            var files = await _ECRSdb.稽查項目上傳檔案s
+                .AsNoTracking()
+                .Where(x => x.EventId == eventId
+                    && x.IsDelete != true
+                    && x.ZipFileName != null
+                    && x.ZipFileName.Contains("_ProfessionalLicenseAttachment_"))
+                .OrderByDescending(x => x.CreateDate)
+                .ThenByDescending(x => x.PKey)
+                .Select(x => new InspectionUploadFileResult
+                {
+                    PKey = x.PKey,
+                    EventId = x.EventId,
+                    FileName = x.FileName ?? string.Empty,
+                    Extension = x.Extension ?? string.Empty,
+                    ZipFileName = x.ZipFileName ?? string.Empty
+                })
+                .ToListAsync();
+
+            return Ok(files);
+        }
+
+        [HttpGet("ProfessionalLicenseInspection/{eventId:int}")]
+        public async Task<ActionResult<ProfessionalLicenseInspectionResult>> GetProfessionalLicenseInspection(int eventId)
+        {
+            if (eventId <= 0)
+            {
+                return BadRequest("稽查事件主鍵格式錯誤");
+            }
+
+            var entity = await _ECRSdb.專門職業或技術證照人員查核_主表s
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.稽查事件主鍵 == eventId);
+
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new ProfessionalLicenseInspectionResult
+            {
+                EventId = entity.稽查事件主鍵,
+                ProfessionalLicenseStatus = entity.聘用食品專職或技術證照人員,
+                TrainingStatus = entity.登錄各該人員資料及衛生講習或訓練時數,
+                NoFactoryRegistrationNotApplicable = entity.不適用原因_無工廠登記,
+                CapitalUnderThirtyMillionNotApplicable = entity.不適用原因_資本額未達3千萬,
+                FoodWorkersUnderTwentyNotApplicable = entity.不適用原因_食品從業人員未滿20人,
+                InspectionDescription = entity.現場稽查描述
+            });
         }
 
         [HttpPost("ProfessionalLicenseInspection")]

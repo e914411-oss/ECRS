@@ -26,6 +26,11 @@ public partial class ECRSDbContext : DbContext
         get; set;
     }
 
+    public virtual DbSet<稽查項目上傳檔案> 稽查項目上傳檔案s
+    {
+        get; set;
+    }
+
     public virtual DbSet<AP_User1> AP_User1s
     {
         get; set;
@@ -5373,6 +5378,21 @@ public partial class ECRSDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<稽查項目上傳檔案>(entity =>
+        {
+            entity.ToTable("稽查項目上傳檔案");
+
+            entity.HasKey(e => e.PKey).HasName("PK_稽查項目上傳檔案");
+
+            entity.Property(e => e.PKey).ValueGeneratedOnAdd();
+            entity.Property(e => e.EventId).HasMaxLength(50);
+            entity.Property(e => e.FileName).HasMaxLength(50);
+            entity.Property(e => e.Extension).HasMaxLength(5);
+            entity.Property(e => e.ZipFileName).HasMaxLength(50);
+            entity.Property(e => e.CreateUser).HasMaxLength(50);
+            entity.Property(e => e.CreateDate).HasColumnType("datetime");
+            entity.Property(e => e.DeleteDate).HasColumnType("datetime");
+        });
         // 對應 SQL Server 純量值函數 by Peter
         modelBuilder.HasDbFunction(
             typeof(ECRSDbContext).GetMethod(

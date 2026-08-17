@@ -1,11 +1,75 @@
+@using ECRS_WEB.DTOs.InspectionDTO.InspectionForms
+@{
+    var professionalLicenseInspection = ViewBag.ProfessionalLicenseInspection as ProfessionalLicenseInspectionResult;
+    var professionalLicenseStatusValue = professionalLicenseInspection?.ProfessionalLicenseStatus?.Trim().ToUpperInvariant();
+    var hasProfessionalLicenseData = professionalLicenseInspection != null
+        && (!string.IsNullOrWhiteSpace(professionalLicenseInspection.ProfessionalLicenseStatus)
+            || !string.IsNullOrWhiteSpace(professionalLicenseInspection.TrainingStatus)
+            || !string.IsNullOrWhiteSpace(professionalLicenseInspection.InspectionDescription));
+    var isProfessionalLicenseQualified = string.Equals(professionalLicenseStatusValue, "1", StringComparison.OrdinalIgnoreCase);
+    var isProfessionalLicenseNotApplicable = string.Equals(professionalLicenseStatusValue, "3", StringComparison.OrdinalIgnoreCase);
+    var trainingStatusValue = professionalLicenseInspection?.TrainingStatus?.Trim().ToUpperInvariant();
+    var showNoFactoryRegistrationReason = isProfessionalLicenseNotApplicable
+        && string.Equals(professionalLicenseInspection?.NoFactoryRegistrationNotApplicable?.Trim(), "Y", StringComparison.OrdinalIgnoreCase);
+    var showCapitalUnderThirtyMillionReason = isProfessionalLicenseNotApplicable
+        && string.Equals(professionalLicenseInspection?.CapitalUnderThirtyMillionNotApplicable?.Trim(), "Y", StringComparison.OrdinalIgnoreCase);
+    var showFoodWorkersUnderTwentyReason = isProfessionalLicenseNotApplicable
+        && string.Equals(professionalLicenseInspection?.FoodWorkersUnderTwentyNotApplicable?.Trim(), "Y", StringComparison.OrdinalIgnoreCase);
+    var professionalLicenseStatusDisplay = professionalLicenseStatusValue switch
+    {
+        "1" => "符合",
+        "2" => "不符合",
+        "3" => "不適用",
+        var value => value ?? string.Empty
+    };
+    var trainingStatusDisplay = trainingStatusValue switch
+    {
+        "Y" => "符合",
+        "N" => "不符合",
+        var value => value ?? string.Empty
+    };
+}
+
 <div class="expired-food-page professional-license-page">
     <input type="hidden" id="professionalLicenseEventId" value="@((ViewBag.EventId as string) ?? string.Empty)" />
 
-    <div class="expired-food-tabs" role="tablist" aria-label="保存來源文件頁籤">
-        <div class="expired-food-tab active" role="tab" aria-selected="true">稽查內容</div>
-        <div class="expired-food-tab" role="tab" aria-selected="false">照片</div>
-        <div class="expired-food-tab" role="tab" aria-selected="false">附件</div>
+    <div class="expired-food-tabs" role="tablist" aria-label="專門職業或技術證照人員查核頁籤">
+        <button type="button" class="expired-food-tab active" role="tab" aria-selected="true" aria-controls="professionalLicenseContentPanel" data-professional-license-tab="content">稽查內容</button>
+        <button type="button" class="expired-food-tab" role="tab" aria-selected="false" aria-controls="professionalLicensePhotoPanel" data-professional-license-tab="photo">照片</button>
+        <button type="button" class="expired-food-tab" role="tab" aria-selected="false" aria-controls="professionalLicenseAttachmentPanel" data-professional-license-tab="attachment">附件</button>
     </div>
+
+    <div id="professionalLicenseContentPanel" class="expired-food-tab-panel active" role="tabpanel">
+    @if (hasProfessionalLicenseData)
+    {
+        <div class="expired-food-no-data expired-food-result-text">
+            <div>聘用食品專職或技術證照人員：@professionalLicenseStatusDisplay</div>
+            @if (isProfessionalLicenseQualified)
+            {
+                <div>登錄各該人員資料及衛生講習或訓練時數：@trainingStatusDisplay</div>
+            }
+            @if (isProfessionalLicenseNotApplicable)
+            {
+                @if (showNoFactoryRegistrationReason)
+                {
+                    <div>無工廠登記</div>
+                }
+                @if (showCapitalUnderThirtyMillionReason)
+                {
+                    <div>資本額未達3千萬</div>
+                }
+                @if (showFoodWorkersUnderTwentyReason)
+                {
+                    <div>食品從業人員未滿20人</div>
+                }
+            }
+            <div>現場稽查描述：@(professionalLicenseInspection?.InspectionDescription ?? string.Empty)</div>
+        </div>
+    }
+    else
+    {
+        <div class="expired-food-no-data">暫無稽查資料</div>
+    }
 
     <fieldset class="expired-food-section">
         <legend>稽查情形</legend>
@@ -75,10 +139,28 @@
             </div>
         </div>
     </fieldset>
+        <div class="expired-food-actions">
+            <button type="button" class="btn btn-success" id="btnCancelProfessionalLicense" onclick="window.history.go(-1);">取消並返回</button>
+            <button type="button" class="btn btn-success" id="btnSaveProfessionalLicense">儲存並離開</button>
+        </div>
+    </div>
 
-    <div class="expired-food-actions">
-        <button type="button" class="btn btn-success" id="btnCancelProfessionalLicense" onclick="window.history.go(-1);">取消並返回</button>
-        <button type="button" class="btn btn-success" id="btnSaveProfessionalLicense">儲存並離開</button>
+    <div id="professionalLicensePhotoPanel" class="expired-food-tab-panel" role="tabpanel" hidden>
+        <div id="professionalLicensePhotoList" class="expired-food-no-data expired-food-photo-list">暫無稽查資料</div>
+        <div class="expired-food-upload-panel">
+            <label class="btn btn-sm expired-food-upload-btn" for="professionalLicensePhotoUpload">上傳照片</label>
+            <input id="professionalLicensePhotoUpload" class="expired-food-upload-input" type="file" accept=".jpg,.png" />
+            <span id="professionalLicensePhotoUploadStatus" class="expired-food-upload-hint">尚未選擇檔案</span>
+        </div>
+    </div>
+
+    <div id="professionalLicenseAttachmentPanel" class="expired-food-tab-panel" role="tabpanel" hidden>
+        <div id="professionalLicenseAttachmentList" class="expired-food-no-data expired-food-photo-list">暫無稽查資料</div>
+        <div class="expired-food-upload-panel">
+            <label class="btn btn-sm expired-food-upload-btn" for="professionalLicenseAttachmentUpload">上傳附件</label>
+            <input id="professionalLicenseAttachmentUpload" class="expired-food-upload-input" type="file" multiple />
+            <span id="professionalLicenseAttachmentUploadStatus" class="expired-food-upload-hint">尚未選擇檔案</span>
+        </div>
     </div>
 </div>
 
@@ -202,6 +284,113 @@
 
     .professional-license-description-row .expired-food-description {
         min-height: 58px;
+    }
+
+    .expired-food-tab-panel {
+        display: none;
+    }
+
+    .expired-food-tab-panel.active {
+        display: block;
+    }
+
+    .professional-license-page .expired-food-tabs {
+        border-color: #d9e5dc;
+    }
+
+    .professional-license-page .expired-food-tab {
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        outline: 0;
+    }
+
+    .professional-license-page .expired-food-tab:focus {
+        box-shadow: none;
+        outline: 0;
+    }
+
+    .expired-food-photo-list {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        text-align: left;
+    }
+
+    .expired-food-photo-list.is-empty {
+        align-items: center;
+        text-align: center;
+    }
+
+    .expired-food-photo-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #166534;
+        font-size: 16px;
+        line-height: 1.35;
+        text-decoration: underline;
+        word-break: break-all;
+    }
+
+    .expired-food-photo-extension {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 30px;
+        height: 18px;
+        padding: 0 4px;
+        border: 1px solid #8ccf9a;
+        border-radius: 2px;
+        background: #f0fff4;
+        color: #218544;
+        font-size: 11px;
+        line-height: 18px;
+        text-transform: uppercase;
+    }
+
+    .expired-food-upload-panel {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 112px;
+        margin: 0 0 22px;
+        padding: 28px 24px;
+        border: 1px solid #d9e5dc;
+        border-radius: 6px;
+        background: #fff;
+    }
+
+    .expired-food-upload-btn,
+    .expired-food-upload-btn:hover,
+    .expired-food-upload-btn:focus {
+        min-width: 92px;
+        border: 1px solid #7ecb8a;
+        background: #fff;
+        color: #2aa84a;
+        box-shadow: none;
+    }
+
+    .expired-food-upload-btn:hover {
+        border-color: #2f9e44;
+        background: #f3fff6;
+        color: #20883a;
+    }
+
+    .expired-food-upload-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+    }
+
+    .expired-food-upload-hint {
+        color: #666;
+        font-size: 15px;
     }
 
     .expired-food-template-overlay {
@@ -442,6 +631,25 @@
         var foodWorkersUnderTwenty = document.getElementById('chkProfessionalLicenseFoodWorkersUnderTwenty');
         var nonRegulatedBusiness = document.getElementById('chkProfessionalLicenseNonRegulatedBusiness');
         var saveUrl = '@Url.Action("SaveProfessionalLicenseInspection", "Inspection")';
+        var photoUploadUrl = '@Url.Action("UploadProfessionalLicensePhoto", "Inspection")';
+        var photoListUrl = '@Url.Action("GetProfessionalLicensePhotos", "Inspection")';
+        var photoPreviewUrl = '@Url.Action("PreviewProfessionalLicensePhoto", "Inspection")';
+        var attachmentUploadUrl = '@Url.Action("UploadProfessionalLicenseAttachment", "Inspection")';
+        var attachmentListUrl = '@Url.Action("GetProfessionalLicenseAttachments", "Inspection")';
+        var attachmentPreviewUrl = '@Url.Action("PreviewProfessionalLicenseAttachment", "Inspection")';
+        var photoUploadInput = document.getElementById('professionalLicensePhotoUpload');
+        var photoUploadStatus = document.getElementById('professionalLicensePhotoUploadStatus');
+        var photoList = document.getElementById('professionalLicensePhotoList');
+        var attachmentUploadInput = document.getElementById('professionalLicenseAttachmentUpload');
+        var attachmentUploadStatus = document.getElementById('professionalLicenseAttachmentUploadStatus');
+        var attachmentList = document.getElementById('professionalLicenseAttachmentList');
+        var maxUploadFileSize = 4 * 1024 * 1024;
+        var tabButtons = Array.prototype.slice.call(document.querySelectorAll('[data-professional-license-tab]'));
+        var tabPanels = {
+            content: document.getElementById('professionalLicenseContentPanel'),
+            photo: document.getElementById('professionalLicensePhotoPanel'),
+            attachment: document.getElementById('professionalLicenseAttachmentPanel')
+        };
         var shouldGoBackAfterSaveResult = false;
 
         function clearTrainingStatus() {
@@ -565,6 +773,333 @@
             }
         }
 
+        function activateTab(tabName) {
+            tabButtons.forEach(function (button) {
+                var isActive = button.getAttribute('data-professional-license-tab') === tabName;
+                button.classList.toggle('active', isActive);
+                button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+
+            Object.keys(tabPanels).forEach(function (key) {
+                var panel = tabPanels[key];
+                if (!panel) {
+                    return;
+                }
+
+                var isActive = key === tabName;
+                panel.classList.toggle('active', isActive);
+                panel.hidden = !isActive;
+            });
+        }
+
+        function bindAttachmentUpload() {
+            if (!attachmentUploadInput || !attachmentUploadStatus) {
+                return;
+            }
+
+            attachmentUploadInput.addEventListener('change', function () {
+                if (!attachmentUploadInput.files || attachmentUploadInput.files.length === 0) {
+                    attachmentUploadStatus.textContent = '尚未選擇檔案';
+                    return;
+                }
+
+                var files = Array.prototype.slice.call(attachmentUploadInput.files);
+                var oversizedFile = files.find(function (file) {
+                    return file.size > maxUploadFileSize;
+                });
+
+                if (oversizedFile) {
+                    alert('上傳檔案大小不能超過4MB：' + oversizedFile.name);
+                    attachmentUploadStatus.textContent = '尚未選擇檔案';
+                    attachmentUploadInput.value = '';
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append('encodedEventId', eventIdInput ? eventIdInput.value : '');
+                files.forEach(function (file) {
+                    formData.append('attachments', file);
+                });
+
+                attachmentUploadStatus.textContent = files.length === 1
+                    ? files[0].name
+                    : '已選擇 ' + files.length + ' 個檔案';
+                attachmentUploadInput.disabled = true;
+
+                fetch(attachmentUploadUrl, {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(function (response) {
+                        return response.json()
+                            .catch(function () {
+                                return { message: '上傳附件失敗' };
+                            })
+                            .then(function (result) {
+                                if (!response.ok || !result.success) {
+                                    throw new Error(result.message || '上傳附件失敗');
+                                }
+
+                                return result;
+                            });
+                    })
+                    .then(function () {
+                        attachmentUploadStatus.textContent = '上傳附件已成功';
+                        loadAttachmentList();
+                    })
+                    .catch(function (error) {
+                        alert(error.message || '上傳附件失敗');
+                        attachmentUploadStatus.textContent = '上傳附件失敗';
+                    })
+                    .finally(function () {
+                        attachmentUploadInput.disabled = false;
+                        attachmentUploadInput.value = '';
+                    });
+            });
+        }
+
+        function bindPhotoUpload() {
+            if (!photoUploadInput || !photoUploadStatus) {
+                return;
+            }
+
+            photoUploadInput.addEventListener('change', function () {
+                if (!photoUploadInput.files || photoUploadInput.files.length === 0) {
+                    photoUploadStatus.textContent = '尚未選擇檔案';
+                    return;
+                }
+
+                var file = photoUploadInput.files[0];
+                var extension = (file.name.split('.').pop() || '').toLowerCase();
+                if (extension !== 'jpg' && extension !== 'png') {
+                    alert('照片格式不符，僅允許 jpg 或 png');
+                    photoUploadStatus.textContent = '尚未選擇檔案';
+                    photoUploadInput.value = '';
+                    return;
+                }
+
+                if (file.size > maxUploadFileSize) {
+                    alert('上傳檔案大小不能超過4MB：' + file.name);
+                    photoUploadStatus.textContent = '尚未選擇檔案';
+                    photoUploadInput.value = '';
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append('encodedEventId', eventIdInput ? eventIdInput.value : '');
+                formData.append('photo', file);
+
+                photoUploadStatus.textContent = file.name;
+                photoUploadInput.disabled = true;
+
+                fetch(photoUploadUrl, {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(function (response) {
+                        return response.json()
+                            .catch(function () {
+                                return { message: '上傳照片失敗' };
+                            })
+                            .then(function (result) {
+                                if (!response.ok || !result.success) {
+                                    throw new Error(result.message || '上傳照片失敗');
+                                }
+
+                                return result;
+                            });
+                    })
+                    .then(function () {
+                        photoUploadStatus.textContent = '上傳照片已成功';
+                        loadPhotoList();
+                    })
+                    .catch(function (error) {
+                        alert(error.message || '上傳照片失敗');
+                        photoUploadStatus.textContent = '上傳照片失敗';
+                    })
+                    .finally(function () {
+                        photoUploadInput.disabled = false;
+                        photoUploadInput.value = '';
+                    });
+            });
+        }
+
+        function loadPhotoList() {
+            if (!photoList || !eventIdInput || !eventIdInput.value) {
+                renderPhotoList([]);
+                return;
+            }
+
+            fetch(photoListUrl + '?encodedEventId=' + encodeURIComponent(eventIdInput.value), {
+                method: 'GET'
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('照片讀取失敗');
+                    }
+
+                    return response.json();
+                })
+                .then(function (items) {
+                    renderPhotoList(Array.isArray(items) ? items : []);
+                })
+                .catch(function () {
+                    renderPhotoList([]);
+                });
+        }
+
+        function renderPhotoList(items) {
+            if (!photoList) {
+                return;
+            }
+
+            photoList.innerHTML = '';
+
+            if (!items || items.length === 0) {
+                photoList.classList.add('is-empty');
+                photoList.textContent = '暫無稽查資料';
+                return;
+            }
+
+            photoList.classList.remove('is-empty');
+
+            items.forEach(function (item) {
+                var extension = (item.extension || '').replace(/^\./, '').toLowerCase();
+                var fileName = item.fileName || '';
+                var displayName = fileName + (extension ? '.' + extension : '');
+                var zipFileName = item.zipFileName || '';
+
+                if (!displayName || !zipFileName) {
+                    return;
+                }
+
+                var link = document.createElement('a');
+                link.className = 'expired-food-photo-link';
+                link.href = photoPreviewUrl + '?zipFileName=' + encodeURIComponent(zipFileName);
+                link.target = '_blank';
+                link.rel = 'noopener';
+
+                var icon = document.createElement('span');
+                icon.className = 'expired-food-photo-extension';
+                icon.textContent = extension || 'IMG';
+
+                var text = document.createElement('span');
+                text.textContent = displayName;
+
+                link.appendChild(icon);
+                link.appendChild(text);
+                photoList.appendChild(link);
+            });
+
+            if (!photoList.childElementCount) {
+                photoList.classList.add('is-empty');
+                photoList.textContent = '暫無稽查資料';
+            }
+        }
+
+        function loadAttachmentList() {
+            if (!attachmentList || !eventIdInput || !eventIdInput.value) {
+                renderAttachmentList([]);
+                return;
+            }
+
+            fetch(attachmentListUrl + '?encodedEventId=' + encodeURIComponent(eventIdInput.value), {
+                method: 'GET'
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('附件讀取失敗');
+                    }
+
+                    return response.json();
+                })
+                .then(function (items) {
+                    renderAttachmentList(Array.isArray(items) ? items : []);
+                })
+                .catch(function () {
+                    renderAttachmentList([]);
+                });
+        }
+
+        function renderAttachmentList(items) {
+            if (!attachmentList) {
+                return;
+            }
+
+            attachmentList.innerHTML = '';
+
+            if (!items || items.length === 0) {
+                attachmentList.classList.add('is-empty');
+                attachmentList.textContent = '暫無稽查資料';
+                return;
+            }
+
+            attachmentList.classList.remove('is-empty');
+
+            items.forEach(function (item) {
+                var extension = (item.extension || '').replace(/^\./, '').toLowerCase();
+                var fileName = item.fileName || '';
+                var displayName = fileName + (extension ? '.' + extension : '');
+                var zipFileName = item.zipFileName || '';
+
+                if (!displayName || !zipFileName) {
+                    return;
+                }
+
+                var link = document.createElement('a');
+                link.className = 'expired-food-photo-link';
+                link.href = attachmentPreviewUrl + '?zipFileName=' + encodeURIComponent(zipFileName);
+                link.target = '_blank';
+                link.rel = 'noopener';
+
+                var icon = document.createElement('span');
+                icon.className = 'expired-food-photo-extension';
+                icon.textContent = getAttachmentThumbnailText(extension);
+
+                var text = document.createElement('span');
+                text.textContent = displayName;
+
+                link.appendChild(icon);
+                link.appendChild(text);
+                attachmentList.appendChild(link);
+            });
+
+            if (!attachmentList.childElementCount) {
+                attachmentList.classList.add('is-empty');
+                attachmentList.textContent = '暫無稽查資料';
+            }
+        }
+
+        function getAttachmentThumbnailText(extension) {
+            switch (extension) {
+                case 'pdf':
+                    return 'PDF';
+                case 'doc':
+                case 'docx':
+                    return 'DOC';
+                case 'xls':
+                case 'xlsx':
+                    return 'XLS';
+                case 'ppt':
+                case 'pptx':
+                    return 'PPT';
+                case 'jpg':
+                case 'jpeg':
+                case 'png':
+                case 'gif':
+                    return 'IMG';
+                case 'zip':
+                case 'rar':
+                case '7z':
+                    return 'ZIP';
+                case 'txt':
+                case 'csv':
+                    return 'TXT';
+                default:
+                    return extension ? extension.substring(0, 3).toUpperCase() : 'FILE';
+            }
+        }
+
         if (templateButton) {
             templateButton.addEventListener('click', openTemplateDialog);
         }
@@ -588,6 +1123,12 @@
         if (saveResultOkButton) {
             saveResultOkButton.addEventListener('click', closeSaveResult);
         }
+
+        tabButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                activateTab(button.getAttribute('data-professional-license-tab'));
+            });
+        });
 
         if (saveButton) {
             saveButton.addEventListener('click', function () {
@@ -676,5 +1217,11 @@
         } else {
             updateConditionalPanels();
         }
+
+        bindPhotoUpload();
+        bindAttachmentUpload();
+        loadPhotoList();
+        loadAttachmentList();
     })();
 </script>
+
