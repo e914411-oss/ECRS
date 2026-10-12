@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration.Json;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Text;
@@ -19,6 +20,23 @@ var logger = LogManager.Setup().LoadConfigurationFromFile("nlog.config", optiona
 try
 {
     var builder = WebApplication.CreateBuilder(args);
+
+    // 只使用 appsettings.json，避免輸出目錄中舊的環境設定覆蓋連線字串。
+    for (var i = builder.Configuration.Sources.Count - 1; i >= 0; i--)
+    {
+        if (builder.Configuration.Sources[i] is JsonConfigurationSource source &&
+            source.Path is { } path &&
+            path.StartsWith("appsettings.", StringComparison.OrdinalIgnoreCase) &&
+            !path.Equals("appsettings.json", StringComparison.OrdinalIgnoreCase) &&
+            path.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+        {
+            builder.Configuration.Sources.RemoveAt(i);
+        }
+    }
+
+    // 對 appsettings.json 中的設定值，以此檔案為最終來源。
+    builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
 
@@ -35,15 +53,6 @@ try
         options.Filters.Add(new AuthorizeFilter(policy));
     });
 
-    //builder.Services.AddControllers();
-    //把虛擬路徑統一為單一名稱，完了後面再接調用功能的名稱，例如 MyApi/Hello
-    //builder.Services.AddControllers(
-    //    options =>
-    //    {
-    //        options.Conventions.Insert(0, new GlobalRoutePrefixConvention("PMDSAPI"));
-    //    }
-    //);
-
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
 
@@ -57,26 +66,22 @@ try
         c.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
     });
 
-    // EF Core
-    //builder.Services.AddDbContext<PMDSDbContext>(opt =>
-    //    opt.UseSqlServer(builder.Configuration.GetConnectionString("PMDS")));
-    //builder.Services.AddDbContext<ECRSDbContext>(opt =>
-    //    opt.UseSqlServer(builder.Configuration.GetConnectionString("ECRS")));
-
+    // EF Core：ECRS、PMDS 使用相容舊版 SQL Server 的 SQL，
+    // 避免 EF Core 8 將清單 Contains 轉譯為 OPENJSON（需相容性層級 130 以上）。
     builder.Services.AddDbContext<PMDSDbContext>(opt =>
-    opt.UseSqlServer(
-        builder.Configuration.GetConnectionString("PMDS"),
-        sqlOptions => sqlOptions.UseCompatibilityLevel(120)
-    ));
+        opt.UseSqlServer(
+            builder.Configuration.GetConnectionString("PMDS"),
+            sqlOptions => sqlOptions.UseCompatibilityLevel(120)));
 
     builder.Services.AddDbContext<ECRSDbContext>(opt =>
         opt.UseSqlServer(
             builder.Configuration.GetConnectionString("ECRS"),
-            sqlOptions => sqlOptions.UseCompatibilityLevel(120)
-        ));
+            sqlOptions => sqlOptions.UseCompatibilityLevel(120)));
 
     builder.Services.AddDbContext<ISMSDbContext>(opt =>
-        opt.UseSqlServer(builder.Configuration.GetConnectionString("ISMS")));
+        opt.UseSqlServer(
+            builder.Configuration.GetConnectionString("ISMS"),
+            sqlOptions => sqlOptions.UseCompatibilityLevel(120)));
 
 
     // JWT options + service

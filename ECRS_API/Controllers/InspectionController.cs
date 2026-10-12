@@ -548,7 +548,7 @@ namespace ECRS_API.Controllers
             [FromForm] string encodedEventId,
             [FromForm] string? createUser,
             [FromForm] string? zipFileName,
-            [FromForm] IFormFile photo)
+            IFormFile photo)
         {
             if (string.IsNullOrWhiteSpace(encodedEventId))
             {
@@ -621,7 +621,7 @@ namespace ECRS_API.Controllers
             [FromForm] string encodedEventId,
             [FromForm] string? createUser,
             [FromForm] string? zipFileName,
-            [FromForm] IFormFile attachment)
+            IFormFile attachment)
         {
             if (string.IsNullOrWhiteSpace(encodedEventId))
             {
@@ -863,7 +863,7 @@ namespace ECRS_API.Controllers
             [FromForm] string encodedEventId,
             [FromForm] string? createUser,
             [FromForm] string? zipFileName,
-            [FromForm] IFormFile attachment)
+            IFormFile attachment)
         {
             if (string.IsNullOrWhiteSpace(encodedEventId))
             {
@@ -928,7 +928,7 @@ namespace ECRS_API.Controllers
             [FromForm] string encodedEventId,
             [FromForm] string? createUser,
             [FromForm] string? zipFileName,
-            [FromForm] IFormFile photo)
+            IFormFile photo)
         {
             if (string.IsNullOrWhiteSpace(encodedEventId))
             {
@@ -1191,7 +1191,7 @@ namespace ECRS_API.Controllers
             [FromForm] string encodedEventId,
             [FromForm] string? createUser,
             [FromForm] string? zipFileName,
-            [FromForm] IFormFile photo)
+            IFormFile photo)
         {
             if (string.IsNullOrWhiteSpace(encodedEventId))
             {
@@ -1264,7 +1264,7 @@ namespace ECRS_API.Controllers
             [FromForm] string encodedEventId,
             [FromForm] string? createUser,
             [FromForm] string? zipFileName,
-            [FromForm] IFormFile attachment)
+            IFormFile attachment)
         {
             if (string.IsNullOrWhiteSpace(encodedEventId))
             {
@@ -1389,7 +1389,7 @@ namespace ECRS_API.Controllers
             [FromForm] string encodedEventId,
             [FromForm] string? createUser,
             [FromForm] string? zipFileName,
-            [FromForm] IFormFile attachment)
+            IFormFile attachment)
         {
             if (string.IsNullOrWhiteSpace(encodedEventId))
             {
@@ -1454,7 +1454,7 @@ namespace ECRS_API.Controllers
             [FromForm] string encodedEventId,
             [FromForm] string? createUser,
             [FromForm] string? zipFileName,
-            [FromForm] IFormFile photo)
+            IFormFile photo)
         {
             if (string.IsNullOrWhiteSpace(encodedEventId))
             {
